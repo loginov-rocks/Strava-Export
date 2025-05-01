@@ -25,12 +25,10 @@ export class StravaApi {
       method: 'post',
     });
 
-    const json = await response.json();
-
-    if (json.error) {
-      throw json.error;
+    if (!response.ok) {
+      throw new Error;
     }
 
-    return json;
+    return response.json();
   }
 }

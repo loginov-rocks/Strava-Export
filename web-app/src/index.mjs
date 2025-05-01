@@ -15,6 +15,8 @@ window.addEventListener('load', async () => {
     baseUrl: API_BASE_URL,
   });
 
+  api.restoreAuthData();
+
   document.getElementById('authorize').addEventListener('click', async () => {
     let clientCredentials;
     try {
@@ -34,6 +36,18 @@ window.addEventListener('load', async () => {
     stravaApi.authorize();
   });
 
+  document.getElementById('logout').addEventListener('click', () => {
+    api.removeAuthData();
+  });
+
+  document.getElementById('sync').addEventListener('click', async () => {
+    try {
+      await api.stravaSync();
+    } catch (error) {
+      alert(error);
+    }
+  });
+
   interceptAuthCode(async (authCode) => {
     let authData;
     try {
@@ -44,6 +58,6 @@ window.addEventListener('load', async () => {
       return;
     }
 
-    console.log(authData);
+    api.setAuthData(authData);
   });
 });

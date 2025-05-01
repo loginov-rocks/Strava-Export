@@ -4,6 +4,7 @@ import express from 'express';
 
 import { PORT, STRAVA_API_BASE_URL, STRAVA_API_CLIENT_ID, STRAVA_API_CLIENT_SECRET, WEB_APP_URL } from './constants.mjs';
 import { StravaApi } from './stravaApi.mjs';
+import { SyncService } from './syncService.mjs';
 
 const app = express();
 
@@ -19,8 +20,10 @@ const stravaApi = new StravaApi({
   clientSecret: STRAVA_API_CLIENT_SECRET,
 });
 
+const syncService = new SyncService();
+
 app.get('/auth/client-credentials', (req, res) => {
-  res.send({
+  return res.send({
     clientId: STRAVA_API_CLIENT_ID,
   });
 });
@@ -28,9 +31,49 @@ app.get('/auth/client-credentials', (req, res) => {
 app.post('/auth/exchange-code', async (req, res) => {
   const { code } = req.body;
 
-  const tokenResponse = await stravaApi.token(code);
+  let tokenResponse;
+  try {
+    tokenResponse = await stravaApi.token(code);
+  } catch (error) {
+    console.error(error);
+
+    return res.status(401).send({ message: 'Unauthorized' });
+  }
 
   return res.send(tokenResponse);
+});
+
+app.post('/strava/sync', async (req, res) => {
+  const authHeader = req.headers['authorization'];
+  
+  if (!authHeader) {
+    return res.status(401).send({ message: 'Unauthorized' });
+  }
+
+  const token = authHeader.split(' ')[1];
+  
+  if (!token) {
+    return res.status(401).send({ message: 'Unauthorized' });
+  }
+
+  const { athleteId } = req.body;
+
+  if (!athleteId) {
+    return res.status(404).send({ message: 'Bad Request' });
+  }
+
+  const job = await syncService.findJob({ athleteId });
+
+  if (job && job.status === 'created') {
+    syncService.startJob(job.id);
+  }
+
+  if (!job) {
+    const jobId = await syncService.createJob(athleteId, token);
+    syncService.startJob(jobId);
+  }
+
+  return res.status(201).send();
 });
 
 app.listen(PORT, () => {

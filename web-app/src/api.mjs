@@ -3,17 +3,34 @@ export class Api {
     this.baseUrl = baseUrl;
   }
 
+  restoreAuthData() {
+    const jsonAuthData = window.localStorage.getItem('authData');
+
+    if (jsonAuthData) {
+      this.authData = JSON.parse(jsonAuthData);
+    }
+  }
+
+  setAuthData(authData) {
+    this.authData = authData;
+    window.localStorage.setItem('authData', JSON.stringify(authData));
+  }
+
+  removeAuthData() {
+    this.authData = null;
+    window.localStorage.removeItem('authData');
+  }
+
   async authClientCredentials() {
     const url = `${this.baseUrl}/auth/client-credentials`;
 
     const response = await fetch(url);
-    const json = await response.json();
 
-    if (json.error) {
-      throw json.error;
+    if (!response.ok) {
+      throw new Error;
     }
 
-    return json;
+    return response.json();
   }
 
   async authExchangeCode(code) {
@@ -29,12 +46,43 @@ export class Api {
       method: 'post',
     });
 
-    const json = await response.json();
-
-    if (json.error) {
-      throw json.error;
+    if (!response.ok) {
+      throw new Error;
     }
 
-    return json;
+    return response.json();
+  }
+
+  async stravaSync() {
+    if (!this.authData) {
+      throw new Error('Not authorized');
+    }
+
+    if (!this.authData.access_token) {
+      throw new Error('No access token');
+    }
+
+    if (!this.authData.athlete.id) {
+      throw new Error('No athlete ID');
+    }
+
+    const url = `${this.baseUrl}/strava/sync`;
+
+    const response = await fetch(url, {
+      body: JSON.stringify({
+        athleteId: this.authData.athlete.id,
+      }),
+      headers: {
+        'Authorization': `Bearer ${this.authData.access_token}`,
+        'Content-Type': 'application/json',
+      },
+      method: 'post',
+    });
+
+    if (!response.ok) {
+      throw new Error;
+    }
+
+    return response.json();
   }
 }
