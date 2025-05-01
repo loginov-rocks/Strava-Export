@@ -1,0 +1,29 @@
+{
+  "token_type": "Bearer",
+  "expires_at": 1746124879,
+  "expires_in": 25631,
+  "refresh_token": "8c731b295df83be97dac4a1e8f39c245d729f165",
+  "access_token": "3a89f120ed5fabb4cdae2e3c79b16284fa05d312",
+  "athlete": {
+    "id": 28614395,
+    "username": "rsmith",
+    "resource_state": 2,
+    "firstname": "Robert",
+    "lastname": "Smith",
+    "bio": "",
+    "city": "Portland",
+    "state": "Oregon",
+    "country": "United States",
+    "sex": "M",
+    "premium": false,
+    "summit": false,
+    "created_at": "2018-05-23T10:42:31Z",
+    "updated_at": "2025-04-28T15:36:42Z",
+    "badge_type_id": 0,
+    "weight": 72.5,
+    "profile_medium": "https://dgalywyr863hv.cloudfront.net/pictures/athletes/28614395/7823541/2/medium.jpg",
+    "profile": "https://dgalywyr863hv.cloudfront.net/pictures/athletes/28614395/7823541/2/large.jpg",
+    "friend": null,
+    "follower": null
+  }
+}
