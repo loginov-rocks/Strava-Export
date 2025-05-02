@@ -1,6 +1,8 @@
-import mongoose from 'mongoose';
+import { model, Schema } from 'mongoose';
 
-export const StravaSyncJob = mongoose.model('StravaSyncJob', {
+const schema = new Schema({
   athleteId: String,
   accessToken: String,
 });
+
+export const StravaSyncJob = model('StravaSyncJob', schema);

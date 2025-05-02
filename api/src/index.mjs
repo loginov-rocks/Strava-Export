@@ -24,7 +24,9 @@ const stravaApiClient = new StravaApiClient({
   clientSecret: STRAVA_API_CLIENT_SECRET,
 });
 
-const stravaSyncService = new StravaSyncService();
+const stravaSyncService = new StravaSyncService({
+  stravaApiClient,
+});
 
 app.get('/auth/client-credentials', (req, res) => {
   return res.send({
@@ -45,6 +47,31 @@ app.post('/auth/exchange-code', async (req, res) => {
   }
 
   return res.send(response);
+});
+
+app.get('/strava/process-activities', async (req, res) => {
+  const authHeader = req.headers['authorization'];
+
+  if (!authHeader) {
+    return res.status(401).send({ message: 'Unauthorized' });
+  }
+
+  const token = authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).send({ message: 'Unauthorized' });
+  }
+
+  let result;
+  try {
+    result = await stravaSyncService.processPaginatedActivities(token);
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).send({ message: 'Internal Server Error' });
+  }
+
+  return res.send(result);
 });
 
 app.post('/strava/sync', async (req, res) => {
@@ -76,7 +103,7 @@ app.post('/strava/sync', async (req, res) => {
     return res.status(500).send({ message: 'Internal Server Error' });
   }
 
-  return res.status(200).send({
+  return res.send({
     jobId: job.id,
   });
 });
