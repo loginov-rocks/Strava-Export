@@ -1,4 +1,4 @@
-export class StravaApi {
+export class StravaApiClient {
   constructor({ baseUrl, clientId, clientSecret }) {
     this.baseUrl = baseUrl;
     this.clientId = clientId;

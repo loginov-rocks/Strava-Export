@@ -1,3 +1,5 @@
+export const MONGOOSE_CONNECT_URI = process.env.MONGOOSE_CONNECT_URI;
+
 export const PORT = process.env.PORT;
 
 export const STRAVA_API_BASE_URL = process.env.STRAVA_API_BASE_URL;
