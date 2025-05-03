@@ -1,50 +1,28 @@
-export class StravaApiClient {
-  constructor({ baseUrl, clientId, clientSecret }) {
-    this.baseUrl = baseUrl;
-    this.clientId = clientId;
-    this.clientSecret = clientSecret;
+import { ApiClient } from './ApiClient.mjs';
+
+export class StravaApiClient extends ApiClient {
+  constructor(options) {
+    super(options);
+
+    this.clientId = options.clientId;
+    this.clientSecret = options.clientSecret;
   }
 
-  async getActivities(accessToken, page, perPage) {
-    const urlSearchParams = new URLSearchParams({
-      page,
-      per_page: perPage,
+  getActivities(accessToken, page, perPage) {
+    return this.request('/api/v3/athlete/activities', {
+      accessToken,
+      urlSearchParams: new URLSearchParams({
+        page,
+        per_page: perPage,
+      })
     });
-
-    const url = `${this.baseUrl}/api/v3/athlete/activities?${urlSearchParams.toString()}`;
-
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error;
-    }
-
-    return response.json();
   }
 
-  async getActivity(accessToken, activityId) {
-    const url = `${this.baseUrl}/api/v3/activities/${activityId}`;
-
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error;
-    }
-
-    return response.json();
+  getActivity(accessToken, activityId) {
+    return this.request(`/api/v3/activities/${activityId}`, { accessToken });
   }
 
-  async token(code) {
-    const url = `${this.baseUrl}/oauth/token`;
-
+  token(code) {
     const params = {
       client_id: this.clientId,
       client_secret: this.clientSecret,
@@ -52,20 +30,12 @@ export class StravaApiClient {
       grant_type: 'authorization_code',
     };
 
-    const body = new URLSearchParams(params).toString();
-
-    const response = await fetch(url, {
-      body,
+    return this.request('/oauth/token', {
+      body: new URLSearchParams(params).toString(),
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       method: 'post',
     });
-
-    if (!response.ok) {
-      throw new Error;
-    }
-
-    return response.json();
   }
 }

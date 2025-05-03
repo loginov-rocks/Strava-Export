@@ -24,21 +24,32 @@ export class StravaSyncService {
     let page = 1;
     let hasMorePages = true;
 
+    let detailsProcessedCount = 0;
+    let detailsUpdatedCount = 0;
     let existingCount = 0;
     let insertedCount = 0;
+    let noDetailsCount = 0;
     let nonExistingCount = 0;
     let processedCount = 0;
 
     while (hasMorePages) {
-      const paginatedActivities = await this.stravaApiClient.getActivities(accessToken, page, perPage);
-      const result = await this.processActivitiesPage(paginatedActivities);
+      const activitiesPage = await this.stravaApiClient.getActivities(accessToken, page, perPage);
+      const pageResults = await this.processActivitiesPage(activitiesPage);
 
-      existingCount += result.existingCount;
-      insertedCount += result.insertedCount;
-      nonExistingCount += result.nonExistingCount;
-      processedCount += result.processedCount;
+      existingCount += pageResults.existingCount;
+      insertedCount += pageResults.insertedCount;
+      noDetailsCount += pageResults.noDetailsCount;
+      nonExistingCount += pageResults.nonExistingCount;
+      processedCount += pageResults.processedCount;
 
-      if (paginatedActivities.length < perPage) {
+      if (pageResults.noDetailsIds.length > 0) {
+        const detailsResults = await this.processActivitiesDetails(accessToken, pageResults.noDetailsIds);
+
+        detailsProcessedCount += detailsResults.processedCount;
+        detailsUpdatedCount += detailsResults.updatedCount;
+      }
+
+      if (activitiesPage.length < perPage) {
         hasMorePages = false;
         break;
       }
@@ -47,8 +58,11 @@ export class StravaSyncService {
     }
 
     return {
+      detailsProcessedCount,
+      detailsUpdatedCount,
       existingCount,
       insertedCount,
+      noDetailsCount,
       nonExistingCount,
       pagesCount: page,
       perPageCount: perPage,
@@ -56,19 +70,25 @@ export class StravaSyncService {
     };
   }
 
-  async processActivitiesPage(activities) {
-    const activitiesIds = activities.map(({ id }) => id);
+  async processActivitiesPage(activitiesPage) {
+    // Create an array of IDs for the page of activities obtained from Strava.
+    const ids = activitiesPage.map(({ id }) => id);
 
-    const existingActivities = await Activity.find({
-      activityId: { $in: activitiesIds }
+    // Get all existing activities from the database matching any of these IDs.
+    const existing = await Activity.find({
+      activityId: { $in: ids }
     });
 
-    const existingActivitiesIds = existingActivities.map(({ activityId }) => activityId);
-    const nonExistingActivities = activities.filter(({ id }) => existingActivitiesIds.indexOf(id.toString()) < 0);
+    // Create an array of IDs for existing activities from the database.
+    const existingIds = existing.map(({ activityId }) => activityId);
+    // Filter the page of activities obtained from Strava, leaving only those that are not in the database.
+    const nonExisting = activitiesPage.filter(({ id }) => existingIds.indexOf(id.toString()) < 0);
     let insertedCount = 0;
 
-    if (nonExistingActivities.length > 0) {
-      const output = await Activity.insertMany(nonExistingActivities.map((activity) => ({
+    if (nonExisting.length > 0) {
+      // Convert the page of activities obtained from Strava to the model expected by the database and insert them all
+      // at once.
+      const output = await Activity.insertMany(nonExisting.map((activity) => ({
         ...activity,
         activityId: activity.id,
         athleteId: activity.athlete.id,
@@ -78,11 +98,52 @@ export class StravaSyncService {
       insertedCount = output.length;
     }
 
+    // Create an array of IDs for existing activities from the database that do not have details. Done here as a kind
+    // of optimization since we already have this data received from the database.
+    const noDetailsIds = existing.filter(({ hasDetails }) => !hasDetails).map(({ activityId }) => activityId);
+
+    // Add IDs from the page of activities obtained from Strava that were not in the database, since they have no
+    // details yet (just inserted).
+    if (nonExisting.length > 0) {
+      noDetailsIds.push(...nonExisting.map(({ id }) => id));
+    }
+
     return {
-      existingCount: existingActivitiesIds.length,
+      existingCount: existingIds.length,
       insertedCount,
-      nonExistingCount: nonExistingActivities.length,
-      processedCount: activities.length,
+      noDetailsCount: noDetailsIds.length,
+      noDetailsIds,
+      nonExistingCount: nonExisting.length,
+      processedCount: activitiesPage.length,
+    };
+  }
+
+  async processActivitiesDetails(accessToken, activitiesIds) {
+    let updatedCount = 0;
+
+    for (const activityId of activitiesIds) {
+      const activityDetails = await this.stravaApiClient.getActivity(accessToken, activityId);
+
+      const output = await Activity.updateOne(
+        { activityId },
+        {
+          $set: {
+            ...activityDetails,
+            // Making sure the required fields are not overridden by other data coming from Strava while keeping it up
+            // to date.
+            activityId: activityDetails.id,
+            athleteId: activityDetails.athlete.id,
+            hasDetails: true,
+          },
+        },
+      );
+
+      updatedCount += output.modifiedCount;
+    }
+
+    return {
+      processedCount: activitiesIds.length,
+      updatedCount,
     };
   }
 }
