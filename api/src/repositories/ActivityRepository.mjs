@@ -1,20 +1,22 @@
-import { Activity } from '../models/Activity.mjs';
-
 export class ActivityRepository {
+  constructor({ activityModel }) {
+    this.activityModel = activityModel;
+  }
+
   findByActivityIds(activityIds) {
-    return Activity.find({ activityId: { $in: activityIds } });
+    return this.activityModel.find({ activityId: { $in: activityIds } });
   }
 
   findByAthleteId(athleteId) {
-    return Activity.find({ athleteId });
+    return this.activityModel.find({ athleteId });
   }
 
   insertMany(activities) {
-    return Activity.insertMany(activities);
+    return this.activityModel.insertMany(activities);
   }
 
   updateOneByActivityId(activityId, fields) {
-    return Activity.updateOne({ activityId }, { $set: fields });
+    return this.activityModel.updateOne({ activityId }, { $set: fields });
   }
 
   // @see https://developers.strava.com/docs/reference/#api-models-DetailedActivity

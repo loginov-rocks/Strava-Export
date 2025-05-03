@@ -9,4 +9,4 @@ const schema = new Schema({
   strict: false,
 });
 
-export const Activity = model('Activity', schema);
+export const activityModel = model('Activity', schema);

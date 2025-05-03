@@ -8,6 +8,10 @@ export class StravaApiClient extends ApiClient {
     this.clientSecret = options.clientSecret;
   }
 
+  getClientId() {
+    return this.clientId;
+  }
+
   getActivities(accessToken, page, perPage) {
     return this.request('/api/v3/athlete/activities', {
       accessToken,

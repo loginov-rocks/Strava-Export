@@ -1,13 +1,12 @@
-import { StravaSyncJob } from '../models/StravaSyncJob.mjs';
-
 export class StravaSyncService {
-  constructor({ activityRepository, stravaApiClient }) {
+  constructor({ activityRepository, stravaApiClient, stravaSyncJobRepository }) {
     this.activityRepository = activityRepository;
     this.stravaApiClient = stravaApiClient;
+    this.stravaSyncJobRepository = stravaSyncJobRepository;
   }
 
   async createJob({ athleteId, accessToken }) {
-    const job = await StravaSyncJob.create({
+    const job = await this.stravaSyncJobRepository.create({
       athleteId,
       accessToken,
     });

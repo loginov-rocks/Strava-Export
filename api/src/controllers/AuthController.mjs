@@ -1,7 +1,6 @@
 export class AuthController {
-  constructor({ stravaApiClient, stravaApiClientId }) {
+  constructor({ stravaApiClient }) {
     this.stravaApiClient = stravaApiClient;
-    this.stravaApiClientId = stravaApiClientId;
 
     this.getClientCredentials = this.getClientCredentials.bind(this);
     this.postExchangeCode = this.postExchangeCode.bind(this);
@@ -9,7 +8,7 @@ export class AuthController {
 
   getClientCredentials(req, res) {
     return res.send({
-      clientId: this.stravaApiClientId,
+      clientId: this.stravaApiClient.getClientId(),
     });
   }
 
