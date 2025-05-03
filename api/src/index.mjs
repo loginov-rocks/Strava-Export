@@ -3,6 +3,9 @@ import 'dotenv/config';
 import express from 'express';
 
 import { StravaApiClient } from './clients/StravaApiClient.mjs';
+import { ActivitiesController } from './controllers/ActivitiesController.mjs';
+import { AuthController } from './controllers/AuthController.mjs';
+import { StravaController } from './controllers/StravaController.mjs';
 import { ActivityRepository } from './repositories/ActivityRepository.mjs';
 import { StravaSyncService } from './services/StravaSyncService.mjs';
 
@@ -32,108 +35,26 @@ const stravaSyncService = new StravaSyncService({
   stravaApiClient,
 });
 
-app.get('/activities', async (req, res) => {
-  const { athleteId, format } = req.query;
-
-  if (!athleteId) {
-    return res.status(400).send({ message: 'Bad Request' });
-  }
-
-  let activities;
-  try {
-    activities = await activityRepository.findByAthleteId(athleteId);
-  } catch (error) {
-    console.error(error);
-
-    return res.status(500).send({ message: 'Internal Server Error' });
-  }
-
-  if (format !== 'false') {
-    activities = activities.map((activity) => activityRepository.format(activity));
-  }
-
-  return res.send(activities);
+const activitiesController = new ActivitiesController({
+  activityRepository,
 });
 
-app.get('/auth/client-credentials', (req, res) => {
-  return res.send({
-    clientId: STRAVA_API_CLIENT_ID,
-  });
+const authController = new AuthController({
+  stravaApiClient,
+  stravaApiClientId: STRAVA_API_CLIENT_ID,
 });
 
-app.post('/auth/exchange-code', async (req, res) => {
-  const { code } = req.body;
-
-  let response;
-  try {
-    response = await stravaApiClient.token(code);
-  } catch (error) {
-    console.error(error);
-
-    return res.status(401).send({ message: 'Unauthorized' });
-  }
-
-  return res.send(response);
+const stravaController = new StravaController({
+  stravaSyncService,
 });
 
-app.get('/strava/process-activities', async (req, res) => {
-  const authHeader = req.headers['authorization'];
+app.get('/activities', activitiesController.getActivities);
 
-  if (!authHeader) {
-    return res.status(401).send({ message: 'Unauthorized' });
-  }
+app.get('/auth/client-credentials', authController.getClientCredentials);
+app.post('/auth/exchange-code', authController.postExchangeCode);
 
-  const token = authHeader.split(' ')[1];
-
-  if (!token) {
-    return res.status(401).send({ message: 'Unauthorized' });
-  }
-
-  let result;
-  try {
-    result = await stravaSyncService.processPaginatedActivities(token);
-  } catch (error) {
-    console.error(error);
-
-    return res.status(500).send({ message: 'Internal Server Error' });
-  }
-
-  return res.send(result);
-});
-
-app.post('/strava/sync', async (req, res) => {
-  const authHeader = req.headers['authorization'];
-
-  if (!authHeader) {
-    return res.status(401).send({ message: 'Unauthorized' });
-  }
-
-  const token = authHeader.split(' ')[1];
-
-  if (!token) {
-    return res.status(401).send({ message: 'Unauthorized' });
-  }
-
-  // TODO: Validate the token and the user's access to the passed athlete ID.
-  const { athleteId } = req.body;
-
-  if (!athleteId) {
-    return res.status(404).send({ message: 'Bad Request' });
-  }
-
-  let job;
-  try {
-    job = await stravaSyncService.createJob({ athleteId, accessToken: token });
-  } catch (error) {
-    console.error(error);
-
-    return res.status(500).send({ message: 'Internal Server Error' });
-  }
-
-  return res.send({
-    jobId: job.id,
-  });
-});
+app.get('/strava/process-activities', stravaController.getProcessActivities);
+app.post('/strava/sync', stravaController.postSync);
 
 connectDatabase(MONGOOSE_CONNECT_URI)
   .then(() => {
