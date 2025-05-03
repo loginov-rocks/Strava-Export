@@ -1,8 +1,8 @@
-import { Activity } from '../models/Activity.mjs';
 import { StravaSyncJob } from '../models/StravaSyncJob.mjs';
 
 export class StravaSyncService {
-  constructor({ stravaApiClient }) {
+  constructor({ activityRepository, stravaApiClient }) {
+    this.activityRepository = activityRepository;
     this.stravaApiClient = stravaApiClient;
   }
 
@@ -75,9 +75,7 @@ export class StravaSyncService {
     const ids = activitiesPage.map(({ id }) => id);
 
     // Get all existing activities from the database matching any of these IDs.
-    const existing = await Activity.find({
-      activityId: { $in: ids }
-    });
+    const existing = await this.activityRepository.findByActivityIds(ids);
 
     // Create an array of IDs for existing activities from the database.
     const existingIds = existing.map(({ activityId }) => activityId);
@@ -88,7 +86,7 @@ export class StravaSyncService {
     if (nonExisting.length > 0) {
       // Convert the page of activities obtained from Strava to the model expected by the database and insert them all
       // at once.
-      const output = await Activity.insertMany(nonExisting.map((activity) => ({
+      const output = await this.activityRepository.insertMany(nonExisting.map((activity) => ({
         ...activity,
         activityId: activity.id,
         athleteId: activity.athlete.id,
@@ -124,17 +122,15 @@ export class StravaSyncService {
     for (const activityId of activitiesIds) {
       const activityDetails = await this.stravaApiClient.getActivity(accessToken, activityId);
 
-      const output = await Activity.updateOne(
-        { activityId },
+      const output = await this.activityRepository.updateOneByActivityId(
+        activityId,
         {
-          $set: {
-            ...activityDetails,
-            // Making sure the required fields are not overridden by other data coming from Strava while keeping it up
-            // to date.
-            activityId: activityDetails.id,
-            athleteId: activityDetails.athlete.id,
-            hasDetails: true,
-          },
+          ...activityDetails,
+          // Making sure the required fields are not overridden by other data coming from Strava while keeping it up to
+          // date.
+          activityId: activityDetails.id,
+          athleteId: activityDetails.athlete.id,
+          hasDetails: true,
         },
       );
 

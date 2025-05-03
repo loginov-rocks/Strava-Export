@@ -3,6 +3,7 @@ import 'dotenv/config';
 import express from 'express';
 
 import { StravaApiClient } from './clients/StravaApiClient.mjs';
+import { ActivityRepository } from './repositories/ActivityRepository.mjs';
 import { StravaSyncService } from './services/StravaSyncService.mjs';
 
 import {
@@ -24,8 +25,34 @@ const stravaApiClient = new StravaApiClient({
   clientSecret: STRAVA_API_CLIENT_SECRET,
 });
 
+const activityRepository = new ActivityRepository();
+
 const stravaSyncService = new StravaSyncService({
+  activityRepository,
   stravaApiClient,
+});
+
+app.get('/activities', async (req, res) => {
+  const { athleteId, format } = req.query;
+
+  if (!athleteId) {
+    return res.status(400).send({ message: 'Bad Request' });
+  }
+
+  let activities;
+  try {
+    activities = await activityRepository.findByAthleteId(athleteId);
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).send({ message: 'Internal Server Error' });
+  }
+
+  if (format !== 'false') {
+    activities = activities.map((activity) => activityRepository.format(activity));
+  }
+
+  return res.send(activities);
 });
 
 app.get('/auth/client-credentials', (req, res) => {
