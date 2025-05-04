@@ -1,12 +1,12 @@
 export class ActivitiesController {
-  constructor({ activityRepository }) {
-    this.activityRepository = activityRepository;
+  constructor({ activityService }) {
+    this.activityService = activityService;
 
     this.getActivities = this.getActivities.bind(this);
   }
 
   async getActivities(req, res) {
-    const { athleteId, format } = req.query;
+    const { athleteId, raw } = req.query;
 
     if (!athleteId) {
       return res.status(400).send({ message: 'Bad Request' });
@@ -14,15 +14,15 @@ export class ActivitiesController {
 
     let activities;
     try {
-      activities = await this.activityRepository.findByAthleteId(athleteId);
+      if (raw === 'true') {
+        activities = await this.activityService.getRawActivitiesByAthleteId(athleteId);
+      } else {
+        activities = await this.activityService.getActivitiesByAthleteId(athleteId);
+      }
     } catch (error) {
       console.error(error);
 
       return res.status(500).send({ message: 'Internal Server Error' });
-    }
-
-    if (format !== 'false') {
-      activities = activities.map((activity) => this.activityRepository.format(activity));
     }
 
     return res.send(activities);

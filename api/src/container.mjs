@@ -14,6 +14,7 @@ import { SyncJobProcessor } from './processors/SyncJobProcessor.mjs';
 import { ActivityRepository } from './repositories/ActivityRepository.mjs';
 import { SyncJobRepository } from './repositories/SyncJobRepository.mjs';
 
+import { ActivityService } from './services/ActivityService.mjs';
 import { SyncJobService } from './services/SyncJobService.mjs';
 
 import { syncQueue } from './queue.mjs';
@@ -41,6 +42,10 @@ export const syncJobProcessor = new SyncJobProcessor({
 });
 
 // Services.
+const activityService = new ActivityService({
+  activityRepository,
+});
+
 export const syncJobService = new SyncJobService({
   syncJobRepository,
   syncQueue,
@@ -48,7 +53,7 @@ export const syncJobService = new SyncJobService({
 
 // Controllers.
 export const activitiesController = new ActivitiesController({
-  activityRepository,
+  activityService,
 });
 
 export const authController = new AuthController({
