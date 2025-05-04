@@ -22,7 +22,7 @@ export class Api {
   }
 
   async authClientCredentials() {
-    const url = `${this.baseUrl}/auth/client-credentials`;
+    const url = `${this.baseUrl}/strava/auth/client-credentials`;
 
     const response = await fetch(url);
 
@@ -34,7 +34,7 @@ export class Api {
   }
 
   async authExchangeCode(code) {
-    const url = `${this.baseUrl}/auth/exchange-code`;
+    const url = `${this.baseUrl}/strava/auth/exchange-code`;
 
     const response = await fetch(url, {
       body: JSON.stringify({

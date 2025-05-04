@@ -1,15 +1,15 @@
-export class AuthController {
-  constructor({ stravaApiClient }) {
-    this.stravaApiClient = stravaApiClient;
+export class StravaAuthController {
+  constructor({ stravaAuthService }) {
+    this.stravaAuthService = stravaAuthService;
 
     this.getClientCredentials = this.getClientCredentials.bind(this);
     this.postExchangeCode = this.postExchangeCode.bind(this);
   }
 
   getClientCredentials(req, res) {
-    return res.send({
-      clientId: this.stravaApiClient.getClientId(),
-    });
+    const clientCredentials = this.stravaAuthService.getClientCredentials();
+
+    return res.send(clientCredentials);
   }
 
   async postExchangeCode(req, res) {
@@ -17,7 +17,7 @@ export class AuthController {
 
     let response;
     try {
-      response = await this.stravaApiClient.token(code);
+      response = await this.stravaAuthService.exchangeCode(code);
     } catch (error) {
       console.error(error);
 
