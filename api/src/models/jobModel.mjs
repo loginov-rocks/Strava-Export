@@ -5,4 +5,4 @@ const schema = new Schema({
   accessToken: String,
 });
 
-export const stravaSyncJobModel = model('StravaSyncJob', schema);
+export const jobModel = model('Job', schema);

@@ -1,20 +1,7 @@
-export class StravaSyncService {
-  constructor({ activityRepository, stravaApiClient, stravaSyncJobRepository }) {
+export class SyncProcessor {
+  constructor({ activityRepository, stravaApiClient }) {
     this.activityRepository = activityRepository;
     this.stravaApiClient = stravaApiClient;
-    this.stravaSyncJobRepository = stravaSyncJobRepository;
-  }
-
-  async createJob({ athleteId, accessToken }) {
-    const job = await this.stravaSyncJobRepository.create({
-      athleteId,
-      accessToken,
-    });
-
-    return {
-      athleteId: job.athleteId,
-      id: job.id,
-    };
   }
 
   async processPaginatedActivities(accessToken) {

@@ -66,7 +66,7 @@ export class Api {
       throw new Error('No athlete ID');
     }
 
-    const url = `${this.baseUrl}/strava/sync`;
+    const url = `${this.baseUrl}/sync`;
 
     const response = await fetch(url, {
       body: JSON.stringify({

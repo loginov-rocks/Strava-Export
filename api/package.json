@@ -1,8 +1,10 @@
 {
   "scripts": {
-    "start": "node src/index.mjs"
+    "start": "node src/app.mjs",
+    "start:worker": "node src/worker.mjs"
   },
   "dependencies": {
+    "bullmq": "^5.52.1",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
