@@ -16,7 +16,7 @@ export class SyncJobController {
 
     let job;
     try {
-      job = await this.syncJobService.findById(jobId);
+      job = await this.syncJobService.getSyncJob(jobId);
     } catch (error) {
       console.error(error);
 
@@ -35,7 +35,7 @@ export class SyncJobController {
 
     let jobs;
     try {
-      jobs = await this.syncJobService.findByAthleteId(athleteId);
+      jobs = await this.syncJobService.getSyncJobsByAthleteId(athleteId);
     } catch (error) {
       console.error(error);
 

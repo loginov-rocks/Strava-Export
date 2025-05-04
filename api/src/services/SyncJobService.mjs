@@ -15,11 +15,23 @@ export class SyncJobService {
     return { id: syncJob.id };
   }
 
-  findByAthleteId(athleteId) {
+  getSyncJob(syncJobId) {
+    return this.syncJobRepository.findById(syncJobId);
+  }
+
+  getSyncJobsByAthleteId(athleteId) {
     return this.syncJobRepository.findByAthleteId(athleteId);
   }
 
-  findById(syncJobId) {
-    return this.syncJobRepository.findById(syncJobId);
+  markSyncJobStarted(syncJobId) {
+    console.log(`Sync job ${syncJobId} started`);
+  }
+
+  markSyncJobCompleted(syncJobId, results) {
+    console.log(`Sync job ${syncJobId} completed`, results);
+  }
+
+  markSyncJobFailed(syncJobId, error) {
+    console.log(`Sync job ${syncJobId} failed`, error);
   }
 }
