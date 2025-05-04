@@ -4,17 +4,17 @@ import { StravaApiClient } from './clients/StravaApiClient.mjs';
 
 import { ActivitiesController } from './controllers/ActivitiesController.mjs';
 import { AuthController } from './controllers/AuthController.mjs';
-import { SyncController } from './controllers/SyncController.mjs';
+import { SyncJobController } from './controllers/SyncJobController.mjs';
 
 import { activityModel } from './models/activityModel.mjs';
-import { jobModel } from './models/jobModel.mjs';
+import { syncJobModel } from './models/syncJobModel.mjs';
 
-import { SyncProcessor } from './processors/SyncProcessor.mjs';
+import { SyncJobProcessor } from './processors/SyncJobProcessor.mjs';
 
 import { ActivityRepository } from './repositories/ActivityRepository.mjs';
-import { JobRepository } from './repositories/JobRepository.mjs';
+import { SyncJobRepository } from './repositories/SyncJobRepository.mjs';
 
-import { SyncService } from './services/SyncService.mjs';
+import { SyncJobService } from './services/SyncJobService.mjs';
 
 import { syncQueue } from './queue.mjs';
 
@@ -30,19 +30,19 @@ const activityRepository = new ActivityRepository({
   activityModel,
 });
 
-export const jobRepository = new JobRepository({
-  jobModel,
+const syncJobRepository = new SyncJobRepository({
+  syncJobModel,
 });
 
 // Processors.
-export const syncProcessor = new SyncProcessor({
+export const syncJobProcessor = new SyncJobProcessor({
   activityRepository,
   stravaApiClient,
 });
 
 // Services.
-const syncService = new SyncService({
-  jobRepository,
+export const syncJobService = new SyncJobService({
+  syncJobRepository,
   syncQueue,
 });
 
@@ -55,6 +55,6 @@ export const authController = new AuthController({
   stravaApiClient,
 });
 
-export const syncController = new SyncController({
-  syncService,
+export const syncJobController = new SyncJobController({
+  syncJobService,
 });

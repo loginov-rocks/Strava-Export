@@ -5,4 +5,4 @@ const schema = new Schema({
   accessToken: String,
 });
 
-export const jobModel = model('Job', schema);
+export const syncJobModel = model('SyncJob', schema);

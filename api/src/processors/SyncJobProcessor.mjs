@@ -1,4 +1,4 @@
-export class SyncProcessor {
+export class SyncJobProcessor {
   constructor({ activityRepository, stravaApiClient }) {
     this.activityRepository = activityRepository;
     this.stravaApiClient = stravaApiClient;
