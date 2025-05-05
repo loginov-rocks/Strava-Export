@@ -11,4 +11,4 @@ router.post('/strava/auth/exchange-code', stravaAuthController.postExchangeCode)
 
 router.post('/sync', syncJobController.postSyncJob);
 router.get('/sync', syncJobController.getSyncJobs);
-router.get('/sync/:jobId', syncJobController.getSyncJob);
+router.get('/sync/:syncJobId', syncJobController.getSyncJob);

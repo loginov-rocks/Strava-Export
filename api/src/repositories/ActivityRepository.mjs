@@ -16,6 +16,6 @@ export class ActivityRepository {
   }
 
   updateOneByActivityId(activityId, activity) {
-    return this.activityModel.updateOne({ activityId }, { $set: activity });
+    return this.activityModel.updateOne({ activityId }, activity);
   }
 }

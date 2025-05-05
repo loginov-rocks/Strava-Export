@@ -8,22 +8,22 @@ export class SyncJobController {
   }
 
   async getSyncJob(req, res) {
-    const { jobId } = req.params;
+    const { syncJobId } = req.params;
 
-    if (!jobId) {
+    if (!syncJobId) {
       return res.status(400).send({ message: 'Bad Request' });
     }
 
-    let job;
+    let syncJob;
     try {
-      job = await this.syncJobService.getSyncJob(jobId);
+      syncJob = await this.syncJobService.getSyncJob(syncJobId);
     } catch (error) {
       console.error(error);
 
       return res.status(500).send({ message: 'Internal Server Error' });
     }
 
-    return res.send(job);
+    return res.send(syncJob);
   }
 
   async getSyncJobs(req, res) {
@@ -33,16 +33,16 @@ export class SyncJobController {
       return res.status(400).send({ message: 'Bad Request' });
     }
 
-    let jobs;
+    let syncJobs;
     try {
-      jobs = await this.syncJobService.getSyncJobsByAthleteId(athleteId);
+      syncJobs = await this.syncJobService.getSyncJobsByAthleteId(athleteId);
     } catch (error) {
       console.error(error);
 
       return res.status(500).send({ message: 'Internal Server Error' });
     }
 
-    return res.send(jobs);
+    return res.send(syncJobs);
   }
 
   async postSyncJob(req, res) {
@@ -64,15 +64,15 @@ export class SyncJobController {
       return res.status(404).send({ message: 'Bad Request' });
     }
 
-    let job;
+    let syncJob;
     try {
-      job = await this.syncJobService.createSyncJob({ athleteId, accessToken: token });
+      syncJob = await this.syncJobService.createSyncJob({ athleteId, accessToken: token });
     } catch (error) {
       console.error(error);
 
       return res.status(500).send({ message: 'Internal Server Error' });
     }
 
-    return res.send({ jobId: job.id });
+    return res.send(syncJob);
   }
 }

@@ -14,4 +14,8 @@ export class SyncJobRepository {
   findById(id) {
     return this.syncJobModel.findById(id);
   }
+
+  updateOneById(id, syncJob) {
+    return this.syncJobModel.updateOne({ _id: id }, syncJob);
+  }
 }
