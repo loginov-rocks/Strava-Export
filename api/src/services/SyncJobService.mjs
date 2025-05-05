@@ -1,7 +1,7 @@
 export class SyncJobService {
-  constructor({ syncJobRepository, syncQueue }) {
+  constructor({ syncJobQueue, syncJobRepository }) {
+    this.syncJobQueue = syncJobQueue;
     this.syncJobRepository = syncJobRepository;
-    this.syncQueue = syncQueue;
   }
 
   async createSyncJob({ athleteId, accessToken }) {
@@ -10,7 +10,7 @@ export class SyncJobService {
       accessToken,
     });
 
-    await this.syncQueue.add('sync', { syncJobId: syncJob.id });
+    await this.syncJobQueue.add('sync', { syncJobId: syncJob.id });
 
     return { id: syncJob.id };
   }
@@ -27,8 +27,8 @@ export class SyncJobService {
     console.log(`Sync job ${syncJobId} started`);
   }
 
-  markSyncJobCompleted(syncJobId, results) {
-    console.log(`Sync job ${syncJobId} completed`, results);
+  markSyncJobCompleted(syncJobId, returnValue) {
+    console.log(`Sync job ${syncJobId} completed`, returnValue);
   }
 
   markSyncJobFailed(syncJobId, error) {

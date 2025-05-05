@@ -17,6 +17,6 @@ app.use(router);
 connectDatabase(MONGOOSE_CONNECT_URI)
   .then(() => {
     app.listen(PORT, () => {
-      console.log(`Example app listening on port ${PORT}`);
+      console.log(`App started on port ${PORT}`);
     });
   });

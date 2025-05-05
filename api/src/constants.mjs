@@ -7,3 +7,5 @@ export const STRAVA_API_CLIENT_ID = process.env.STRAVA_API_CLIENT_ID;
 export const STRAVA_API_CLIENT_SECRET = process.env.STRAVA_API_CLIENT_SECRET;
 
 export const WEB_APP_URL = process.env.WEB_APP_URL;
+
+export const SYNC_JOB_QUEUE_NAME = 'SyncJob';

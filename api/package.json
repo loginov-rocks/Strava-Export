@@ -1,7 +1,7 @@
 {
   "scripts": {
     "start": "node src/app.mjs",
-    "start:worker": "node src/worker.mjs"
+    "start:workers": "node src/workers.mjs"
   },
   "dependencies": {
     "bullmq": "^5.52.1",
