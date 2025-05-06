@@ -1,5 +1,6 @@
 export class StravaAuthController {
-  constructor({ stravaAuthService }) {
+  constructor({ stravaAuthCookieName, stravaAuthService }) {
+    this.stravaAuthCookieName = stravaAuthCookieName;
     this.stravaAuthService = stravaAuthService;
 
     this.getClientCredentials = this.getClientCredentials.bind(this);
@@ -15,15 +16,19 @@ export class StravaAuthController {
   async postExchangeCode(req, res) {
     const { code } = req.body;
 
-    let response;
+    let token;
     try {
-      response = await this.stravaAuthService.exchangeCode(code);
+      token = await this.stravaAuthService.exchangeCode(code);
     } catch (error) {
       console.error(error);
 
       return res.status(401).send({ message: 'Unauthorized' });
     }
 
-    return res.send(response);
+    return res.cookie(this.stravaAuthCookieName, token, {
+      httpOnly: true,
+      sameSite: 'none',
+      secure: true,
+    }).status(204).send();
   }
 }

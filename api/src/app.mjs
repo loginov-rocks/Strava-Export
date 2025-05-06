@@ -9,6 +9,7 @@ import { router } from './router.mjs';
 const app = express();
 
 app.use(cors({
+  credentials: true,
   origin: WEB_APP_URL,
 }));
 app.use(express.json());
