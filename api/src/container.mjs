@@ -9,6 +9,8 @@ import { ActivitiesController } from './controllers/ActivitiesController.mjs';
 import { StravaAuthController } from './controllers/StravaAuthController.mjs';
 import { SyncJobController } from './controllers/SyncJobController.mjs';
 
+import { AuthMiddleware } from './middlewares/AuthMiddleware.mjs';
+
 import { activityModel } from './models/activityModel.mjs';
 import { syncJobModel } from './models/syncJobModel.mjs';
 import { userModel } from './models/userModel.mjs';
@@ -67,6 +69,13 @@ const stravaAuthService = new StravaAuthService({
 const syncJobService = new SyncJobService({
   syncJobQueue,
   syncJobRepository,
+  userRepository,
+});
+
+// Middlewares.
+export const authMiddleware = new AuthMiddleware({
+  jwtSecret: JWT_SECRET,
+  stravaAuthCookieName: STRAVA_AUTH_COOKIE_NAME,
 });
 
 // Controllers.

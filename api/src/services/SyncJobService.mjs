@@ -1,10 +1,19 @@
 export class SyncJobService {
-  constructor({ syncJobQueue, syncJobRepository }) {
+  constructor({ syncJobQueue, syncJobRepository, userRepository }) {
     this.syncJobQueue = syncJobQueue;
     this.syncJobRepository = syncJobRepository;
+    this.userRepository = userRepository;
   }
 
-  async createSyncJob({ athleteId, accessToken }) {
+  async createSyncJob({ athleteId }) {
+    const user = await this.userRepository.findOneByAthleteId(athleteId);
+
+    if (!user) {
+      throw new Error(`No user found for athlete ID ${athleteId}`);
+    }
+
+    const { accessToken } = user.token;
+
     const syncJob = await this.syncJobRepository.create({
       athleteId,
       accessToken,

@@ -1,3 +1,4 @@
+import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import 'dotenv/config';
 import express from 'express';
@@ -8,6 +9,7 @@ import { router } from './router.mjs';
 
 const app = express();
 
+app.use(cookieParser());
 app.use(cors({
   credentials: true,
   origin: WEB_APP_URL,

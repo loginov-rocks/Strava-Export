@@ -46,27 +46,15 @@ export class SyncJobController {
   }
 
   async postSyncJob(req, res) {
-    const authHeader = req.headers['authorization'];
-
-    if (!authHeader) {
-      return res.status(401).send({ message: 'Unauthorized' });
-    }
-
-    const token = authHeader.split(' ')[1];
-
-    if (!token) {
-      return res.status(401).send({ message: 'Unauthorized' });
-    }
-
-    const { athleteId } = req.body;
+    const { athleteId } = req;
 
     if (!athleteId) {
-      return res.status(404).send({ message: 'Bad Request' });
+      return res.status(500).send({ message: 'Internal Server Error' });
     }
 
     let syncJob;
     try {
-      syncJob = await this.syncJobService.createSyncJob({ athleteId, accessToken: token });
+      syncJob = await this.syncJobService.createSyncJob({ athleteId });
     } catch (error) {
       console.error(error);
 
