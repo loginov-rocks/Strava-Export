@@ -8,11 +8,11 @@ export class SyncJobRepository {
   }
 
   findById(id) {
-    return this.syncJobModel.findById(id);
+    return this.syncJobModel.findById(id).lean();
   }
 
   findByUserId(userId) {
-    return this.syncJobModel.find({ userId });
+    return this.syncJobModel.find({ userId }).lean();
   }
 
   updateOneById(id, syncJob) {

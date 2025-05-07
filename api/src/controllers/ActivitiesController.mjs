@@ -12,12 +12,12 @@ export class ActivitiesController {
       return res.status(401).send({ message: 'Unauthorized' });
     }
 
-    const { raw } = req.query;
+    const { withStravaData } = req.query;
 
     let activities;
     try {
-      if (raw === 'true') {
-        activities = await this.activityService.getRawActivitiesByUserId(userId);
+      if (withStravaData === 'true') {
+        activities = await this.activityService.getActivitiesByUserIdWithStravaData(userId);
       } else {
         activities = await this.activityService.getActivitiesByUserId(userId);
       }

@@ -4,70 +4,79 @@ export class ActivityService {
   }
 
   async getActivitiesByUserId(userId) {
-    const rawActivities = await this.getRawActivitiesByUserId(userId);
+    const activities = await this.activityRepository.findByUserId(userId);
 
-    return rawActivities.map((rawActivity) => this.formatRawActivity(rawActivity));
+    return activities.map(({ stravaData, ...activity }) => ({
+      ...activity,
+      ...this.formatStravaData(stravaData),
+    }));
   }
 
-  getRawActivitiesByUserId(userId) {
-    return this.activityRepository.findByUserId(userId);
+  async getActivitiesByUserIdWithStravaData(userId) {
+    const activities = await this.activityRepository.findByUserId(userId);
+
+    return activities.map(({ stravaData, ...activity }) => ({
+      ...activity,
+      ...this.formatStravaData(stravaData),
+      stravaData,
+    }));
   }
 
   // @see https://developers.strava.com/docs/reference/#api-models-DetailedActivity
-  formatRawActivity(rawActivity) {
-    const activity = {
-      name: rawActivity.name,
-      sportType: rawActivity.sport_type,
-      startDateTime: rawActivity.start_date,
+  formatStravaData(stravaData) {
+    const data = {
+      name: stravaData.name,
+      sportType: stravaData.sport_type,
+      startDateTime: stravaData.start_date,
     }
 
     const isValidNumeric = (value) => value !== undefined && value !== null && value !== 0 && !isNaN(value);
     const isValidText = (value) => value !== undefined && typeof value === 'string' && value.trim() !== '';
 
-    if (isValidNumeric(rawActivity.distance)) {
-      activity.distanceKilometers = Number((rawActivity.distance / 1000).toFixed(2));
+    if (isValidNumeric(stravaData.distance)) {
+      data.distanceKilometers = Number((stravaData.distance / 1000).toFixed(2));
     }
 
-    if (isValidNumeric(rawActivity.moving_time)) {
-      activity.movingTimeMinutes = Number((rawActivity.moving_time / 60).toFixed(2));
+    if (isValidNumeric(stravaData.moving_time)) {
+      data.movingTimeMinutes = Number((stravaData.moving_time / 60).toFixed(2));
     }
 
-    if (isValidNumeric(rawActivity.total_elevation_gain)) {
-      activity.totalElevationGain = rawActivity.total_elevation_gain;
+    if (isValidNumeric(stravaData.total_elevation_gain)) {
+      data.totalElevationGain = stravaData.total_elevation_gain;
     }
 
-    if (isValidNumeric(rawActivity.average_speed)) {
-      activity.averageSpeedKilometersPerHour = Number((rawActivity.average_speed * 3.6).toFixed(2));
+    if (isValidNumeric(stravaData.average_speed)) {
+      data.averageSpeedKilometersPerHour = Number((stravaData.average_speed * 3.6).toFixed(2));
     }
 
-    if (isValidNumeric(rawActivity.max_speed)) {
-      activity.maxSpeedKilometersPerHour = Number((rawActivity.max_speed * 3.6).toFixed(2));
+    if (isValidNumeric(stravaData.max_speed)) {
+      data.maxSpeedKilometersPerHour = Number((stravaData.max_speed * 3.6).toFixed(2));
     }
 
-    if (isValidNumeric(rawActivity.average_watts)) {
-      activity.averageWatts = rawActivity.average_watts;
+    if (isValidNumeric(stravaData.average_watts)) {
+      data.averageWatts = stravaData.average_watts;
     }
 
-    if (isValidNumeric(rawActivity.max_watts)) {
-      activity.maxWatts = rawActivity.max_watts;
+    if (isValidNumeric(stravaData.max_watts)) {
+      data.maxWatts = stravaData.max_watts;
     }
 
-    if (isValidText(rawActivity.description)) {
-      activity.description = rawActivity.description.trim();
+    if (isValidText(stravaData.description)) {
+      data.description = stravaData.description.trim();
     }
 
-    if (isValidNumeric(rawActivity.calories)) {
-      activity.calories = rawActivity.calories;
+    if (isValidNumeric(stravaData.calories)) {
+      data.calories = stravaData.calories;
     }
 
-    if (isValidNumeric(rawActivity.average_heartrate)) {
-      activity.averageHeartRate = rawActivity.average_heartrate;
+    if (isValidNumeric(stravaData.average_heartrate)) {
+      data.averageHeartRate = stravaData.average_heartrate;
     }
 
-    if (isValidNumeric(rawActivity.max_heartrate)) {
-      activity.maxHeartRate = rawActivity.max_heartrate;
+    if (isValidNumeric(stravaData.max_heartrate)) {
+      data.maxHeartRate = stravaData.max_heartrate;
     }
 
-    return activity;
+    return data;
   }
 }

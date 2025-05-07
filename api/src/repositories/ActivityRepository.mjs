@@ -4,11 +4,11 @@ export class ActivityRepository {
   }
 
   findByStravaActivityIds(stravaActivityIds) {
-    return this.activityModel.find({ stravaActivityId: { $in: stravaActivityIds } });
+    return this.activityModel.find({ stravaActivityId: { $in: stravaActivityIds } }).lean();
   }
 
   findByUserId(userId) {
-    return this.activityModel.find({ userId });
+    return this.activityModel.find({ userId }).lean();
   }
 
   insertMany(activities) {

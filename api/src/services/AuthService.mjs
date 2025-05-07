@@ -30,7 +30,7 @@ export class AuthService {
 
     const user = await this.userRepository.createOrUpdateByStravaAthleteId(stravaAthleteId, userData);
 
-    return this.jwtService.sign({ userId: user.id });
+    return this.jwtService.sign({ userId: user._id });
   }
 
   matchesOrigin(redirectUrl, originUrl) {
