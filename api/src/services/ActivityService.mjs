@@ -3,14 +3,14 @@ export class ActivityService {
     this.activityRepository = activityRepository;
   }
 
-  async getActivitiesByAthleteId(athleteId) {
-    const rawActivities = await this.getRawActivitiesByAthleteId(athleteId);
+  async getActivitiesByUserId(userId) {
+    const rawActivities = await this.getRawActivitiesByUserId(userId);
 
     return rawActivities.map((rawActivity) => this.formatRawActivity(rawActivity));
   }
 
-  getRawActivitiesByAthleteId(athleteId) {
-    return this.activityRepository.findByAthleteId(athleteId);
+  getRawActivitiesByUserId(userId) {
+    return this.activityRepository.findByUserId(userId);
   }
 
   // @see https://developers.strava.com/docs/reference/#api-models-DetailedActivity

@@ -1,10 +1,18 @@
 export class SyncJobProcessor {
-  constructor({ activityRepository, stravaApiClient }) {
+  constructor({ activityRepository, stravaApiClient, userRepository }) {
     this.activityRepository = activityRepository;
     this.stravaApiClient = stravaApiClient;
+    this.userRepository = userRepository;
   }
 
-  async processPaginatedActivities(accessToken) {
+  // TODO: Decrypt, cache, think about separation of concerns, token refresh.
+  async getAccessToken(userId) {
+    const user = await this.userRepository.findById(userId);
+
+    return user.token.accessToken;
+  }
+
+  async processPaginatedActivities(userId) {
     const perPage = 30;
 
     let page = 1;
@@ -19,8 +27,9 @@ export class SyncJobProcessor {
     let processedCount = 0;
 
     while (hasMorePages) {
+      const accessToken = await this.getAccessToken(userId);
       const activitiesPage = await this.stravaApiClient.getActivities(accessToken, page, perPage);
-      const pageResults = await this.processActivitiesPage(activitiesPage);
+      const pageResults = await this.processActivitiesPage(userId, activitiesPage);
 
       existingCount += pageResults.existingCount;
       insertedCount += pageResults.insertedCount;
@@ -29,7 +38,7 @@ export class SyncJobProcessor {
       processedCount += pageResults.processedCount;
 
       if (pageResults.noDetailsIds.length > 0) {
-        const detailsResults = await this.processActivitiesDetails(accessToken, pageResults.noDetailsIds);
+        const detailsResults = await this.processActivitiesDetails(userId, pageResults.noDetailsIds);
 
         detailsProcessedCount += detailsResults.processedCount;
         detailsUpdatedCount += detailsResults.updatedCount;
@@ -56,7 +65,7 @@ export class SyncJobProcessor {
     };
   }
 
-  async processActivitiesPage(activitiesPage) {
+  async processActivitiesPage(userId, activitiesPage) {
     // Create an array of IDs for the page of activities obtained from Strava.
     const ids = activitiesPage.map(({ id }) => id);
 
@@ -74,8 +83,8 @@ export class SyncJobProcessor {
       // at once.
       const output = await this.activityRepository.insertMany(nonExisting.map((activity) => ({
         ...activity,
+        userId,
         activityId: activity.id,
-        athleteId: activity.athlete.id,
         hasDetails: false,
       })));
 
@@ -102,10 +111,11 @@ export class SyncJobProcessor {
     };
   }
 
-  async processActivitiesDetails(accessToken, activitiesIds) {
+  async processActivitiesDetails(userId, activitiesIds) {
     let updatedCount = 0;
 
     for (const activityId of activitiesIds) {
+      const accessToken = await this.getAccessToken(userId);
       const activityDetails = await this.stravaApiClient.getActivity(accessToken, activityId);
 
       const output = await this.activityRepository.updateOneByActivityId(
@@ -114,8 +124,8 @@ export class SyncJobProcessor {
           ...activityDetails,
           // Making sure the required fields are not overridden by other data coming from Strava while keeping it up to
           // date.
+          userId,
           activityId: activityDetails.id,
-          athleteId: activityDetails.athlete.id,
           hasDetails: true,
         },
       );

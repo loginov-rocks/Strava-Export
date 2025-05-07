@@ -54,6 +54,7 @@ const userRepository = new UserRepository({
 const syncJobProcessor = new SyncJobProcessor({
   activityRepository,
   stravaApiClient,
+  userRepository,
 });
 
 // Services.

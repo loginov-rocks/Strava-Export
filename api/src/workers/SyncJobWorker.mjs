@@ -19,10 +19,7 @@ export class SyncJobWorker {
 
         await this.syncJobService.markSyncJobStarted(syncJobId);
 
-        const syncJob = await this.syncJobService.getSyncJob(syncJobId);
-
-        console.log(syncJob);
-        // return this.syncJobProcessor.processPaginatedActivities(syncJob.accessToken);
+        return this.syncJobProcessor.processPaginatedActivities(userId);
       },
       {
         autorun: false,

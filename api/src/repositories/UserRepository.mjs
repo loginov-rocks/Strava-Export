@@ -6,4 +6,8 @@ export class UserRepository {
   createOrUpdateByAthleteId(athleteId, user) {
     return this.userModel.findOneAndUpdate({ athleteId }, user, { new: true, upsert: true });
   }
+
+  findById(id) {
+    return this.userModel.findById(id);
+  }
 }

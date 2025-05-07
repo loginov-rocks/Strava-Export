@@ -7,8 +7,8 @@ export class ActivityRepository {
     return this.activityModel.find({ activityId: { $in: activityIds } });
   }
 
-  findByAthleteId(athleteId) {
-    return this.activityModel.find({ athleteId });
+  findByUserId(userId) {
+    return this.activityModel.find({ userId });
   }
 
   insertMany(activities) {

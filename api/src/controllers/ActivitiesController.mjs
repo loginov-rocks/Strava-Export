@@ -6,18 +6,20 @@ export class ActivitiesController {
   }
 
   async getActivities(req, res) {
-    const { athleteId, raw } = req.query;
+    const { userId } = req;
 
-    if (!athleteId) {
-      return res.status(400).send({ message: 'Bad Request' });
+    if (!userId) {
+      return res.status(401).send({ message: 'Unauthorized' });
     }
+
+    const { raw } = req.query;
 
     let activities;
     try {
       if (raw === 'true') {
-        activities = await this.activityService.getRawActivitiesByAthleteId(athleteId);
+        activities = await this.activityService.getRawActivitiesByUserId(userId);
       } else {
-        activities = await this.activityService.getActivitiesByAthleteId(athleteId);
+        activities = await this.activityService.getActivitiesByUserId(userId);
       }
     } catch (error) {
       console.error(error);
