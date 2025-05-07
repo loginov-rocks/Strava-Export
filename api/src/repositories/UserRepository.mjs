@@ -3,15 +3,7 @@ export class UserRepository {
     this.userModel = userModel;
   }
 
-  create(user) {
-    return this.userModel.create(user);
-  }
-
-  findOneByAthleteId(athleteId) {
-    return this.userModel.findOne({ athleteId });
-  }
-
-  updateOneById(id, user) {
-    return this.userModel.updateOne({ _id: id }, user);
+  createOrUpdateByAthleteId(athleteId, user) {
+    return this.userModel.findOneAndUpdate({ athleteId }, user, { new: true, upsert: true });
   }
 }

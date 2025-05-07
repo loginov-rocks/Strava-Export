@@ -13,15 +13,16 @@ export class SyncJobWorker {
     this.worker = new Worker(
       this.syncJobQueueName,
       async (job) => {
-        const { syncJobId } = job.data;
+        const { syncJobId, userId } = job.data;
 
-        console.log(`SyncJobWorker #${job.id} for ID "${syncJobId}" started`);
+        console.log(`SyncJobWorker #${job.id} for ID "${syncJobId}" with user ID "${userId}" started`);
 
         await this.syncJobService.markSyncJobStarted(syncJobId);
 
         const syncJob = await this.syncJobService.getSyncJob(syncJobId);
 
-        return this.syncJobProcessor.processPaginatedActivities(syncJob.accessToken);
+        console.log(syncJob);
+        // return this.syncJobProcessor.processPaginatedActivities(syncJob.accessToken);
       },
       {
         autorun: false,
@@ -30,18 +31,18 @@ export class SyncJobWorker {
     );
 
     this.worker.on('completed', async (job, returnValue) => {
-      const { syncJobId } = job.data;
+      const { syncJobId, userId } = job.data;
 
-      console.log(`SyncJobWorker #${job.id} for ID "${syncJobId}" completed`, returnValue);
+      console.log(`SyncJobWorker #${job.id} for ID "${syncJobId}" with user ID "${userId}" completed`, returnValue);
 
       // Await ensures the status update is complete before the handler exits.
       await this.syncJobService.markSyncJobCompleted(syncJobId, returnValue);
     });
 
     this.worker.on('failed', async (job, error) => {
-      const { syncJobId } = job.data;
+      const { syncJobId, userId } = job.data;
 
-      console.log(`SyncJobWorker #${job.id} for ID "${syncJobId}" failed`, error);
+      console.log(`SyncJobWorker #${job.id} for ID "${syncJobId}" with user ID "${userId}" failed`, error);
 
       // Await ensures the status update is complete before the handler exits.
       await this.syncJobService.markSyncJobFailed(syncJobId, error);

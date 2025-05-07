@@ -1,8 +1,7 @@
 import { model, Schema } from 'mongoose';
 
 const schema = new Schema({
-  athleteId: String,
-  accessToken: String,
+  userId: String,
   status: {
     type: String,
     enum: ['created', 'started', 'completed', 'failed'],

@@ -7,12 +7,12 @@ export class SyncJobRepository {
     return this.syncJobModel.create(syncJob);
   }
 
-  findByAthleteId(athleteId) {
-    return this.syncJobModel.find({ athleteId });
-  }
-
   findById(id) {
     return this.syncJobModel.findById(id);
+  }
+
+  findByUserId(userId) {
+    return this.syncJobModel.find({ userId });
   }
 
   updateOneById(id, syncJob) {

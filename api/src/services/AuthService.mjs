@@ -18,22 +18,19 @@ export class AuthService {
     const tokenResponse = await this.stravaApiClient.token(code);
 
     const athleteId = tokenResponse.athlete.id.toString();
-    const token = {
-      // TODO: Encrypt.
-      accessToken: tokenResponse.access_token,
-      refreshToken: tokenResponse.refresh_token,
-      expiresAt: new Date(tokenResponse.expires_at * 1000),
+    const userData = {
+      athleteId,
+      token: {
+        // TODO: Encrypt.
+        accessToken: tokenResponse.access_token,
+        refreshToken: tokenResponse.refresh_token,
+        expiresAt: new Date(tokenResponse.expires_at * 1000),
+      }
     };
 
-    const user = await this.userRepository.findOneByAthleteId(athleteId);
+    const user = await this.userRepository.createOrUpdateByAthleteId(athleteId, userData);
 
-    if (user) {
-      await this.userRepository.updateOneById(user.id, { token });
-    } else {
-      await this.userRepository.create({ athleteId, token });
-    }
-
-    return this.jwtService.sign({ athleteId });
+    return this.jwtService.sign({ userId: user.id });
   }
 
   matchesOrigin(redirectUrl, originUrl) {

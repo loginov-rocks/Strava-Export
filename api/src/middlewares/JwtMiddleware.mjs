@@ -34,14 +34,14 @@ export class JwtMiddleware {
       return res.status(401).send({ message: 'Unauthorized' });
     }
 
-    let athleteId;
+    let userId;
     try {
-      ({ athleteId } = this.jwtService.verify(jwt));
+      ({ userId } = this.jwtService.verify(jwt));
     } catch {
       return res.status(401).send({ message: 'Unauthorized' });
     }
 
-    req.athleteId = athleteId;
+    req.userId = userId;
 
     next();
   }

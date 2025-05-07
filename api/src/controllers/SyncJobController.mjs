@@ -8,6 +8,12 @@ export class SyncJobController {
   }
 
   async getSyncJob(req, res) {
+    const { userId } = req;
+
+    if (!userId) {
+      return res.status(401).send({ message: 'Unauthorized' });
+    }
+
     const { syncJobId } = req.params;
 
     if (!syncJobId) {
@@ -23,19 +29,23 @@ export class SyncJobController {
       return res.status(500).send({ message: 'Internal Server Error' });
     }
 
+    if (!syncJob || syncJob.userId !== userId) {
+      return res.status(404).send({ message: 'Not Found' });
+    }
+
     return res.send(syncJob);
   }
 
   async getSyncJobs(req, res) {
-    const { athleteId } = req.query;
+    const { userId } = req;
 
-    if (!athleteId) {
-      return res.status(400).send({ message: 'Bad Request' });
+    if (!userId) {
+      return res.status(401).send({ message: 'Unauthorized' });
     }
 
     let syncJobs;
     try {
-      syncJobs = await this.syncJobService.getSyncJobsByAthleteId(athleteId);
+      syncJobs = await this.syncJobService.getSyncJobsByUserId(userId);
     } catch (error) {
       console.error(error);
 
@@ -46,15 +56,15 @@ export class SyncJobController {
   }
 
   async postSyncJob(req, res) {
-    const { athleteId } = req;
+    const { userId } = req;
 
-    if (!athleteId) {
-      return res.status(500).send({ message: 'Internal Server Error' });
+    if (!userId) {
+      return res.status(401).send({ message: 'Unauthorized' });
     }
 
     let syncJob;
     try {
-      syncJob = await this.syncJobService.createSyncJob({ athleteId });
+      syncJob = await this.syncJobService.createSyncJob(userId);
     } catch (error) {
       console.error(error);
 

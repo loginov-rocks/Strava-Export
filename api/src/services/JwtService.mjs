@@ -6,9 +6,9 @@ export class JwtService {
     this.jwtSecret = jwtSecret;
   }
 
-  sign({ athleteId }) {
+  sign({ userId }) {
     const payload = {
-      sub: athleteId,
+      sub: userId,
     };
 
     const expiresIn = this.jwtExpiresIn;
@@ -21,7 +21,7 @@ export class JwtService {
     const payload = jsonwebtoken.verify(jwt, this.jwtSecret);
 
     return {
-      athleteId: payload.sub,
+      userId: payload.sub,
     };
   }
 }

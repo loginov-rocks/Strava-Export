@@ -5,21 +5,12 @@ export class SyncJobService {
     this.userRepository = userRepository;
   }
 
-  async createSyncJob({ athleteId }) {
-    const user = await this.userRepository.findOneByAthleteId(athleteId);
-
-    if (!user) {
-      throw new Error(`No user found for athlete ID ${athleteId}`);
-    }
-
-    const { accessToken } = user.token;
-
+  async createSyncJob(userId) {
     const syncJob = await this.syncJobRepository.create({
-      athleteId,
-      accessToken,
+      userId,
     });
 
-    await this.syncJobQueue.add('syncJob', { syncJobId: syncJob.id });
+    await this.syncJobQueue.add('syncJob', { syncJobId: syncJob.id, userId });
 
     return syncJob;
   }
@@ -28,8 +19,8 @@ export class SyncJobService {
     return this.syncJobRepository.findById(syncJobId);
   }
 
-  getSyncJobsByAthleteId(athleteId) {
-    return this.syncJobRepository.findByAthleteId(athleteId);
+  getSyncJobsByUserId(userId) {
+    return this.syncJobRepository.findByUserId(userId);
   }
 
   markSyncJobStarted(syncJobId) {
