@@ -9,7 +9,7 @@ export class SyncJobProcessor {
   async getAccessToken(userId) {
     const user = await this.userRepository.findById(userId);
 
-    return user.token.accessToken;
+    return user.stravaToken.accessToken;
   }
 
   async processPaginatedActivities(userId) {
@@ -70,10 +70,10 @@ export class SyncJobProcessor {
     const ids = activitiesPage.map(({ id }) => id);
 
     // Get all existing activities from the database matching any of these IDs.
-    const existing = await this.activityRepository.findByActivityIds(ids);
+    const existing = await this.activityRepository.findByStravaActivityIds(ids);
 
     // Create an array of IDs for existing activities from the database.
-    const existingIds = existing.map(({ activityId }) => activityId);
+    const existingIds = existing.map(({ stravaActivityId }) => stravaActivityId);
     // Filter the page of activities obtained from Strava, leaving only those that are not in the database.
     const nonExisting = activitiesPage.filter(({ id }) => existingIds.indexOf(id.toString()) < 0);
     let insertedCount = 0;
@@ -82,10 +82,10 @@ export class SyncJobProcessor {
       // Convert the page of activities obtained from Strava to the model expected by the database and insert them all
       // at once.
       const output = await this.activityRepository.insertMany(nonExisting.map((activity) => ({
-        ...activity,
         userId,
-        activityId: activity.id,
         hasDetails: false,
+        stravaActivityId: activity.id,
+        stravaData: activity,
       })));
 
       insertedCount = output.length;
@@ -93,7 +93,8 @@ export class SyncJobProcessor {
 
     // Create an array of IDs for existing activities from the database that do not have details. Done here as a kind
     // of optimization since we already have this data received from the database.
-    const noDetailsIds = existing.filter(({ hasDetails }) => !hasDetails).map(({ activityId }) => activityId);
+    const noDetailsIds = existing.filter(({ hasDetails }) => !hasDetails)
+      .map(({ stravaActivityId }) => stravaActivityId);
 
     // Add IDs from the page of activities obtained from Strava that were not in the database, since they have no
     // details yet (just inserted).
@@ -111,22 +112,18 @@ export class SyncJobProcessor {
     };
   }
 
-  async processActivitiesDetails(userId, activitiesIds) {
+  async processActivitiesDetails(userId, stravaActivitiesIds) {
     let updatedCount = 0;
 
-    for (const activityId of activitiesIds) {
+    for (const stravaActivityId of stravaActivitiesIds) {
       const accessToken = await this.getAccessToken(userId);
-      const activityDetails = await this.stravaApiClient.getActivity(accessToken, activityId);
+      const activityDetails = await this.stravaApiClient.getActivity(accessToken, stravaActivityId);
 
-      const output = await this.activityRepository.updateOneByActivityId(
-        activityId,
+      const output = await this.activityRepository.updateOneByStravaActivityId(
+        stravaActivityId,
         {
-          ...activityDetails,
-          // Making sure the required fields are not overridden by other data coming from Strava while keeping it up to
-          // date.
-          userId,
-          activityId: activityDetails.id,
           hasDetails: true,
+          stravaData: activityDetails,
         },
       );
 
@@ -134,7 +131,7 @@ export class SyncJobProcessor {
     }
 
     return {
-      processedCount: activitiesIds.length,
+      processedCount: stravaActivitiesIds.length,
       updatedCount,
     };
   }

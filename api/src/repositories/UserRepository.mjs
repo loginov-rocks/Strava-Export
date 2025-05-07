@@ -3,8 +3,8 @@ export class UserRepository {
     this.userModel = userModel;
   }
 
-  createOrUpdateByAthleteId(athleteId, user) {
-    return this.userModel.findOneAndUpdate({ athleteId }, user, { new: true, upsert: true });
+  createOrUpdateByStravaAthleteId(stravaAthleteId, user) {
+    return this.userModel.findOneAndUpdate({ stravaAthleteId }, user, { new: true, upsert: true });
   }
 
   findById(id) {

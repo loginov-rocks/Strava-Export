@@ -2,11 +2,11 @@ import { model, Schema } from 'mongoose';
 
 const schema = new Schema({
   userId: String,
-  activityId: String,
   hasDetails: Boolean,
+  stravaActivityId: String,
+  stravaData: Schema.Types.Mixed,
 }, {
-  // Allow Mongoose to save arbitrary fields retrieved from Strava.
-  strict: false,
+  timestamps: true,
 });
 
 export const activityModel = model('Activity', schema);

@@ -1,8 +1,8 @@
 import { model, Schema } from 'mongoose';
 
 const schema = new Schema({
-  athleteId: String,
-  token: {
+  stravaAthleteId: String,
+  stravaToken: {
     accessToken: String,
     refreshToken: String,
     expiresAt: Date,

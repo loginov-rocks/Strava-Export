@@ -3,8 +3,8 @@ export class ActivityRepository {
     this.activityModel = activityModel;
   }
 
-  findByActivityIds(activityIds) {
-    return this.activityModel.find({ activityId: { $in: activityIds } });
+  findByStravaActivityIds(stravaActivityIds) {
+    return this.activityModel.find({ stravaActivityId: { $in: stravaActivityIds } });
   }
 
   findByUserId(userId) {
@@ -15,7 +15,7 @@ export class ActivityRepository {
     return this.activityModel.insertMany(activities);
   }
 
-  updateOneByActivityId(activityId, activity) {
-    return this.activityModel.updateOne({ activityId }, activity);
+  updateOneByStravaActivityId(stravaActivityId, activity) {
+    return this.activityModel.updateOne({ stravaActivityId }, activity);
   }
 }

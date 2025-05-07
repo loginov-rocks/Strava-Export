@@ -17,10 +17,10 @@ export class AuthService {
   async exchangeCode(code, scope, state) {
     const tokenResponse = await this.stravaApiClient.token(code);
 
-    const athleteId = tokenResponse.athlete.id.toString();
+    const stravaAthleteId = tokenResponse.athlete.id.toString();
     const userData = {
-      athleteId,
-      token: {
+      stravaAthleteId,
+      stravaToken: {
         // TODO: Encrypt.
         accessToken: tokenResponse.access_token,
         refreshToken: tokenResponse.refresh_token,
@@ -28,7 +28,7 @@ export class AuthService {
       }
     };
 
-    const user = await this.userRepository.createOrUpdateByAthleteId(athleteId, userData);
+    const user = await this.userRepository.createOrUpdateByStravaAthleteId(stravaAthleteId, userData);
 
     return this.jwtService.sign({ userId: user.id });
   }
