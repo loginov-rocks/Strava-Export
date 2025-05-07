@@ -1,14 +1,18 @@
 import { Router } from 'express';
 
-import { activitiesController, authMiddleware, stravaAuthController, syncJobController } from './container.mjs';
+import { activitiesController, authController, jwtMiddleware, syncJobController } from './container.mjs';
 
 export const router = Router();
 
-router.get('/activities', authMiddleware.middleware, activitiesController.getActivities);
+router.get('/activities', jwtMiddleware.require, activitiesController.getActivities);
 
-router.get('/strava/auth/client-credentials', stravaAuthController.getClientCredentials);
-router.post('/strava/auth/exchange-code', stravaAuthController.postExchangeCode);
+router.get('/auth/strava', authController.getStrava);
+router.post('/auth/token',
+  authController.postTokenMiddleware,
+  jwtMiddleware.attach,
+  authController.postToken,
+);
 
-router.post('/sync', authMiddleware.middleware, syncJobController.postSyncJob);
-router.get('/sync', authMiddleware.middleware, syncJobController.getSyncJobs);
-router.get('/sync/:syncJobId', authMiddleware.middleware, syncJobController.getSyncJob);
+router.post('/sync', jwtMiddleware.require, syncJobController.postSyncJob);
+router.get('/sync', jwtMiddleware.require, syncJobController.getSyncJobs);
+router.get('/sync/:syncJobId', jwtMiddleware.require, syncJobController.getSyncJob);

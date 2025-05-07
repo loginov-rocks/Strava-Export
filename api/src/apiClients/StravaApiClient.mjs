@@ -8,8 +8,19 @@ export class StravaApiClient extends ApiClient {
     this.clientSecret = options.clientSecret;
   }
 
-  getClientId() {
-    return this.clientId;
+  buildAuthorizationUrl(redirectUri, state) {
+    const urlSearchParams = new URLSearchParams({
+      client_id: this.clientId,
+      redirect_uri: redirectUri,
+      response_type: 'code',
+      scope: 'activity:read_all',
+    });
+
+    if (state) {
+      urlSearchParams.append('state', state);
+    }
+
+    return `${this.baseUrl}/oauth/authorize?${urlSearchParams.toString()}`;
   }
 
   getActivities(accessToken, page, perPage) {

@@ -1,15 +1,15 @@
 import {
-  JWT_SECRET, STRAVA_API_BASE_URL, STRAVA_API_CLIENT_ID, STRAVA_API_CLIENT_SECRET, STRAVA_AUTH_COOKIE_NAME,
-  SYNC_JOB_QUEUE_NAME,
+  JWT_COOKIE_NAME, JWT_EXPIRES_IN, JWT_SECRET, STRAVA_API_BASE_URL, STRAVA_API_CLIENT_ID, STRAVA_API_CLIENT_SECRET,
+  SYNC_JOB_QUEUE_NAME, WEB_APP_URL,
 } from './constants.mjs';
 
 import { StravaApiClient } from './apiClients/StravaApiClient.mjs';
 
 import { ActivitiesController } from './controllers/ActivitiesController.mjs';
-import { StravaAuthController } from './controllers/StravaAuthController.mjs';
+import { AuthController } from './controllers/AuthController.mjs';
 import { SyncJobController } from './controllers/SyncJobController.mjs';
 
-import { AuthMiddleware } from './middlewares/AuthMiddleware.mjs';
+import { JwtMiddleware } from './middlewares/JwtMiddleware.mjs';
 
 import { activityModel } from './models/activityModel.mjs';
 import { syncJobModel } from './models/syncJobModel.mjs';
@@ -22,7 +22,8 @@ import { SyncJobRepository } from './repositories/SyncJobRepository.mjs';
 import { UserRepository } from './repositories/UserRepository.mjs';
 
 import { ActivityService } from './services/ActivityService.mjs';
-import { StravaAuthService } from './services/StravaAuthService.mjs';
+import { AuthService } from './services/AuthService.mjs';
+import { JwtService } from './services/JwtService.mjs';
 import { SyncJobService } from './services/SyncJobService.mjs';
 
 import { SyncJobWorker } from './workers/SyncJobWorker.mjs';
@@ -60,10 +61,16 @@ const activityService = new ActivityService({
   activityRepository,
 });
 
-const stravaAuthService = new StravaAuthService({
+const jwtService = new JwtService({
+  jwtExpiresIn: JWT_EXPIRES_IN,
   jwtSecret: JWT_SECRET,
+});
+
+const authService = new AuthService({
+  jwtService,
   stravaApiClient,
   userRepository,
+  webAppUrl: WEB_APP_URL,
 });
 
 const syncJobService = new SyncJobService({
@@ -73,9 +80,9 @@ const syncJobService = new SyncJobService({
 });
 
 // Middlewares.
-export const authMiddleware = new AuthMiddleware({
-  jwtSecret: JWT_SECRET,
-  stravaAuthCookieName: STRAVA_AUTH_COOKIE_NAME,
+export const jwtMiddleware = new JwtMiddleware({
+  jwtCookieName: JWT_COOKIE_NAME,
+  jwtService,
 });
 
 // Controllers.
@@ -83,9 +90,8 @@ export const activitiesController = new ActivitiesController({
   activityService,
 });
 
-export const stravaAuthController = new StravaAuthController({
-  stravaAuthCookieName: STRAVA_AUTH_COOKIE_NAME,
-  stravaAuthService,
+export const authController = new AuthController({
+  authService,
 });
 
 export const syncJobController = new SyncJobController({
