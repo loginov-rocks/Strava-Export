@@ -1,8 +1,8 @@
 import { Worker } from 'bullmq';
 
 export class SyncJobWorker {
-  constructor({ syncJobProcessor, syncJobQueueName, syncJobService }) {
-    this.syncJobProcessor = syncJobProcessor;
+  constructor({ activitySyncService, syncJobQueueName, syncJobService }) {
+    this.activitySyncService = activitySyncService;
     this.syncJobQueueName = syncJobQueueName;
     this.syncJobService = syncJobService;
 
@@ -19,7 +19,7 @@ export class SyncJobWorker {
 
         await this.syncJobService.markSyncJobStarted(syncJobId);
 
-        return this.syncJobProcessor.processPaginatedActivities(userId);
+        return this.activitySyncService.processPaginatedActivities(userId);
       },
       {
         autorun: false,

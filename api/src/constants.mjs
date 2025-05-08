@@ -12,4 +12,7 @@ export const STRAVA_API_CLIENT_SECRET = process.env.STRAVA_API_CLIENT_SECRET;
 
 export const SYNC_JOB_QUEUE_NAME = 'SyncJob';
 
+export const USER_REPOSITORY_ENCRYPTION_IV = process.env.USER_REPOSITORY_ENCRYPTION_IV;
+export const USER_REPOSITORY_ENCRYPTION_KEY = process.env.USER_REPOSITORY_ENCRYPTION_KEY;
+
 export const WEB_APP_URL = process.env.WEB_APP_URL;

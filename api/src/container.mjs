@@ -1,6 +1,6 @@
 import {
   JWT_COOKIE_NAME, JWT_EXPIRES_IN, JWT_SECRET, STRAVA_API_BASE_URL, STRAVA_API_CLIENT_ID, STRAVA_API_CLIENT_SECRET,
-  SYNC_JOB_QUEUE_NAME, WEB_APP_URL,
+  SYNC_JOB_QUEUE_NAME, USER_REPOSITORY_ENCRYPTION_IV, USER_REPOSITORY_ENCRYPTION_KEY, WEB_APP_URL,
 } from './constants.mjs';
 
 import { StravaApiClient } from './apiClients/StravaApiClient.mjs';
@@ -15,15 +15,15 @@ import { activityModel } from './models/activityModel.mjs';
 import { syncJobModel } from './models/syncJobModel.mjs';
 import { userModel } from './models/userModel.mjs';
 
-import { SyncJobProcessor } from './processors/SyncJobProcessor.mjs';
-
 import { ActivityRepository } from './repositories/ActivityRepository.mjs';
 import { SyncJobRepository } from './repositories/SyncJobRepository.mjs';
 import { UserRepository } from './repositories/UserRepository.mjs';
 
 import { ActivityService } from './services/ActivityService.mjs';
+import { ActivitySyncService } from './services/ActivitySyncService.mjs';
 import { AuthService } from './services/AuthService.mjs';
 import { JwtService } from './services/JwtService.mjs';
+import { StravaTokenService } from './services/StravaTokenService.mjs';
 import { SyncJobService } from './services/SyncJobService.mjs';
 
 import { SyncJobWorker } from './workers/SyncJobWorker.mjs';
@@ -47,14 +47,9 @@ const syncJobRepository = new SyncJobRepository({
 });
 
 const userRepository = new UserRepository({
+  encryptionIv: USER_REPOSITORY_ENCRYPTION_IV,
+  encryptionKey: USER_REPOSITORY_ENCRYPTION_KEY,
   userModel,
-});
-
-// Processors.
-const syncJobProcessor = new SyncJobProcessor({
-  activityRepository,
-  stravaApiClient,
-  userRepository,
 });
 
 // Services.
@@ -72,6 +67,16 @@ const authService = new AuthService({
   stravaApiClient,
   userRepository,
   webAppUrl: WEB_APP_URL,
+});
+
+const stravaTokenService = new StravaTokenService({
+  userRepository,
+});
+
+const activitySyncService = new ActivitySyncService({
+  activityRepository,
+  stravaApiClient,
+  stravaTokenService,
 });
 
 const syncJobService = new SyncJobService({
@@ -101,7 +106,7 @@ export const syncJobController = new SyncJobController({
 
 // Workers.
 export const syncJobWorker = new SyncJobWorker({
-  syncJobProcessor,
+  activitySyncService,
   syncJobQueueName: SYNC_JOB_QUEUE_NAME,
   syncJobService,
 });

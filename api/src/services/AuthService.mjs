@@ -21,7 +21,6 @@ export class AuthService {
     const userData = {
       stravaAthleteId,
       stravaToken: {
-        // TODO: Encrypt.
         accessToken: tokenResponse.access_token,
         refreshToken: tokenResponse.refresh_token,
         expiresAt: new Date(tokenResponse.expires_at * 1000),

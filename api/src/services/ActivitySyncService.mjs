@@ -1,15 +1,8 @@
-export class SyncJobProcessor {
-  constructor({ activityRepository, stravaApiClient, userRepository }) {
+export class ActivitySyncService {
+  constructor({ activityRepository, stravaApiClient, stravaTokenService }) {
     this.activityRepository = activityRepository;
     this.stravaApiClient = stravaApiClient;
-    this.userRepository = userRepository;
-  }
-
-  // TODO: Decrypt, cache, think about separation of concerns, token refresh.
-  async getAccessToken(userId) {
-    const user = await this.userRepository.findById(userId);
-
-    return user.stravaToken.accessToken;
+    this.stravaTokenService = stravaTokenService;
   }
 
   async processPaginatedActivities(userId) {
@@ -27,7 +20,7 @@ export class SyncJobProcessor {
     let processedCount = 0;
 
     while (hasMorePages) {
-      const accessToken = await this.getAccessToken(userId);
+      const accessToken = await this.stravaTokenService.getAccessToken(userId);
       const activitiesPage = await this.stravaApiClient.getActivities(accessToken, page, perPage);
       const pageResults = await this.processActivitiesPage(userId, activitiesPage);
 
@@ -116,7 +109,7 @@ export class SyncJobProcessor {
     let updatedCount = 0;
 
     for (const stravaActivityId of stravaActivitiesIds) {
-      const accessToken = await this.getAccessToken(userId);
+      const accessToken = await this.stravaTokenService.getAccessToken(userId);
       const activityDetails = await this.stravaApiClient.getActivity(accessToken, stravaActivityId);
 
       const output = await this.activityRepository.updateOneByStravaActivityId(
