@@ -17,12 +17,12 @@ export class StravaTokenService {
     const user = await this.userRepository.findById(userId);
 
     if (new Date() < new Date(user.stravaToken.expiresAt)) {
-      this.cacheAccessToken(userId, user.stravaToken.accessToken, user.stravaToken.expiresAt);
+      this.cacheAccessToken(userId, user.stravaToken.accessToken, new Date(user.stravaToken.expiresAt));
 
       return user.stravaToken.accessToken;
     }
 
-    const refreshTokenResponse = await this.stravaApiClient.refreshToken(user.stravaToken);
+    const refreshTokenResponse = await this.stravaApiClient.refreshToken(user.stravaToken.refreshToken);
 
     const userData = {
       stravaToken: {
@@ -36,7 +36,7 @@ export class StravaTokenService {
 
     this.cacheAccessToken(userId, userData.stravaToken.accessToken, userData.stravaToken.expiresAt);
 
-    return refreshTokenResponse.access_token;
+    return userData.stravaToken.accessToken;
   }
 
   getCachedAccessToken(userId) {
@@ -46,7 +46,9 @@ export class StravaTokenService {
       return null;
     }
 
-    if (new Date() >= new Date(cached.expiresAt)) {
+    if (new Date() >= cached.expiresAt) {
+      this.accessTokenCache.delete(userId);
+
       return null;
     }
 
