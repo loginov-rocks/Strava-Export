@@ -8,7 +8,7 @@ export class StravaApiClient extends ApiClient {
     this.clientSecret = options.clientSecret;
   }
 
-  buildAuthorizationUrl(redirectUri, state) {
+  buildAuthorizeUrl(redirectUri, state) {
     const urlSearchParams = new URLSearchParams({
       client_id: this.clientId,
       redirect_uri: redirectUri,
@@ -37,20 +37,31 @@ export class StravaApiClient extends ApiClient {
     return this.request(`/api/v3/activities/${activityId}`, { accessToken });
   }
 
-  token(code) {
-    const params = {
+  requestToken(params) {
+    return this.request('/api/v3/oauth/token', {
+      body: new URLSearchParams({
       client_id: this.clientId,
       client_secret: this.clientSecret,
-      code,
-      grant_type: 'authorization_code',
-    };
-
-    return this.request('/oauth/token', {
-      body: new URLSearchParams(params).toString(),
+      ...params,
+    }).toString(),
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       method: 'post',
+    });
+  }
+
+  token(code) {
+    return this.requestToken({
+      grant_type: 'authorization_code',
+      code,
+    });
+  }
+
+  refreshToken(refreshToken) {
+    return this.requestToken({
+      grant_type: 'refresh_token',
+      refresh_token: refreshToken,
     });
   }
 }

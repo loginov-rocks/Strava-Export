@@ -12,5 +12,6 @@ Use `npm run start:worker` to start worker.
 
 ## Reference
 
+* https://developers.strava.com/docs/authentication/
 * https://developers.strava.com/docs/reference/#api-Activities-getLoggedInAthleteActivities
 * https://developers.strava.com/docs/reference/#api-Activities-getActivityById

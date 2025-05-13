@@ -70,6 +70,7 @@ const authService = new AuthService({
 });
 
 const stravaTokenService = new StravaTokenService({
+  stravaApiClient,
   userRepository,
 });
 

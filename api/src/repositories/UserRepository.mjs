@@ -39,6 +39,22 @@ export class UserRepository {
     return user;
   }
 
+  updateOneById(id, user) {
+    const userData = JSON.parse(JSON.stringify(user));
+
+    if (userData.stravaToken) {
+      if (userData.stravaToken.accessToken) {
+        userData.stravaToken.accessToken = this.encrypt(userData.stravaToken.accessToken);
+      }
+
+      if (userData.stravaToken.refreshToken) {
+        userData.stravaToken.refreshToken = this.encrypt(userData.stravaToken.refreshToken);
+      }
+    }
+
+    return this.userModel.updateOne({ _id: id }, user);
+  }
+
   encrypt(text) {
     const uniqueIv = crypto.randomBytes(4);
 

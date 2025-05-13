@@ -16,7 +16,7 @@ export class AuthController {
 
     let url;
     try {
-      url = this.authService.getAuthorizationUrl(redirectUri, state);
+      url = this.authService.getAuthorizeUrl(redirectUri, state);
     } catch (error) {
       console.error(error);
 

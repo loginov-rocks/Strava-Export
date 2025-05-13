@@ -6,12 +6,12 @@ export class AuthService {
     this.webAppUrl = webAppUrl;
   }
 
-  getAuthorizationUrl(redirectUri, state) {
+  getAuthorizeUrl(redirectUri, state) {
     if (!this.matchesOrigin(redirectUri, this.webAppUrl)) {
       throw new Error(`Redirect URI does not match web app URL: "${this.webAppUrl}"`);
     }
 
-    return this.stravaApiClient.buildAuthorizationUrl(redirectUri, state);
+    return this.stravaApiClient.buildAuthorizeUrl(redirectUri, state);
   }
 
   async exchangeCode(code, scope, state) {
