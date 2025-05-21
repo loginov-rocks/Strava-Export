@@ -18,6 +18,8 @@ export class ApiClient {
       signal: AbortSignal.timeout(timeout || 60000),
     };
 
+    console.log(`Fetching "${url}"...`);
+
     let response;
     try {
       response = await fetch(url, params);
@@ -25,6 +27,8 @@ export class ApiClient {
       console.error(`Failed to fetch "${endpoint}":`, error);
       throw new Error(`Failed to fetch "${endpoint}": ${error.message}`);
     }
+
+    console.log(`Received response with HTTP status ${response.status}`);
 
     const contentType = response.headers.get('content-type');
     const isJson = contentType && contentType.includes('application/json');

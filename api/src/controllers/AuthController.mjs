@@ -2,9 +2,15 @@ export class AuthController {
   constructor({ authService }) {
     this.authService = authService;
 
+    this.get = this.get.bind(this);
     this.getStrava = this.getStrava.bind(this);
+    this.postLogout = this.postLogout.bind(this);
     this.postTokenMiddleware = this.postTokenMiddleware.bind(this);
     this.postToken = this.postToken.bind(this);
+  }
+
+  get(req, res) {
+    return res.status(204).send();
   }
 
   getStrava(req, res) {
@@ -24,6 +30,10 @@ export class AuthController {
     }
 
     return res.send({ url });
+  }
+
+  postLogout(req, res) {
+    return res.status(204).send();
   }
 
   async postTokenMiddleware(req, res, next) {
