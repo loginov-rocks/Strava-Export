@@ -10,8 +10,28 @@ Use `npm start` command to start both `api` and `web-app`, then go to `http://lo
 
 Use `npm run start:worker` to start worker.
 
+## MCP
+
+### Claude
+
+`claude_desktop_config.json` working with the nvm-installed Node version:
+
+```json
+{
+  "mcpServers": {
+    "strava-export": {
+      "command": "/Users/USERNAME/.nvm/versions/node/v22.15.0/bin/node",
+      "args": [
+        "/ABSOLUTE_PATH/Strava-Export/api/src/mcp.mjs"
+      ]
+    }
+  }
+}
+```
+
 ## Reference
 
 * https://developers.strava.com/docs/authentication/
 * https://developers.strava.com/docs/reference/#api-Activities-getLoggedInAthleteActivities
 * https://developers.strava.com/docs/reference/#api-Activities-getActivityById
+* https://modelcontextprotocol.io/quickstart/server
