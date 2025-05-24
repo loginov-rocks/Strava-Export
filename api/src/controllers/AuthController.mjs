@@ -39,16 +39,16 @@ export class AuthController {
   async postTokenMiddleware(req, res, next) {
     const { code, scope, state } = req.body;
 
-    let token;
+    let tokens;
     try {
-      token = await this.authService.exchangeCode(code, scope, state);
+      tokens = await this.authService.exchangeCode(code, scope, state);
     } catch (error) {
       console.error(error);
 
       return res.status(401).send({ message: 'Unauthorized' });
     }
 
-    res.locals.token = token;
+    res.locals.tokens = tokens;
 
     next();
   }

@@ -1,7 +1,7 @@
 export class AuthService {
-  constructor({ jwtService, stravaApiClient, userRepository, webAppUrl }) {
-    this.jwtService = jwtService;
+  constructor({ stravaApiClient, tokenService, userRepository, webAppUrl }) {
     this.stravaApiClient = stravaApiClient;
+    this.tokenService = tokenService;
     this.userRepository = userRepository;
     this.webAppUrl = webAppUrl;
   }
@@ -29,7 +29,9 @@ export class AuthService {
 
     const user = await this.userRepository.createOrUpdateByStravaAthleteId(stravaAthleteId, userData);
 
-    return this.jwtService.sign({ userId: user._id });
+    const { expiresIn: accessTokenExpiresIn, jwt: accessToken } = this.tokenService.signAccessToken({ userId: user._id });
+
+    return { accessToken, accessTokenExpiresIn };
   }
 
   matchesOrigin(redirectUrl, originUrl) {

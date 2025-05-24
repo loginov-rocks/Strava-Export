@@ -1,6 +1,6 @@
-export const JWT_COOKIE_NAME = 'token';
-export const JWT_EXPIRES_IN = 15 * 60; // seconds
-export const JWT_SECRET = process.env.JWT_SECRET;
+export const ACCESS_TOKEN_COOKIE_NAME = 'stravaExportAccessToken';
+export const ACCESS_TOKEN_EXPIRES_IN = 15 * 60; // seconds
+export const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
 
 export const MONGOOSE_CONNECT_URI = process.env.MONGOOSE_CONNECT_URI;
 
