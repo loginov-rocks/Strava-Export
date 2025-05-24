@@ -4,9 +4,11 @@ export class AuthController {
 
     this.get = this.get.bind(this);
     this.getStrava = this.getStrava.bind(this);
-    this.postLogout = this.postLogout.bind(this);
     this.postTokenMiddleware = this.postTokenMiddleware.bind(this);
     this.postToken = this.postToken.bind(this);
+    this.postRefreshMiddleware = this.postRefreshMiddleware.bind(this);
+    this.postRefresh = this.postRefresh.bind(this);
+    this.postLogout = this.postLogout.bind(this);
   }
 
   get(req, res) {
@@ -32,10 +34,6 @@ export class AuthController {
     return res.send({ url });
   }
 
-  postLogout(req, res) {
-    return res.status(204).send();
-  }
-
   async postTokenMiddleware(req, res, next) {
     const { code, scope, state } = req.body;
 
@@ -54,6 +52,31 @@ export class AuthController {
   }
 
   postToken(req, res) {
+    return res.status(204).send();
+  }
+
+  postRefreshMiddleware(req, res, next) {
+    const { userId } = req;
+
+    let tokens;
+    try {
+      tokens = this.authService.refreshTokens(userId);
+    } catch (error) {
+      console.error(error);
+
+      return res.status(401).send({ message: 'Unauthorized' });
+    }
+
+    res.locals.tokens = tokens;
+
+    next();
+  }
+
+  postRefresh(req, res) {
+    return res.status(204).send();
+  }
+
+  postLogout(req, res) {
     return res.status(204).send();
   }
 }

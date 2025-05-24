@@ -6,7 +6,8 @@ export class TokenMiddleware {
 
     this.attach = this.attach.bind(this);
     this.remove = this.remove.bind(this);
-    this.require = this.require.bind(this);
+    this.requireAccessToken = this.requireAccessToken.bind(this);
+    this.requireRefreshToken = this.requireRefreshToken.bind(this);
   }
 
   attach(req, res, next) {
@@ -36,7 +37,7 @@ export class TokenMiddleware {
     next();
   }
 
-  require(req, res, next) {
+  requireAccessToken(req, res, next) {
     const accessToken = req.cookies[this.accessTokenCookieName];
 
     if (!accessToken) {
@@ -46,6 +47,25 @@ export class TokenMiddleware {
     let userId;
     try {
       ({ userId } = this.tokenService.verifyAccessToken(accessToken));
+    } catch {
+      return res.status(401).send({ message: 'Unauthorized' });
+    }
+
+    req.userId = userId;
+
+    next();
+  }
+
+  requireRefreshToken(req, res, next) {
+    const refreshToken = req.cookies[this.refreshTokenCookieName];
+
+    if (!refreshToken) {
+      return res.status(401).send({ message: 'Unauthorized' });
+    }
+
+    let userId;
+    try {
+      ({ userId } = this.tokenService.verifyRefreshToken(refreshToken));
     } catch {
       return res.status(401).send({ message: 'Unauthorized' });
     }

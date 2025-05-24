@@ -14,6 +14,13 @@ export class AuthService {
     return this.stravaApiClient.buildAuthorizeUrl(redirectUri, state);
   }
 
+  createTokens(userId) {
+    const { expiresIn: accessTokenExpiresIn, jwt: accessToken } = this.tokenService.signAccessToken({ userId });
+    const { expiresIn: refreshTokenExpiresIn, jwt: refreshToken } = this.tokenService.signRefreshToken({ userId });
+
+    return { accessToken, accessTokenExpiresIn, refreshToken, refreshTokenExpiresIn };
+  }
+
   async exchangeCode(code, scope, state) {
     const tokenResponse = await this.stravaApiClient.token(code);
 
@@ -29,10 +36,11 @@ export class AuthService {
 
     const user = await this.userRepository.createOrUpdateByStravaAthleteId(stravaAthleteId, userData);
 
-    const { expiresIn: accessTokenExpiresIn, jwt: accessToken } = this.tokenService.signAccessToken({ userId: user._id });
-    const { expiresIn: refreshTokenExpiresIn, jwt: refreshToken } = this.tokenService.signRefreshToken({ userId: user._id });
+    return this.createTokens(user._id);
+  }
 
-    return { accessToken, accessTokenExpiresIn, refreshToken, refreshTokenExpiresIn };
+  refreshTokens(userId) {
+    return this.createTokens(userId);
   }
 
   matchesOrigin(redirectUrl, originUrl) {
