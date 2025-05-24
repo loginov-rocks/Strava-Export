@@ -1,6 +1,9 @@
 export const ACCESS_TOKEN_COOKIE_NAME = 'stravaExportAccessToken';
-export const ACCESS_TOKEN_EXPIRES_IN = 15 * 60; // seconds
+export const ACCESS_TOKEN_EXPIRES_IN = 15 * 60; // seconds (15 minutes)
 export const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
+export const REFRESH_TOKEN_COOKIE_NAME = 'stravaExportRefreshToken';
+export const REFRESH_TOKEN_EXPIRES_IN = 30 * 24 * 60 * 60; // seconds (30 days)
+export const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
 
 export const MONGOOSE_CONNECT_URI = process.env.MONGOOSE_CONNECT_URI;
 

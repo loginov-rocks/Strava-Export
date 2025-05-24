@@ -1,6 +1,7 @@
 export class TokenMiddleware {
-  constructor({ accessTokenCookieName, tokenService }) {
+  constructor({ accessTokenCookieName, refreshTokenCookieName, tokenService }) {
     this.accessTokenCookieName = accessTokenCookieName;
+    this.refreshTokenCookieName = refreshTokenCookieName;
     this.tokenService = tokenService;
 
     this.attach = this.attach.bind(this);
@@ -16,6 +17,13 @@ export class TokenMiddleware {
         sameSite: 'none',
         secure: true,
       });
+
+      res.cookie(this.refreshTokenCookieName, res.locals.tokens.refreshToken, {
+        httpOnly: true,
+        maxAge: res.locals.tokens.refreshTokenExpiresIn * 1000,
+        sameSite: 'none',
+        secure: true,
+      });
     }
 
     next();
@@ -23,6 +31,7 @@ export class TokenMiddleware {
 
   remove(req, res, next) {
     res.clearCookie(this.accessTokenCookieName);
+    res.clearCookie(this.refreshTokenCookieName);
 
     next();
   }

@@ -1,7 +1,7 @@
 import {
-  ACCESS_TOKEN_COOKIE_NAME, ACCESS_TOKEN_EXPIRES_IN, ACCESS_TOKEN_SECRET, STRAVA_API_BASE_URL, STRAVA_API_CLIENT_ID,
-  STRAVA_API_CLIENT_SECRET, SYNC_JOB_QUEUE_NAME, USER_REPOSITORY_ENCRYPTION_IV, USER_REPOSITORY_ENCRYPTION_KEY,
-  WEB_APP_URL,
+  ACCESS_TOKEN_COOKIE_NAME, ACCESS_TOKEN_EXPIRES_IN, ACCESS_TOKEN_SECRET, REFRESH_TOKEN_COOKIE_NAME,
+  REFRESH_TOKEN_EXPIRES_IN, REFRESH_TOKEN_SECRET, STRAVA_API_BASE_URL, STRAVA_API_CLIENT_ID, STRAVA_API_CLIENT_SECRET,
+  SYNC_JOB_QUEUE_NAME, USER_REPOSITORY_ENCRYPTION_IV, USER_REPOSITORY_ENCRYPTION_KEY, WEB_APP_URL,
 } from './constants.mjs';
 
 import { StravaApiClient } from './apiClients/StravaApiClient.mjs';
@@ -61,6 +61,8 @@ const activityService = new ActivityService({
 const tokenService = new TokenService({
   accessTokenExpiresIn: ACCESS_TOKEN_EXPIRES_IN,
   accessTokenSecret: ACCESS_TOKEN_SECRET,
+  refreshTokenExpiresIn: REFRESH_TOKEN_EXPIRES_IN,
+  refreshTokenSecret: REFRESH_TOKEN_SECRET,
 });
 
 const authService = new AuthService({
@@ -90,6 +92,7 @@ const syncJobService = new SyncJobService({
 // Middlewares.
 export const tokenMiddleware = new TokenMiddleware({
   accessTokenCookieName: ACCESS_TOKEN_COOKIE_NAME,
+  refreshTokenCookieName: REFRESH_TOKEN_COOKIE_NAME,
   tokenService,
 });
 

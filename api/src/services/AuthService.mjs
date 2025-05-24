@@ -30,8 +30,9 @@ export class AuthService {
     const user = await this.userRepository.createOrUpdateByStravaAthleteId(stravaAthleteId, userData);
 
     const { expiresIn: accessTokenExpiresIn, jwt: accessToken } = this.tokenService.signAccessToken({ userId: user._id });
+    const { expiresIn: refreshTokenExpiresIn, jwt: refreshToken } = this.tokenService.signRefreshToken({ userId: user._id });
 
-    return { accessToken, accessTokenExpiresIn };
+    return { accessToken, accessTokenExpiresIn, refreshToken, refreshTokenExpiresIn };
   }
 
   matchesOrigin(redirectUrl, originUrl) {

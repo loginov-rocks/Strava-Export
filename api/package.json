@@ -1,6 +1,7 @@
 {
   "scripts": {
     "generate-access-token-secret": "node -e \"console.log('ACCESS_TOKEN_SECRET=' + require('crypto').randomBytes(32).toString('base64'))\"",
+    "generate-refresh-token-secret": "node -e \"console.log('REFRESH_TOKEN_SECRET=' + require('crypto').randomBytes(32).toString('base64'))\"",
     "generate-encryption-iv": "node -e \"console.log('USER_REPOSITORY_ENCRYPTION_IV=' + require('crypto').randomBytes(12).toString('hex'))\"",
     "generate-encryption-key": "node -e \"console.log('USER_REPOSITORY_ENCRYPTION_KEY=' + require('crypto').randomBytes(32).toString('hex'))\"",
     "start": "node src/app.mjs",
