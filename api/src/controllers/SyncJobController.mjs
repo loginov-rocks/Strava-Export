@@ -1,5 +1,6 @@
 export class SyncJobController {
-  constructor({ syncJobService }) {
+  constructor({ syncJobDtoFactory, syncJobService }) {
+    this.syncJobDtoFactory = syncJobDtoFactory;
     this.syncJobService = syncJobService;
 
     this.getSyncJob = this.getSyncJob.bind(this);
@@ -33,7 +34,7 @@ export class SyncJobController {
       return res.status(404).send({ message: 'Not Found' });
     }
 
-    return res.send(syncJob);
+    return res.send(this.syncJobDtoFactory.createJson(syncJob));
   }
 
   async getSyncJobs(req, res) {
@@ -52,7 +53,7 @@ export class SyncJobController {
       return res.status(500).send({ message: 'Internal Server Error' });
     }
 
-    return res.send(syncJobs);
+    return res.send(syncJobs.map((syncJob) => this.syncJobDtoFactory.createJson(syncJob)));
   }
 
   async postSyncJob(req, res) {
@@ -71,6 +72,6 @@ export class SyncJobController {
       return res.status(500).send({ message: 'Internal Server Error' });
     }
 
-    return res.send(syncJob);
+    return res.status(201).send(this.syncJobDtoFactory.createJson(syncJob));
   }
 }

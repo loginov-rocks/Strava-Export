@@ -10,6 +10,9 @@ import { ActivitiesController } from './controllers/ActivitiesController.mjs';
 import { AuthController } from './controllers/AuthController.mjs';
 import { SyncJobController } from './controllers/SyncJobController.mjs';
 
+import { ActivityDtoFactory } from './dtoFactories/ActivityDtoFactory.mjs';
+import { SyncJobDtoFactory } from './dtoFactories/SyncJobDtoFactory.mjs';
+
 import { TokenMiddleware } from './middlewares/TokenMiddleware.mjs';
 
 import { activityModel } from './models/activityModel.mjs';
@@ -96,8 +99,14 @@ export const tokenMiddleware = new TokenMiddleware({
   tokenService,
 });
 
+// DTO Factories.
+const activityDtoFactory = new ActivityDtoFactory();
+
+const syncJobDtoFactory = new SyncJobDtoFactory();
+
 // Controllers.
 export const activitiesController = new ActivitiesController({
+  activityDtoFactory,
   activityService,
 });
 
@@ -106,6 +115,7 @@ export const authController = new AuthController({
 });
 
 export const syncJobController = new SyncJobController({
+  syncJobDtoFactory,
   syncJobService,
 });
 

@@ -1,5 +1,6 @@
 export class ActivitiesController {
-  constructor({ activityService }) {
+  constructor({ activityDtoFactory, activityService }) {
+    this.activityDtoFactory = activityDtoFactory;
     this.activityService = activityService;
 
     this.getActivities = this.getActivities.bind(this);
@@ -16,17 +17,17 @@ export class ActivitiesController {
 
     let activities;
     try {
-      if (withStravaData === 'true') {
-        activities = await this.activityService.getActivitiesByUserIdWithStravaData(userId);
-      } else {
-        activities = await this.activityService.getActivitiesByUserId(userId);
-      }
+      activities = await this.activityService.getActivitiesByUserId(userId);
     } catch (error) {
       console.error(error);
 
       return res.status(500).send({ message: 'Internal Server Error' });
     }
 
-    return res.send(activities);
+    return res.send(activities.map((activity) => (
+      withStravaData === 'true'
+        ? this.activityDtoFactory.createJsonWithStravaData(activity)
+        : this.activityDtoFactory.createJson(activity)
+    )));
   }
 }
