@@ -53,7 +53,7 @@ export class SyncJobController {
       return res.status(500).send({ message: 'Internal Server Error' });
     }
 
-    return res.send(syncJobs.map((syncJob) => this.syncJobDtoFactory.createJson(syncJob)));
+    return res.send(this.syncJobDtoFactory.createJsonCollection(syncJobs));
   }
 
   async postSyncJob(req, res) {

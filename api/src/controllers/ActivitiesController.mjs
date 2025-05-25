@@ -26,11 +26,15 @@ export class ActivitiesController {
       return res.status(500).send({ message: 'Internal Server Error' });
     }
 
-    return res.send(activities.map((activity) => (
-      withStravaData === 'true'
-        ? this.activityDtoFactory.createJsonWithStravaData(activity)
-        : this.activityDtoFactory.createJson(activity)
-    )));
+    const acceptHeader = req.get('Accept');
+
+    if (acceptHeader && acceptHeader.includes('text/plain')) {
+      return res.type('text/plain').send(this.activityDtoFactory.createTextCollection(activities));
+    }
+
+    return res.send(withStravaData === 'true'
+      ? this.activityDtoFactory.createJsonWithStravaDataCollection(activities)
+      : this.activityDtoFactory.createJsonCollection(activities));
   }
 
   async getActivity(req, res) {
@@ -61,11 +65,15 @@ export class ActivitiesController {
       return res.status(404).send({ message: 'Not Found' });
     }
 
-    return res.send(
-      withStravaData === 'true'
-        ? this.activityDtoFactory.createJsonWithStravaData(activity)
-        : this.activityDtoFactory.createJson(activity)
-    );
+    const acceptHeader = req.get('Accept');
+
+    if (acceptHeader && acceptHeader.includes('text/plain')) {
+      return res.type('text/plain').send(this.activityDtoFactory.createText(activity));
+    }
+
+    return res.send(withStravaData === 'true'
+      ? this.activityDtoFactory.createJsonWithStravaData(activity)
+      : this.activityDtoFactory.createJson(activity));
   }
 
   async getLatestActivity(req, res) {
@@ -86,10 +94,18 @@ export class ActivitiesController {
       return res.status(500).send({ message: 'Internal Server Error' });
     }
 
-    return res.send(
-      withStravaData === 'true'
-        ? this.activityDtoFactory.createJsonWithStravaData(activity)
-        : this.activityDtoFactory.createJson(activity)
-    );
+    if (!activity) {
+      return res.status(404).send({ message: 'Not Found' });
+    }
+
+    const acceptHeader = req.get('Accept');
+
+    if (acceptHeader && acceptHeader.includes('text/plain')) {
+      return res.type('text/plain').send(this.activityDtoFactory.createText(activity));
+    }
+
+    return res.send(withStravaData === 'true'
+      ? this.activityDtoFactory.createJsonWithStravaData(activity)
+      : this.activityDtoFactory.createJson(activity));
   }
 }

@@ -9,4 +9,8 @@ export class SyncJobDtoFactory {
       failedAt: syncJob.failedAt ? syncJob.failedAt : null,
     };
   }
+
+  createJsonCollection(syncJobs) {
+    return syncJobs.map((syncJob) => this.createJson(syncJob));
+  }
 }
