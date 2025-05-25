@@ -11,7 +11,7 @@ export class ActivityService {
     return this.activityRepository.findById(activityId);
   }
 
-  getLatestActivityByUserId(userId) {
-    return this.activityRepository.findLatestByUserId(userId);
+  getLastActivityByUserId(userId) {
+    return this.activityRepository.findLastByUserId(userId);
   }
 }

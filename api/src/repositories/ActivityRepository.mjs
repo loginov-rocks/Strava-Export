@@ -15,7 +15,7 @@ export class ActivityRepository {
     return this.activityModel.find({ userId }).sort({ 'stravaData.start_date': -1 }).lean();
   }
 
-  findLatestByUserId(userId) {
+  findLastByUserId(userId) {
     return this.activityModel.findOne({
       userId,
       'stravaData.start_date': { $exists: true, $ne: null }

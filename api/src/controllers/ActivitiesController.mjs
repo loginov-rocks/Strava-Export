@@ -5,7 +5,7 @@ export class ActivitiesController {
 
     this.getActivities = this.getActivities.bind(this);
     this.getActivity = this.getActivity.bind(this);
-    this.getLatestActivity = this.getLatestActivity.bind(this);
+    this.getLastActivity = this.getLastActivity.bind(this);
   }
 
   async getActivities(req, res) {
@@ -76,7 +76,7 @@ export class ActivitiesController {
       : this.activityDtoFactory.createJson(activity));
   }
 
-  async getLatestActivity(req, res) {
+  async getLastActivity(req, res) {
     const { userId } = req;
 
     if (!userId) {
@@ -87,7 +87,7 @@ export class ActivitiesController {
 
     let activity;
     try {
-      activity = await this.activityService.getLatestActivityByUserId(userId);
+      activity = await this.activityService.getLastActivityByUserId(userId);
     } catch (error) {
       console.error(error);
 
