@@ -22,7 +22,7 @@ Use `npm run start:worker` to start worker.
     "strava-export": {
       "command": "/Users/USERNAME/.nvm/versions/node/v22.15.0/bin/node",
       "args": [
-        "/ABSOLUTE_PATH/Strava-Export/api/src/mcp.mjs"
+        "/ABSOLUTE_PATH/Strava-Export/mcp/src/app.mjs"
       ]
     }
   }

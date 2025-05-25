@@ -7,6 +7,8 @@ services:
       - mongo:/data/db
   mongo-express:
     image: mongo-express
+    environment:
+      - ME_CONFIG_BASICAUTH=false
     ports:
       - 3002:8081
   redis:
