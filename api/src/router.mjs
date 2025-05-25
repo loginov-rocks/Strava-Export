@@ -5,6 +5,8 @@ import { activitiesController, authController, syncJobController, tokenMiddlewar
 export const router = Router();
 
 router.get('/activities', tokenMiddleware.requireAccessToken, activitiesController.getActivities);
+router.get('/activities/latest', tokenMiddleware.requireAccessToken, activitiesController.getLatestActivity);
+router.get('/activities/:activityId', tokenMiddleware.requireAccessToken, activitiesController.getActivity);
 
 router.get('/auth', tokenMiddleware.requireAccessToken, authController.get);
 router.get('/auth/strava', authController.getStrava);

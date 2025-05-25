@@ -6,4 +6,12 @@ export class ActivityService {
   getActivitiesByUserId(userId) {
     return this.activityRepository.findByUserId(userId);
   }
+
+  getActivity(activityId) {
+    return this.activityRepository.findById(activityId);
+  }
+
+  getLatestActivityByUserId(userId) {
+    return this.activityRepository.findLatestByUserId(userId);
+  }
 }
