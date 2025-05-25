@@ -23,7 +23,11 @@ Use `npm run start:worker` to start worker.
       "command": "/Users/USERNAME/.nvm/versions/node/v22.15.0/bin/node",
       "args": [
         "/ABSOLUTE_PATH/Strava-Export/mcp/src/app.mjs"
-      ]
+      ],
+      "env": {
+        "API_BASE_URL": "http://localhost:3001",
+        "API_COOKIE": "stravaExportAccessToken=ACCESS_TOKEN"
+      }
     }
   }
 }
