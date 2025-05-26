@@ -3,15 +3,19 @@ export class ActivityService {
     this.activityRepository = activityRepository;
   }
 
-  getActivitiesByUserId(userId) {
-    return this.activityRepository.findByUserId(userId);
+  getActivitiesByUserId(userId, filter) {
+    return this.activityRepository.findByUserId(userId, filter);
   }
 
   getActivity(activityId) {
     return this.activityRepository.findById(activityId);
   }
 
-  getLastActivityByUserId(userId) {
-    return this.activityRepository.findLastByUserId(userId);
+  getLastActivityByUserId(userId, filter) {
+    return this.activityRepository.findLastByUserId(userId, filter);
+  }
+
+  getFilterScheme() {
+    return this.activityRepository.getFilterScheme();
   }
 }

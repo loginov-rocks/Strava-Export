@@ -1,4 +1,16 @@
 export class ActivityRepository {
+  static FILTER_ORDER = ['asc', 'desc'];
+  static FILTER_SORT = ['startDateTime'];
+  static FILTER_SPORT_TYPE = ['Hike', 'Ride', 'Run', 'Swim'];
+
+  getFilterScheme() {
+    return {
+      order: ActivityRepository.FILTER_ORDER,
+      sort: ActivityRepository.FILTER_SORT,
+      sportType: ActivityRepository.FILTER_SPORT_TYPE,
+    };
+  }
+
   constructor({ activityModel }) {
     this.activityModel = activityModel;
   }
@@ -11,15 +23,51 @@ export class ActivityRepository {
     return this.activityModel.find({ stravaActivityId: { $in: stravaActivityIds } }).lean();
   }
 
-  findByUserId(userId) {
-    return this.activityModel.find({ userId }).sort({ 'stravaData.start_date': -1 }).lean();
+  findByUserId(userId, filter) {
+    const findParams = { userId };
+
+    if (filter) {
+      if (filter.sportType) {
+        findParams['stravaData.sport_type'] = filter.sportType;
+      }
+      if (filter.from || filter.to) {
+        findParams['stravaData.start_date'] = {};
+
+        if (filter.from) {
+          findParams['stravaData.start_date'].$gte = filter.from;
+        }
+
+        if (filter.to) {
+          findParams['stravaData.start_date'].$lte = filter.to;
+        }
+      }
+    }
+
+    let query = this.activityModel.find(findParams);
+
+    if (filter && filter.sort && filter.order) {
+      const sortField = filter.sort === 'startDateTime' ? 'stravaData.start_date' : filter.sort;
+      const sortOrder = filter.order === 'asc' ? 1 : -1;
+
+      query = query.sort({ [sortField]: sortOrder });
+    }
+
+    return query.lean();
   }
 
-  findLastByUserId(userId) {
-    return this.activityModel.findOne({
+  findLastByUserId(userId, filter) {
+    const findParams = {
       userId,
-      'stravaData.start_date': { $exists: true, $ne: null }
-    }).sort({ 'stravaData.start_date': -1 }).lean();
+      'stravaData.start_date': { $exists: true, $ne: null },
+    };
+
+    if (filter) {
+      if (filter.sportType) {
+        findParams['stravaData.sport_type'] = filter.sportType;
+      }
+    }
+
+    return this.activityModel.findOne(findParams).sort({ 'stravaData.start_date': -1 }).lean();
   }
 
   insertMany(activities) {
