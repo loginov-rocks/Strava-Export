@@ -4,8 +4,10 @@ export class ApiClient {
     this.cookie = cookie;
   }
 
-  async request(endpoint) {
-    const url = `${this.baseUrl}${endpoint}`;
+  async request(endpoint, options) {
+    const { urlSearchParams } = options;
+
+    const url = `${this.baseUrl}${endpoint}${urlSearchParams ? `?${urlSearchParams.toString()}` : ''}`;
     const params = {
       headers: {
         Accept: 'text/plain',
@@ -42,15 +44,39 @@ export class ApiClient {
     }
   }
 
-  getActivities() {
-    return this.request('/activities');
+  getActivities({ from, order, sort, sportType, to }) {
+    const urlSearchParams = new URLSearchParams();
+
+    if (from) {
+      urlSearchParams.append('from', from);
+    }
+    if (order) {
+      urlSearchParams.append('order', order);
+    }
+    if (sort) {
+      urlSearchParams.append('sort', sort);
+    }
+    if (sportType) {
+      urlSearchParams.append('sportType', sportType);
+    }
+    if (to) {
+      urlSearchParams.append('to', to);
+    }
+
+    return this.request('/activities', { urlSearchParams });
   }
 
   getActivity(activityId) {
     return this.request(`/activities/${activityId}`);
   }
 
-  getLastActivity() {
-    return this.request('/activities/last');
+  getLastActivity({ sportType }) {
+    const urlSearchParams = new URLSearchParams();
+
+    if (sportType) {
+      urlSearchParams.append('sportType', sportType);
+    }
+
+    return this.request('/activities/last', { urlSearchParams });
   }
 }
