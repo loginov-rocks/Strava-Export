@@ -15,11 +15,13 @@ export class ActivitiesController {
       return res.status(401).send({ message: 'Unauthorized' });
     }
 
-    const { from, order, sort, sportType, to, withStravaData } = req.query;
+    const { from, lastDays, lastWeeks, lastMonths, lastYears, order, sort, sportType, to, withStravaData } = req.query;
 
     let filter;
     try {
-      filter = this.createActivitiesFilter({ from, order, sort, sportType, to });
+      filter = this.createActivitiesFilter({
+        from, lastDays, lastWeeks, lastMonths, lastYears, order, sort, sportType, to,
+      });
     } catch {
       return res.status(400).send({ message: 'Bad Request' });
     }
@@ -122,18 +124,31 @@ export class ActivitiesController {
       : this.activityDtoFactory.createJson(activity));
   }
 
-  createActivitiesFilter({ from, order, sort, sportType, to }) {
+  createActivitiesFilter({ from, lastDays, lastWeeks, lastMonths, lastYears, order, sort, sportType, to }) {
     const filterScheme = this.activityService.getFilterScheme();
 
-    const isValidISODate = (dateString) => {
-      const date = new Date(dateString);
+    const isValidISODate = (value) => {
+      const date = new Date(value);
 
-      return date instanceof Date && !isNaN(date) && date.toISOString() === dateString;
+      return date instanceof Date && !isNaN(date) && date.toISOString() === value;
+    };
+
+    const isValidPositiveInteger = (value) => {
+      const num = parseInt(value, 10);
+
+      return !isNaN(num) && num > 0 && num.toString() === value.toString();
     };
 
     if ((from && !isValidISODate(from)) || (to && !isValidISODate(to)) ||
       (from && to && new Date(from) >= new Date(to))) {
       throw new Error('Incorrect from or to parameters');
+    }
+
+    if ((lastDays && !isValidPositiveInteger(lastDays)) ||
+      (lastWeeks && !isValidPositiveInteger(lastWeeks)) ||
+      (lastMonths && !isValidPositiveInteger(lastMonths)) ||
+      (lastYears && !isValidPositiveInteger(lastYears))) {
+      throw new Error('Incorrect lastDays, lastWeeks, lastMonths or lastYears parameters');
     }
 
     if ((order && !filterScheme.order.includes(order)) || (sort && !filterScheme.sort.includes(sort))) {
@@ -144,8 +159,32 @@ export class ActivitiesController {
       throw new Error('Incorrect sport type parameter');
     }
 
+    let calculatedFrom = from;
+
+    if (!from && !to && (lastDays || lastWeeks || lastMonths || lastYears)) {
+      const now = new Date();
+
+      if (lastDays) {
+        calculatedFrom = new Date(now.getTime() - (parseInt(lastDays, 10) * 24 * 60 * 60 * 1000));
+      } else if (lastWeeks) {
+        calculatedFrom = new Date(now.getTime() - (parseInt(lastWeeks, 10) * 7 * 24 * 60 * 60 * 1000));
+      } else if (lastMonths) {
+        calculatedFrom = new Date(now);
+        calculatedFrom.setMonth(calculatedFrom.getMonth() - parseInt(lastMonths, 10));
+
+        if (calculatedFrom.getDate() !== now.getDate()) {
+          calculatedFrom.setDate(0);
+        }
+      } else if (lastYears) {
+        calculatedFrom = new Date(now);
+        calculatedFrom.setFullYear(calculatedFrom.getFullYear() - parseInt(lastYears, 10));
+      }
+
+      calculatedFrom = calculatedFrom.toISOString();
+    }
+
     return {
-      from,
+      from: calculatedFrom,
       order: order ? order : 'desc',
       sort: sort ? sort : 'startDateTime',
       sportType,
