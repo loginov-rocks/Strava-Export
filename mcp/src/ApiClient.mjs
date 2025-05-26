@@ -44,23 +44,38 @@ export class ApiClient {
     }
   }
 
-  getActivities({ from, order, sort, sportType, to }) {
+  getActivities({ sportType, from, to, lastDays, lastWeeks, lastMonths, lastYears, sort, order }) {
     const urlSearchParams = new URLSearchParams();
+
+    if (sportType) {
+      urlSearchParams.append('sportType', sportType);
+    }
 
     if (from) {
       urlSearchParams.append('from', from);
     }
-    if (order) {
-      urlSearchParams.append('order', order);
+    if (to) {
+      urlSearchParams.append('to', to);
     }
+
+    if (lastDays) {
+      urlSearchParams.append('lastDays', lastDays);
+    }
+    if (lastWeeks) {
+      urlSearchParams.append('lastWeeks', lastWeeks);
+    }
+    if (lastMonths) {
+      urlSearchParams.append('lastMonths', lastMonths);
+    }
+    if (lastYears) {
+      urlSearchParams.append('lastYears', lastYears);
+    }
+
     if (sort) {
       urlSearchParams.append('sort', sort);
     }
-    if (sportType) {
-      urlSearchParams.append('sportType', sportType);
-    }
-    if (to) {
-      urlSearchParams.append('to', to);
+    if (order) {
+      urlSearchParams.append('order', order);
     }
 
     return this.request('/activities', { urlSearchParams });

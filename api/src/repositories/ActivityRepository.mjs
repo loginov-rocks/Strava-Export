@@ -1,13 +1,13 @@
 export class ActivityRepository {
-  static FILTER_ORDER = ['asc', 'desc'];
-  static FILTER_SORT = ['startDateTime'];
   static FILTER_SPORT_TYPE = ['Hike', 'Ride', 'Run', 'Swim'];
+  static FILTER_SORT = ['startDateTime'];
+  static FILTER_ORDER = ['asc', 'desc'];
 
   getFilterScheme() {
     return {
-      order: ActivityRepository.FILTER_ORDER,
-      sort: ActivityRepository.FILTER_SORT,
       sportType: ActivityRepository.FILTER_SPORT_TYPE,
+      sort: ActivityRepository.FILTER_SORT,
+      order: ActivityRepository.FILTER_ORDER,
     };
   }
 
@@ -32,11 +32,9 @@ export class ActivityRepository {
       }
       if (filter.from || filter.to) {
         findParams['stravaData.start_date'] = {};
-
         if (filter.from) {
           findParams['stravaData.start_date'].$gte = filter.from;
         }
-
         if (filter.to) {
           findParams['stravaData.start_date'].$lte = filter.to;
         }

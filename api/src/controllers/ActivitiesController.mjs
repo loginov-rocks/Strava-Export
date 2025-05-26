@@ -15,12 +15,12 @@ export class ActivitiesController {
       return res.status(401).send({ message: 'Unauthorized' });
     }
 
-    const { from, lastDays, lastWeeks, lastMonths, lastYears, order, sort, sportType, to, withStravaData } = req.query;
+    const { sportType, from, to, lastDays, lastWeeks, lastMonths, lastYears, sort, order, withStravaData } = req.query;
 
     let filter;
     try {
       filter = this.createActivitiesFilter({
-        from, lastDays, lastWeeks, lastMonths, lastYears, order, sort, sportType, to,
+        sportType, from, to, lastDays, lastWeeks, lastMonths, lastYears, sort, order,
       });
     } catch {
       return res.status(400).send({ message: 'Bad Request' });
@@ -124,7 +124,8 @@ export class ActivitiesController {
       : this.activityDtoFactory.createJson(activity));
   }
 
-  createActivitiesFilter({ from, lastDays, lastWeeks, lastMonths, lastYears, order, sort, sportType, to }) {
+  // TODO: Revisit implementation.
+  createActivitiesFilter({ sportType, from, to, lastDays, lastWeeks, lastMonths, lastYears, sort, order }) {
     const filterScheme = this.activityService.getFilterScheme();
 
     const isValidISODate = (value) => {
@@ -139,6 +140,10 @@ export class ActivitiesController {
       return !isNaN(num) && num > 0 && num.toString() === value.toString();
     };
 
+    if (sportType && !filterScheme.sportType.includes(sportType)) {
+      throw new Error('Incorrect sport type parameter');
+    }
+
     if ((from && !isValidISODate(from)) || (to && !isValidISODate(to)) ||
       (from && to && new Date(from) >= new Date(to))) {
       throw new Error('Incorrect from or to parameters');
@@ -151,12 +156,8 @@ export class ActivitiesController {
       throw new Error('Incorrect lastDays, lastWeeks, lastMonths or lastYears parameters');
     }
 
-    if ((order && !filterScheme.order.includes(order)) || (sort && !filterScheme.sort.includes(sort))) {
-      throw new Error('Incorrect order or sort parameters');
-    }
-
-    if (sportType && !filterScheme.sportType.includes(sportType)) {
-      throw new Error('Incorrect sport type parameter');
+    if ((sort && !filterScheme.sort.includes(sort)) || (order && !filterScheme.order.includes(order))) {
+      throw new Error('Incorrect sort or order parameters');
     }
 
     let calculatedFrom = from;
@@ -172,6 +173,7 @@ export class ActivitiesController {
         calculatedFrom = new Date(now);
         calculatedFrom.setMonth(calculatedFrom.getMonth() - parseInt(lastMonths, 10));
 
+        // Fix for incorrect dates.
         if (calculatedFrom.getDate() !== now.getDate()) {
           calculatedFrom.setDate(0);
         }
@@ -184,11 +186,11 @@ export class ActivitiesController {
     }
 
     return {
-      from: calculatedFrom,
-      order: order ? order : 'desc',
-      sort: sort ? sort : 'startDateTime',
       sportType,
+      from: calculatedFrom,
       to,
+      sort: sort ? sort : 'startDateTime',
+      order: order ? order : 'desc',
     };
   }
 }

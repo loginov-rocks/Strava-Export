@@ -27,16 +27,22 @@ const textResponse = (text) => ({
 
 server.tool(
   'get-all-activities',
-  'Get all Strava activities',
+  'Get all activities from Strava',
   {
-    sportType: z.enum(['Hike', 'Ride', 'Run', 'Swim']).optional().describe('Filter by sport type (optional)'),
-    sort: z.enum(['startDateTime']).optional().describe('Sort field (currently only startDateTime is supported)'),
-    order: z.enum(['asc', 'desc']).optional().describe('Sort order (ascending or descending)'),
-    from: z.string().optional().describe('Start date filter in ISO format (e.g., "2024-01-01T00:00:00.000Z")'),
-    to: z.string().optional().describe('End date filter in ISO format (e.g., "2024-12-31T23:59:59.999Z")'),
+    sportType: z.enum(['Hike', 'Ride', 'Run', 'Swim']).optional().describe('Optional filter by sport type'),
+    from: z.string().optional().describe('Optional start date filter in ISO format (e.g. "2024-01-01T00:00:00.000Z")'),
+    to: z.string().optional().describe('Optional end date filter in ISO format (e.g. "2024-12-31T23:59:59.999Z")'),
+    lastDays: z.number().int().positive().optional().describe('Optional filter to get activities from the last N days (can be used only when `from` and `to` are not specified)'),
+    lastWeeks: z.number().int().positive().optional().describe('Optional filter to get activities from the last N weeks (can be used when `from`, `to`, and `lastDays` are not specified)'),
+    lastMonths: z.number().int().positive().optional().describe('Optional filter to get activities from the last N months (can be used when `from`, `to`, `lastDays`, and `lastWeeks` are not specified)'),
+    lastYears: z.number().int().positive().optional().describe('Optional filter to get activities from the last N years (can be used when `from`, `to`, `lastDays`, `lastWeeks`, and `lastMonths` are not specified)'),
+    sort: z.enum(['startDateTime']).optional().describe('Optional sort field'),
+    order: z.enum(['asc', 'desc']).optional().describe('Optional sort order (ascending or descending)'),
   },
-  async ({ from, order, sort, sportType, to }) => {
-    const activities = await apiClient.getActivities({ from, order, sort, sportType, to });
+  async ({ sportType, from, to, lastDays, lastWeeks, lastMonths, lastYears, sort, order }) => {
+    const activities = await apiClient.getActivities({
+      sportType, from, to, lastDays, lastWeeks, lastMonths, lastYears, sort, order,
+    });
 
     return textResponse(activities);
   },
@@ -44,7 +50,7 @@ server.tool(
 
 server.tool(
   'get-activity-by-id',
-  'Get Strava activity by ID',
+  'Get activity by ID from Strava',
   {
     activityId: z.string().describe('Activity ID'),
   },
@@ -57,9 +63,9 @@ server.tool(
 
 server.tool(
   'get-last-activity',
-  'Get last Strava activity',
+  'Get last activity from Strava',
   {
-    sportType: z.enum(['Hike', 'Ride', 'Run', 'Swim']).optional().describe('Filter by sport type (optional)'),
+    sportType: z.enum(['Hike', 'Ride', 'Run', 'Swim']).optional().describe('Optional filter by sport type'),
   },
   async ({ sportType }) => {
     const activity = await apiClient.getLastActivity({ sportType });
