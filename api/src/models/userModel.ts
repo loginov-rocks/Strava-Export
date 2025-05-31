@@ -12,3 +12,5 @@ const schema = new Schema({
 });
 
 export const userModel = model('User', schema);
+
+export type UserModel = typeof userModel;

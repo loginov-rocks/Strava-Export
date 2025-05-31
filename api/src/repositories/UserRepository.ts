@@ -1,13 +1,25 @@
-import crypto from 'crypto';
+import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
+
+import { UserModel } from '../models/userModel';
+
+interface Options {
+  encryptionIv: string;
+  encryptionKey: string;
+  userModel: UserModel;
+}
 
 export class UserRepository {
-  constructor({ encryptionIv, encryptionKey, userModel }) {
+  private readonly encryptionIv: Buffer;
+  private readonly encryptionKey: Buffer;
+  private readonly userModel: UserModel;
+
+  constructor({ encryptionIv, encryptionKey, userModel }: Options) {
     this.encryptionIv = Buffer.from(encryptionIv, 'hex');
     this.encryptionKey = Buffer.from(encryptionKey, 'hex');
     this.userModel = userModel;
   }
 
-  createOrUpdateByStravaAthleteId(stravaAthleteId, user) {
+  public createOrUpdateByStravaAthleteId(stravaAthleteId: string, user: UserModel) {
     const userData = JSON.parse(JSON.stringify(user));
 
     if (userData.stravaToken) {
@@ -23,7 +35,7 @@ export class UserRepository {
     return this.userModel.findOneAndUpdate({ stravaAthleteId }, userData, { new: true, upsert: true }).lean();
   }
 
-  async findById(id) {
+  public async findById(id: string) {
     const user = await this.userModel.findById(id).lean();
 
     if (user && user.stravaToken) {
@@ -39,7 +51,7 @@ export class UserRepository {
     return user;
   }
 
-  updateOneById(id, user) {
+  public updateOneById(id: string, user: UserModel) {
     const userData = JSON.parse(JSON.stringify(user));
 
     if (userData.stravaToken) {
@@ -55,11 +67,11 @@ export class UserRepository {
     return this.userModel.updateOne({ _id: id }, user);
   }
 
-  encrypt(text) {
-    const uniqueIv = crypto.randomBytes(4);
+  private encrypt(text: string) {
+    const uniqueIv = randomBytes(4);
 
     const combinedIv = Buffer.concat([this.encryptionIv, uniqueIv]);
-    const cipher = crypto.createCipheriv('aes-256-gcm', this.encryptionKey, combinedIv);
+    const cipher = createCipheriv('aes-256-gcm', this.encryptionKey, combinedIv);
     let encrypted = cipher.update(text, 'utf8', 'hex');
     encrypted += cipher.final('hex');
 
@@ -68,7 +80,7 @@ export class UserRepository {
     return uniqueIv.toString('hex') + ':' + encrypted + ':' + authTag;
   }
 
-  decrypt(encryptedText) {
+  private decrypt(encryptedText: string) {
     const [uniqueIv, encrypted, authTag] = encryptedText.split(':');
 
     const combinedIv = Buffer.concat([
@@ -76,7 +88,7 @@ export class UserRepository {
       Buffer.from(uniqueIv, 'hex')
     ]);
 
-    const decipher = crypto.createDecipheriv('aes-256-gcm', this.encryptionKey, combinedIv);
+    const decipher = createDecipheriv('aes-256-gcm', this.encryptionKey, combinedIv);
     decipher.setAuthTag(Buffer.from(authTag, 'hex'));
 
     let decrypted = decipher.update(encrypted, 'hex', 'utf8');

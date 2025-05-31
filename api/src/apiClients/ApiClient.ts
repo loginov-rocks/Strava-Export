@@ -1,9 +1,24 @@
-export class ApiClient {
-  constructor({ baseUrl }) {
+export interface Options {
+  baseUrl: string;
+}
+
+interface RequestOptions {
+  accessToken?: string;
+  body?: string;
+  headers?: Record<string, string>;
+  method?: 'get' | 'post';
+  timeout?: number;
+  urlSearchParams?: URLSearchParams;
+}
+
+export abstract class ApiClient {
+  protected readonly baseUrl: string;
+
+  constructor({ baseUrl }: Options) {
     this.baseUrl = baseUrl;
   }
 
-  async request(endpoint, options = {}) {
+  protected async request(endpoint: string, options: RequestOptions = {}) {
     const { accessToken, headers: customHeaders, timeout, urlSearchParams, ...customParams } = options;
 
     const url = `${this.baseUrl}${endpoint}${urlSearchParams ? `?${urlSearchParams.toString()}` : ''}`;

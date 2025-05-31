@@ -1,12 +1,28 @@
+import { StravaApiClient } from '../apiClients/StravaApiClient';
+import { UserRepository } from '../repositories/UserRepository';
+import { TokenService } from './TokenService';
+
+interface Options {
+  stravaApiClient: StravaApiClient;
+  tokenService: TokenService;
+  userRepository: UserRepository;
+  webAppUrl: string;
+}
+
 export class AuthService {
-  constructor({ stravaApiClient, tokenService, userRepository, webAppUrl }) {
+  private readonly stravaApiClient: StravaApiClient;
+  private readonly tokenService: TokenService;
+  private readonly userRepository: UserRepository;
+  private readonly webAppUrl: string;
+
+  constructor({ stravaApiClient, tokenService, userRepository, webAppUrl }: Options) {
     this.stravaApiClient = stravaApiClient;
     this.tokenService = tokenService;
     this.userRepository = userRepository;
     this.webAppUrl = webAppUrl;
   }
 
-  getAuthorizeUrl(redirectUri, state) {
+  public getAuthorizeUrl(redirectUri: string, state?: string) {
     if (!this.matchesOrigin(redirectUri, this.webAppUrl)) {
       throw new Error(`Redirect URI does not match web app URL: "${this.webAppUrl}"`);
     }
@@ -14,14 +30,14 @@ export class AuthService {
     return this.stravaApiClient.buildAuthorizeUrl(redirectUri, state);
   }
 
-  createTokens(userId) {
+  private createTokens(userId: string) {
     const { expiresIn: accessTokenExpiresIn, jwt: accessToken } = this.tokenService.signAccessToken({ userId });
     const { expiresIn: refreshTokenExpiresIn, jwt: refreshToken } = this.tokenService.signRefreshToken({ userId });
 
     return { accessToken, accessTokenExpiresIn, refreshToken, refreshTokenExpiresIn };
   }
 
-  async exchangeCode(code, scope, state) {
+  public async exchangeCode(code: string, scope?: string, state?: string) {
     const tokenResponse = await this.stravaApiClient.token(code);
 
     const stravaAthleteId = tokenResponse.athlete.id.toString();
@@ -36,14 +52,14 @@ export class AuthService {
 
     const user = await this.userRepository.createOrUpdateByStravaAthleteId(stravaAthleteId, userData);
 
-    return this.createTokens(user._id);
+    return this.createTokens(user._id.toString());
   }
 
-  refreshTokens(userId) {
+  public refreshTokens(userId: string) {
     return this.createTokens(userId);
   }
 
-  matchesOrigin(redirectUrl, originUrl) {
+  private matchesOrigin(redirectUrl: string, originUrl: string) {
     let origin, redirect;
     try {
       origin = new URL(originUrl);

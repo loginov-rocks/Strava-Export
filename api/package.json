@@ -4,8 +4,9 @@
     "generate-refresh-token-secret": "node -e \"console.log('REFRESH_TOKEN_SECRET=' + require('crypto').randomBytes(32).toString('base64'))\"",
     "generate-encryption-iv": "node -e \"console.log('USER_REPOSITORY_ENCRYPTION_IV=' + require('crypto').randomBytes(12).toString('hex'))\"",
     "generate-encryption-key": "node -e \"console.log('USER_REPOSITORY_ENCRYPTION_KEY=' + require('crypto').randomBytes(32).toString('hex'))\"",
-    "start": "node src/app.mjs",
-    "start:workers": "node src/workers.mjs"
+    "start": "tsx src/app",
+    "start:workers": "tsx src/workers",
+    "typecheck": "tsc"
   },
   "dependencies": {
     "bullmq": "^5.53.0",
@@ -15,5 +16,14 @@
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.15.0"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.8",
+    "@types/cors": "^2.8.18",
+    "@types/express": "^5.0.2",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/node": "^22.15.24",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
   }
 }

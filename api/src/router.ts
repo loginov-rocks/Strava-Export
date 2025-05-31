@@ -1,6 +1,6 @@
 import { Router } from 'express';
 
-import { activitiesController, authController, syncJobController, tokenMiddleware } from './container.mjs';
+import { activitiesController, authController, syncJobController, tokenMiddleware } from './container';
 
 export const router = Router();
 

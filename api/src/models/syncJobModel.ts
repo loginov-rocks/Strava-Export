@@ -20,3 +20,5 @@ const schema = new Schema({
 });
 
 export const syncJobModel = model('SyncJob', schema);
+
+export type SyncJobModel = typeof syncJobModel;

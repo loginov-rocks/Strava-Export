@@ -1,5 +1,16 @@
+import { SyncJobDtoFactory } from '../dtoFactories/SyncJobDtoFactory';
+import { SyncJobService } from '../services/SyncJobService';
+
+interface Options {
+  syncJobDtoFactory: SyncJobDtoFactory;
+  syncJobService: SyncJobService;
+}
+
 export class SyncJobController {
-  constructor({ syncJobDtoFactory, syncJobService }) {
+  private readonly syncJobDtoFactory: SyncJobDtoFactory;
+  private readonly syncJobService: SyncJobService;
+
+  constructor({ syncJobDtoFactory, syncJobService }: Options) {
     this.syncJobDtoFactory = syncJobDtoFactory;
     this.syncJobService = syncJobService;
 
@@ -8,7 +19,7 @@ export class SyncJobController {
     this.postSyncJob = this.postSyncJob.bind(this);
   }
 
-  async getSyncJob(req, res) {
+  public async getSyncJob(req, res) {
     const { userId } = req;
 
     if (!userId) {
@@ -37,7 +48,7 @@ export class SyncJobController {
     return res.send(this.syncJobDtoFactory.createJson(syncJob));
   }
 
-  async getSyncJobs(req, res) {
+  public async getSyncJobs(req, res) {
     const { userId } = req;
 
     if (!userId) {
@@ -56,7 +67,7 @@ export class SyncJobController {
     return res.send(this.syncJobDtoFactory.createJsonCollection(syncJobs));
   }
 
-  async postSyncJob(req, res) {
+  public async postSyncJob(req, res) {
     const { userId } = req;
 
     if (!userId) {

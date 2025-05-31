@@ -1,11 +1,25 @@
+import { StravaActivity, StravaApiClient } from '../apiClients/StravaApiClient';
+import { ActivityRepository } from '../repositories/ActivityRepository';
+import { StravaTokenService } from './StravaTokenService';
+
+interface Options {
+  activityRepository: ActivityRepository;
+  stravaApiClient: StravaApiClient;
+  stravaTokenService: StravaTokenService;
+}
+
 export class ActivitySyncService {
-  constructor({ activityRepository, stravaApiClient, stravaTokenService }) {
+  private readonly activityRepository: ActivityRepository;
+  private readonly stravaApiClient: StravaApiClient;
+  private readonly stravaTokenService: StravaTokenService;
+
+  constructor({ activityRepository, stravaApiClient, stravaTokenService }: Options) {
     this.activityRepository = activityRepository;
     this.stravaApiClient = stravaApiClient;
     this.stravaTokenService = stravaTokenService;
   }
 
-  async processPaginatedActivities(userId) {
+  public async processPaginatedActivities(userId: string) {
     const perPage = 30;
 
     let page = 1;
@@ -58,7 +72,7 @@ export class ActivitySyncService {
     };
   }
 
-  async processActivitiesPage(userId, activitiesPage) {
+  private async processActivitiesPage(userId: string, activitiesPage: StravaActivity[]) {
     // Create an array of IDs for the page of activities obtained from Strava.
     const ids = activitiesPage.map(({ id }) => id);
 
@@ -105,7 +119,7 @@ export class ActivitySyncService {
     };
   }
 
-  async processActivitiesDetails(userId, stravaActivitiesIds) {
+  private async processActivitiesDetails(userId: string, stravaActivitiesIds: string[]) {
     let updatedCount = 0;
 
     for (const stravaActivityId of stravaActivitiesIds) {

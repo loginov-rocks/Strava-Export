@@ -1,5 +1,28 @@
+import { ActivityDtoFactory } from '../dtoFactories/ActivityDtoFactory';
+import { ActivityService } from '../services/ActivityService';
+
+interface Options {
+  activityDtoFactory: ActivityDtoFactory;
+  activityService: ActivityService;
+}
+
+interface Filter {
+  sportType?: string;
+  from?: string;
+  to?: string;
+  lastDays?: string;
+  lastWeeks?: string;
+  lastMonths?: string;
+  lastYears?: string;
+  sort?: string;
+  order?: string;
+}
+
 export class ActivitiesController {
-  constructor({ activityDtoFactory, activityService }) {
+  private readonly activityDtoFactory: ActivityDtoFactory;
+  private readonly activityService: ActivityService;
+
+  constructor({ activityDtoFactory, activityService }: Options) {
     this.activityDtoFactory = activityDtoFactory;
     this.activityService = activityService;
 
@@ -8,7 +31,7 @@ export class ActivitiesController {
     this.getLastActivity = this.getLastActivity.bind(this);
   }
 
-  async getActivities(req, res) {
+  public async getActivities(req, res) {
     const { userId } = req;
 
     if (!userId) {
@@ -46,7 +69,7 @@ export class ActivitiesController {
       : this.activityDtoFactory.createJsonCollection(activities));
   }
 
-  async getActivity(req, res) {
+  public async getActivity(req, res) {
     const { userId } = req;
 
     if (!userId) {
@@ -85,7 +108,7 @@ export class ActivitiesController {
       : this.activityDtoFactory.createJson(activity));
   }
 
-  async getLastActivity(req, res) {
+  public async getLastActivity(req, res) {
     const { userId } = req;
 
     if (!userId) {
@@ -125,7 +148,7 @@ export class ActivitiesController {
   }
 
   // TODO: Revisit implementation.
-  createActivitiesFilter({ sportType, from, to, lastDays, lastWeeks, lastMonths, lastYears, sort, order }) {
+  private createActivitiesFilter({ sportType, from, to, lastDays, lastWeeks, lastMonths, lastYears, sort, order }: Filter) {
     const filterScheme = this.activityService.getFilterScheme();
 
     const isValidISODate = (value) => {

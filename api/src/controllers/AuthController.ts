@@ -1,5 +1,13 @@
+import { AuthService } from '../services/AuthService';
+
+interface Options {
+  authService: AuthService;
+}
+
 export class AuthController {
-  constructor({ authService }) {
+  private readonly authService: AuthService;
+
+  constructor({ authService }: Options) {
     this.authService = authService;
 
     this.get = this.get.bind(this);
@@ -11,11 +19,11 @@ export class AuthController {
     this.postLogout = this.postLogout.bind(this);
   }
 
-  get(req, res) {
+  public get(req, res) {
     return res.status(204).send();
   }
 
-  getStrava(req, res) {
+  public getStrava(req, res) {
     const { redirectUri, state } = req.query;
 
     if (!redirectUri) {
@@ -34,7 +42,7 @@ export class AuthController {
     return res.send({ url });
   }
 
-  async postTokenMiddleware(req, res, next) {
+  public async postTokenMiddleware(req, res, next) {
     const { code, scope, state } = req.body;
 
     let tokens;
@@ -51,11 +59,11 @@ export class AuthController {
     next();
   }
 
-  postToken(req, res) {
+  public postToken(req, res) {
     return res.status(204).send();
   }
 
-  postRefreshMiddleware(req, res, next) {
+  public postRefreshMiddleware(req, res, next) {
     const { userId } = req;
 
     let tokens;
@@ -72,11 +80,11 @@ export class AuthController {
     next();
   }
 
-  postRefresh(req, res) {
+  public postRefresh(req, res) {
     return res.status(204).send();
   }
 
-  postLogout(req, res) {
+  public postLogout(req, res) {
     return res.status(204).send();
   }
 }

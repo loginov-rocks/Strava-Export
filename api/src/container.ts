@@ -2,37 +2,37 @@ import {
   ACCESS_TOKEN_COOKIE_NAME, ACCESS_TOKEN_EXPIRES_IN, ACCESS_TOKEN_SECRET, REFRESH_TOKEN_COOKIE_NAME,
   REFRESH_TOKEN_EXPIRES_IN, REFRESH_TOKEN_SECRET, STRAVA_API_BASE_URL, STRAVA_API_CLIENT_ID, STRAVA_API_CLIENT_SECRET,
   SYNC_JOB_QUEUE_NAME, USER_REPOSITORY_ENCRYPTION_IV, USER_REPOSITORY_ENCRYPTION_KEY, WEB_APP_URL,
-} from './constants.mjs';
+} from './constants';
 
-import { StravaApiClient } from './apiClients/StravaApiClient.mjs';
+import { StravaApiClient } from './apiClients/StravaApiClient';
 
-import { ActivitiesController } from './controllers/ActivitiesController.mjs';
-import { AuthController } from './controllers/AuthController.mjs';
-import { SyncJobController } from './controllers/SyncJobController.mjs';
+import { ActivitiesController } from './controllers/ActivitiesController';
+import { AuthController } from './controllers/AuthController';
+import { SyncJobController } from './controllers/SyncJobController';
 
-import { ActivityDtoFactory } from './dtoFactories/ActivityDtoFactory.mjs';
-import { SyncJobDtoFactory } from './dtoFactories/SyncJobDtoFactory.mjs';
+import { ActivityDtoFactory } from './dtoFactories/ActivityDtoFactory';
+import { SyncJobDtoFactory } from './dtoFactories/SyncJobDtoFactory';
 
-import { TokenMiddleware } from './middlewares/TokenMiddleware.mjs';
+import { TokenMiddleware } from './middlewares/TokenMiddleware';
 
-import { activityModel } from './models/activityModel.mjs';
-import { syncJobModel } from './models/syncJobModel.mjs';
-import { userModel } from './models/userModel.mjs';
+import { activityModel } from './models/activityModel';
+import { syncJobModel } from './models/syncJobModel';
+import { userModel } from './models/userModel';
 
-import { ActivityRepository } from './repositories/ActivityRepository.mjs';
-import { SyncJobRepository } from './repositories/SyncJobRepository.mjs';
-import { UserRepository } from './repositories/UserRepository.mjs';
+import { ActivityRepository } from './repositories/ActivityRepository';
+import { SyncJobRepository } from './repositories/SyncJobRepository';
+import { UserRepository } from './repositories/UserRepository';
 
-import { ActivityService } from './services/ActivityService.mjs';
-import { ActivitySyncService } from './services/ActivitySyncService.mjs';
-import { AuthService } from './services/AuthService.mjs';
-import { StravaTokenService } from './services/StravaTokenService.mjs';
-import { SyncJobService } from './services/SyncJobService.mjs';
-import { TokenService } from './services/TokenService.mjs';
+import { ActivityService } from './services/ActivityService';
+import { ActivitySyncService } from './services/ActivitySyncService';
+import { AuthService } from './services/AuthService';
+import { StravaTokenService } from './services/StravaTokenService';
+import { SyncJobService } from './services/SyncJobService';
+import { TokenService } from './services/TokenService';
 
-import { SyncJobWorker } from './workers/SyncJobWorker.mjs';
+import { SyncJobWorker } from './workers/SyncJobWorker';
 
-import { syncJobQueue } from './queues.mjs';
+import { syncJobQueue } from './queues';
 
 // API clients.
 const stravaApiClient = new StravaApiClient({
@@ -89,7 +89,6 @@ const activitySyncService = new ActivitySyncService({
 const syncJobService = new SyncJobService({
   syncJobQueue,
   syncJobRepository,
-  userRepository,
 });
 
 // Middlewares.

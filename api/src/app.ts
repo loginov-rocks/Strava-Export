@@ -3,9 +3,9 @@ import cors from 'cors';
 import 'dotenv/config';
 import express from 'express';
 
-import { MONGOOSE_CONNECT_URI, PORT, WEB_APP_URL } from './constants.mjs';
-import { connect as connectDatabase } from './database.mjs';
-import { router } from './router.mjs';
+import { MONGOOSE_CONNECT_URI, PORT, WEB_APP_URL } from './constants';
+import { connect as connectDatabase } from './database';
+import { router } from './router';
 
 const app = express();
 

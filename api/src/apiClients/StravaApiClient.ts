@@ -1,14 +1,26 @@
-import { ApiClient } from './ApiClient.mjs';
+import { ApiClient, Options as ApiClientOptions } from './ApiClient';
+
+interface Options extends ApiClientOptions {
+  clientId: string;
+  clientSecret: string;
+}
+
+export interface StravaActivity {
+  id: string;
+}
 
 export class StravaApiClient extends ApiClient {
-  constructor(options) {
+  private readonly clientId: string;
+  private readonly clientSecret: string;
+
+  constructor(options: Options) {
     super(options);
 
     this.clientId = options.clientId;
     this.clientSecret = options.clientSecret;
   }
 
-  buildAuthorizeUrl(redirectUri, state) {
+  public buildAuthorizeUrl(redirectUri: string, state?: string) {
     const urlSearchParams = new URLSearchParams({
       client_id: this.clientId,
       redirect_uri: redirectUri,
@@ -23,7 +35,7 @@ export class StravaApiClient extends ApiClient {
     return `${this.baseUrl}/oauth/authorize?${urlSearchParams.toString()}`;
   }
 
-  getActivities(accessToken, page, perPage) {
+  public getActivities(accessToken: string, page?: number, perPage?: number): Promise<StravaActivity[]> {
     return this.request('/api/v3/athlete/activities', {
       accessToken,
       urlSearchParams: new URLSearchParams({
@@ -33,17 +45,17 @@ export class StravaApiClient extends ApiClient {
     });
   }
 
-  getActivity(accessToken, activityId) {
+  public getActivity(accessToken: string, activityId: string) {
     return this.request(`/api/v3/activities/${activityId}`, { accessToken });
   }
 
-  requestToken(params) {
+  private requestToken(params: Record<string, string>) {
     return this.request('/api/v3/oauth/token', {
       body: new URLSearchParams({
-      client_id: this.clientId,
-      client_secret: this.clientSecret,
-      ...params,
-    }).toString(),
+        client_id: this.clientId,
+        client_secret: this.clientSecret,
+        ...params,
+      }).toString(),
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
@@ -51,14 +63,14 @@ export class StravaApiClient extends ApiClient {
     });
   }
 
-  token(code) {
+  public token(code: string) {
     return this.requestToken({
       grant_type: 'authorization_code',
       code,
     });
   }
 
-  refreshToken(refreshToken) {
+  public refreshToken(refreshToken: string) {
     return this.requestToken({
       grant_type: 'refresh_token',
       refresh_token: refreshToken,

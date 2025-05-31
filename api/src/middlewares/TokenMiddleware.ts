@@ -1,5 +1,17 @@
+import { TokenService } from '../services/TokenService';
+
+interface Options {
+  accessTokenCookieName: string;
+  refreshTokenCookieName: string;
+  tokenService: TokenService;
+}
+
 export class TokenMiddleware {
-  constructor({ accessTokenCookieName, refreshTokenCookieName, tokenService }) {
+  private readonly accessTokenCookieName: string;
+  private readonly refreshTokenCookieName: string;
+  private readonly tokenService: TokenService;
+
+  constructor({ accessTokenCookieName, refreshTokenCookieName, tokenService }: Options) {
     this.accessTokenCookieName = accessTokenCookieName;
     this.refreshTokenCookieName = refreshTokenCookieName;
     this.tokenService = tokenService;
@@ -10,7 +22,7 @@ export class TokenMiddleware {
     this.requireRefreshToken = this.requireRefreshToken.bind(this);
   }
 
-  attach(req, res, next) {
+  public attach(req, res, next) {
     if (res.locals.tokens) {
       res.cookie(this.accessTokenCookieName, res.locals.tokens.accessToken, {
         httpOnly: true,
@@ -30,14 +42,14 @@ export class TokenMiddleware {
     next();
   }
 
-  remove(req, res, next) {
+  public remove(req, res, next) {
     res.clearCookie(this.accessTokenCookieName);
     res.clearCookie(this.refreshTokenCookieName);
 
     next();
   }
 
-  requireAccessToken(req, res, next) {
+  public requireAccessToken(req, res, next) {
     const accessToken = req.cookies[this.accessTokenCookieName];
 
     if (!accessToken) {
@@ -56,7 +68,7 @@ export class TokenMiddleware {
     next();
   }
 
-  requireRefreshToken(req, res, next) {
+  public requireRefreshToken(req, res, next) {
     const refreshToken = req.cookies[this.refreshTokenCookieName];
 
     if (!refreshToken) {

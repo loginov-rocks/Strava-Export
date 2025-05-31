@@ -1,5 +1,18 @@
+import { StravaApiClient } from '../apiClients/StravaApiClient';
+import { UserRepository } from '../repositories/UserRepository';
+
+interface Options {
+  stravaApiClient: StravaApiClient;
+  userRepository: UserRepository;
+}
+
 export class StravaTokenService {
-  constructor({ stravaApiClient, userRepository }) {
+  private readonly stravaApiClient: StravaApiClient;
+  private readonly userRepository: UserRepository;
+
+  private readonly accessTokenCache: Map<string, { accessToken: string, expiresAt: Date }>;
+
+  constructor({ stravaApiClient, userRepository }: Options) {
     this.stravaApiClient = stravaApiClient;
     this.userRepository = userRepository;
 
@@ -7,7 +20,7 @@ export class StravaTokenService {
     this.accessTokenCache = new Map();
   }
 
-  async getAccessToken(userId) {
+  public async getAccessToken(userId: string) {
     const cachedAccessToken = this.getCachedAccessToken(userId);
 
     if (cachedAccessToken) {
@@ -39,7 +52,7 @@ export class StravaTokenService {
     return userData.stravaToken.accessToken;
   }
 
-  getCachedAccessToken(userId) {
+  private getCachedAccessToken(userId: string) {
     const cached = this.accessTokenCache.get(userId);
 
     if (!cached) {
@@ -55,7 +68,7 @@ export class StravaTokenService {
     return cached.accessToken;
   }
 
-  cacheAccessToken(userId, accessToken, expiresAt) {
+  private cacheAccessToken(userId: string, accessToken: string, expiresAt: Date) {
     this.accessTokenCache.set(userId, { accessToken, expiresAt });
   }
 }

@@ -10,3 +10,5 @@ const schema = new Schema({
 });
 
 export const activityModel = model('Activity', schema);
+
+export type ActivityModel = typeof activityModel;

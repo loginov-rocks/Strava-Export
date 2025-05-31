@@ -1,11 +1,23 @@
+import { Queue } from 'bullmq';
+
+import { SyncJobRepository } from '../repositories/SyncJobRepository';
+import { UserRepository } from '../repositories/UserRepository';
+
+interface Options {
+  syncJobQueue: Queue;
+  syncJobRepository: SyncJobRepository;
+}
+
 export class SyncJobService {
-  constructor({ syncJobQueue, syncJobRepository, userRepository }) {
+  private readonly syncJobQueue: Queue;
+  private readonly syncJobRepository: SyncJobRepository;
+
+  constructor({ syncJobQueue, syncJobRepository }: Options) {
     this.syncJobQueue = syncJobQueue;
     this.syncJobRepository = syncJobRepository;
-    this.userRepository = userRepository;
   }
 
-  async createSyncJob(userId) {
+  public async createSyncJob(userId: string) {
     const syncJob = await this.syncJobRepository.create({
       userId,
     });
@@ -15,22 +27,22 @@ export class SyncJobService {
     return syncJob;
   }
 
-  getSyncJob(syncJobId) {
+  public getSyncJob(syncJobId: string) {
     return this.syncJobRepository.findById(syncJobId);
   }
 
-  getSyncJobsByUserId(userId) {
+  public getSyncJobsByUserId(userId: string) {
     return this.syncJobRepository.findByUserId(userId);
   }
 
-  markSyncJobStarted(syncJobId) {
+  public markSyncJobStarted(syncJobId: string) {
     return this.syncJobRepository.updateOneById(syncJobId, {
       status: 'started',
       startedAt: new Date(),
     });
   }
 
-  markSyncJobCompleted(syncJobId, result) {
+  public markSyncJobCompleted(syncJobId: string, result) {
     return this.syncJobRepository.updateOneById(syncJobId, {
       status: 'completed',
       completedAt: new Date(),
@@ -38,7 +50,7 @@ export class SyncJobService {
     });
   }
 
-  markSyncJobFailed(syncJobId, error) {
+  public markSyncJobFailed(syncJobId: string, error) {
     return this.syncJobRepository.updateOneById(syncJobId, {
       status: 'failed',
       failedAt: new Date(),

@@ -1,7 +1,22 @@
 import { Worker } from 'bullmq';
 
+import { ActivitySyncService } from '../services/ActivitySyncService';
+import { SyncJobService } from '../services/SyncJobService';
+
+interface Options {
+  activitySyncService: ActivitySyncService;
+  syncJobQueueName: string;
+  syncJobService: SyncJobService;
+}
+
 export class SyncJobWorker {
-  constructor({ activitySyncService, syncJobQueueName, syncJobService }) {
+  private readonly activitySyncService: ActivitySyncService;
+  private readonly syncJobQueueName: string;
+  private readonly syncJobService: SyncJobService;
+
+  private worker: Worker | null = null;
+
+  constructor({ activitySyncService, syncJobQueueName, syncJobService }: Options) {
     this.activitySyncService = activitySyncService;
     this.syncJobQueueName = syncJobQueueName;
     this.syncJobService = syncJobService;
@@ -9,7 +24,7 @@ export class SyncJobWorker {
     this.initWorker();
   }
 
-  initWorker() {
+  private initWorker() {
     this.worker = new Worker(
       this.syncJobQueueName,
       async (job) => {
