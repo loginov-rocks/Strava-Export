@@ -1,0 +1,29 @@
+name: API CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - api/**
+  pull_request:
+    branches:
+      - main
+    paths:
+      - api/**
+  workflow_dispatch:
+
+jobs:
+  ci:
+    name: CI
+    defaults:
+      run:
+        working-directory: api
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm run typecheck
