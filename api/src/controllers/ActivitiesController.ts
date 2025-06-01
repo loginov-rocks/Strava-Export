@@ -1,4 +1,7 @@
+import { Response } from 'express';
+
 import { ActivityDtoFactory } from '../dtoFactories/ActivityDtoFactory';
+import { AuthenticatedRequest } from '../middlewares/TokenMiddleware';
 import { ActivityService } from '../services/ActivityService';
 
 interface Options {
@@ -6,7 +9,7 @@ interface Options {
   activityService: ActivityService;
 }
 
-interface Filter {
+interface GetActivitiesFilterParameters {
   sportType?: string;
   from?: string;
   to?: string;
@@ -31,22 +34,37 @@ export class ActivitiesController {
     this.getLastActivity = this.getLastActivity.bind(this);
   }
 
-  public async getActivities(req, res) {
+  public async getActivities(req: AuthenticatedRequest, res: Response): Promise<void> {
     const { userId } = req;
 
     if (!userId) {
-      return res.status(401).send({ message: 'Unauthorized' });
+      res.status(401).send({ message: 'Unauthorized' });
+      return;
     }
 
     const { sportType, from, to, lastDays, lastWeeks, lastMonths, lastYears, sort, order, withStravaData } = req.query;
 
+    if ((sportType && typeof sportType !== 'string') ||
+      (from && typeof from !== 'string') ||
+      (to && typeof to !== 'string') ||
+      (lastDays && typeof lastDays !== 'string') ||
+      (lastWeeks && typeof lastWeeks !== 'string') ||
+      (lastMonths && typeof lastMonths !== 'string') ||
+      (lastYears && typeof lastYears !== 'string') ||
+      (sort && typeof sort !== 'string') ||
+      (order && typeof order !== 'string')) {
+      res.status(400).send({ message: 'Bad Request' });
+      return;
+    }
+
     let filter;
     try {
-      filter = this.createActivitiesFilter({
+      filter = this.createGetActivitiesFilter({
         sportType, from, to, lastDays, lastWeeks, lastMonths, lastYears, sort, order,
       });
     } catch {
-      return res.status(400).send({ message: 'Bad Request' });
+      res.status(400).send({ message: 'Bad Request' });
+      return;
     }
 
     let activities;
@@ -55,31 +73,35 @@ export class ActivitiesController {
     } catch (error) {
       console.error(error);
 
-      return res.status(500).send({ message: 'Internal Server Error' });
+      res.status(500).send({ message: 'Internal Server Error' });
+      return;
     }
 
     const acceptHeader = req.get('Accept');
 
     if (acceptHeader && acceptHeader.includes('text/plain')) {
-      return res.type('text/plain').send(this.activityDtoFactory.createTextCollection(activities));
+      res.type('text/plain').send(this.activityDtoFactory.createTextCollection(activities));
+      return;
     }
 
-    return res.send(withStravaData === 'true'
+    res.send(withStravaData === 'true'
       ? this.activityDtoFactory.createJsonWithStravaDataCollection(activities)
       : this.activityDtoFactory.createJsonCollection(activities));
   }
 
-  public async getActivity(req, res) {
+  public async getActivity(req: AuthenticatedRequest, res: Response): Promise<void> {
     const { userId } = req;
 
     if (!userId) {
-      return res.status(401).send({ message: 'Unauthorized' });
+      res.status(401).send({ message: 'Unauthorized' });
+      return;
     }
 
     const { activityId } = req.params;
 
     if (!activityId) {
-      return res.status(400).send({ message: 'Bad Request' });
+      res.status(400).send({ message: 'Bad Request' });
+      return;
     }
 
     const { withStravaData } = req.query;
@@ -90,37 +112,42 @@ export class ActivitiesController {
     } catch (error) {
       console.error(error);
 
-      return res.status(500).send({ message: 'Internal Server Error' });
+      res.status(500).send({ message: 'Internal Server Error' });
+      return;
     }
 
     if (!activity || activity.userId !== userId) {
-      return res.status(404).send({ message: 'Not Found' });
+      res.status(404).send({ message: 'Not Found' });
+      return;
     }
 
     const acceptHeader = req.get('Accept');
 
     if (acceptHeader && acceptHeader.includes('text/plain')) {
-      return res.type('text/plain').send(this.activityDtoFactory.createText(activity));
+      res.type('text/plain').send(this.activityDtoFactory.createText(activity));
+      return;
     }
 
-    return res.send(withStravaData === 'true'
+    res.send(withStravaData === 'true'
       ? this.activityDtoFactory.createJsonWithStravaData(activity)
       : this.activityDtoFactory.createJson(activity));
   }
 
-  public async getLastActivity(req, res) {
+  public async getLastActivity(req: AuthenticatedRequest, res: Response): Promise<void> {
     const { userId } = req;
 
     if (!userId) {
-      return res.status(401).send({ message: 'Unauthorized' });
+      res.status(401).send({ message: 'Unauthorized' });
+      return;
     }
 
     const { sportType, withStravaData } = req.query;
 
     const filterScheme = this.activityService.getFilterScheme();
 
-    if (sportType && !filterScheme.sportType.includes(sportType)) {
-      return res.status(400).send({ message: 'Bad Request' });
+    if (sportType && (typeof sportType !== 'string' || !filterScheme.sportType.includes(sportType))) {
+      res.status(400).send({ message: 'Bad Request' });
+      return;
     }
 
     let activity;
@@ -129,35 +156,40 @@ export class ActivitiesController {
     } catch (error) {
       console.error(error);
 
-      return res.status(500).send({ message: 'Internal Server Error' });
+      res.status(500).send({ message: 'Internal Server Error' });
+      return;
     }
 
     if (!activity) {
-      return res.status(404).send({ message: 'Not Found' });
+      res.status(404).send({ message: 'Not Found' });
+      return;
     }
 
     const acceptHeader = req.get('Accept');
 
     if (acceptHeader && acceptHeader.includes('text/plain')) {
-      return res.type('text/plain').send(this.activityDtoFactory.createText(activity));
+      res.type('text/plain').send(this.activityDtoFactory.createText(activity));
+      return;
     }
 
-    return res.send(withStravaData === 'true'
+    res.send(withStravaData === 'true'
       ? this.activityDtoFactory.createJsonWithStravaData(activity)
       : this.activityDtoFactory.createJson(activity));
   }
 
   // TODO: Revisit implementation.
-  private createActivitiesFilter({ sportType, from, to, lastDays, lastWeeks, lastMonths, lastYears, sort, order }: Filter) {
+  private createGetActivitiesFilter({
+    sportType, from, to, lastDays, lastWeeks, lastMonths, lastYears, sort, order,
+  }: GetActivitiesFilterParameters) {
     const filterScheme = this.activityService.getFilterScheme();
 
-    const isValidISODate = (value) => {
+    const isValidISODate = (value: string) => {
       const date = new Date(value);
 
-      return date instanceof Date && !isNaN(date) && date.toISOString() === value;
+      return date instanceof Date && !isNaN(date.getTime()) && date.toISOString() === value;
     };
 
-    const isValidPositiveInteger = (value) => {
+    const isValidPositiveInteger = (value: string) => {
       const num = parseInt(value, 10);
 
       return !isNaN(num) && num > 0 && num.toString() === value.toString();
@@ -183,7 +215,7 @@ export class ActivitiesController {
       throw new Error('Incorrect sort or order parameters');
     }
 
-    let calculatedFrom = from;
+    let calculatedFrom: undefined | string | Date = from;
 
     if (!from && !to && (lastDays || lastWeeks || lastMonths || lastYears)) {
       const now = new Date();
@@ -205,7 +237,7 @@ export class ActivitiesController {
         calculatedFrom.setFullYear(calculatedFrom.getFullYear() - parseInt(lastYears, 10));
       }
 
-      calculatedFrom = calculatedFrom.toISOString();
+      calculatedFrom = (calculatedFrom as Date).toISOString();
     }
 
     return {

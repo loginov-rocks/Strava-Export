@@ -1,3 +1,6 @@
+import { NextFunction, Request, Response } from 'express';
+
+import { AuthenticatedRequest } from '../middlewares/TokenMiddleware';
 import { AuthService } from '../services/AuthService';
 
 interface Options {
@@ -19,15 +22,16 @@ export class AuthController {
     this.postLogout = this.postLogout.bind(this);
   }
 
-  public get(req, res) {
-    return res.status(204).send();
+  public get(req: Request, res: Response): void {
+    res.status(204).send();
   }
 
-  public getStrava(req, res) {
+  public getStrava(req: Request, res: Response): void {
     const { redirectUri, state } = req.query;
 
-    if (!redirectUri) {
-      return res.status(400).send({ message: 'Bad Request' });
+    if (!redirectUri || typeof redirectUri !== 'string' || (state && typeof state !== 'string')) {
+      res.status(400).send({ message: 'Bad Request' });
+      return;
     }
 
     let url;
@@ -36,13 +40,14 @@ export class AuthController {
     } catch (error) {
       console.error(error);
 
-      return res.status(400).send({ message: 'Bad Request' });
+      res.status(400).send({ message: 'Bad Request' });
+      return;
     }
 
-    return res.send({ url });
+    res.send({ url });
   }
 
-  public async postTokenMiddleware(req, res, next) {
+  public async postTokenMiddleware(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { code, scope, state } = req.body;
 
     let tokens;
@@ -51,7 +56,8 @@ export class AuthController {
     } catch (error) {
       console.error(error);
 
-      return res.status(401).send({ message: 'Unauthorized' });
+      res.status(401).send({ message: 'Unauthorized' });
+      return;
     }
 
     res.locals.tokens = tokens;
@@ -59,12 +65,17 @@ export class AuthController {
     next();
   }
 
-  public postToken(req, res) {
-    return res.status(204).send();
+  public postToken(req: Request, res: Response): void {
+    res.status(204).send();
   }
 
-  public postRefreshMiddleware(req, res, next) {
+  public postRefreshMiddleware(req: AuthenticatedRequest, res: Response, next: NextFunction): void {
     const { userId } = req;
+
+    if (!userId) {
+      res.status(401).send({ message: 'Unauthorized' });
+      return;
+    }
 
     let tokens;
     try {
@@ -72,7 +83,8 @@ export class AuthController {
     } catch (error) {
       console.error(error);
 
-      return res.status(401).send({ message: 'Unauthorized' });
+      res.status(401).send({ message: 'Unauthorized' });
+      return;
     }
 
     res.locals.tokens = tokens;
@@ -80,11 +92,11 @@ export class AuthController {
     next();
   }
 
-  public postRefresh(req, res) {
-    return res.status(204).send();
+  public postRefresh(req: Request, res: Response): void {
+    res.status(204).send();
   }
 
-  public postLogout(req, res) {
-    return res.status(204).send();
+  public postLogout(req: Request, res: Response): void {
+    res.status(204).send();
   }
 }

@@ -1,7 +1,7 @@
 import { Queue } from 'bullmq';
 
+import { SyncJobCompletedResult } from '../models/syncJobModel';
 import { SyncJobRepository } from '../repositories/SyncJobRepository';
-import { UserRepository } from '../repositories/UserRepository';
 
 interface Options {
   syncJobQueue: Queue;
@@ -20,6 +20,7 @@ export class SyncJobService {
   public async createSyncJob(userId: string) {
     const syncJob = await this.syncJobRepository.create({
       userId,
+      status: 'created',
     });
 
     await this.syncJobQueue.add('syncJob', { syncJobId: syncJob.id, userId });
@@ -42,7 +43,7 @@ export class SyncJobService {
     });
   }
 
-  public markSyncJobCompleted(syncJobId: string, result) {
+  public markSyncJobCompleted(syncJobId: string, result: SyncJobCompletedResult) {
     return this.syncJobRepository.updateOneById(syncJobId, {
       status: 'completed',
       completedAt: new Date(),
@@ -50,7 +51,7 @@ export class SyncJobService {
     });
   }
 
-  public markSyncJobFailed(syncJobId: string, error) {
+  public markSyncJobFailed(syncJobId: string, error: Error) {
     return this.syncJobRepository.updateOneById(syncJobId, {
       status: 'failed',
       failedAt: new Date(),

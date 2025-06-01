@@ -1,4 +1,10 @@
+import { NextFunction, Request, Response } from 'express';
+
 import { TokenService } from '../services/TokenService';
+
+export interface AuthenticatedRequest extends Request {
+  userId?: string;
+}
 
 interface Options {
   accessTokenCookieName: string;
@@ -22,7 +28,7 @@ export class TokenMiddleware {
     this.requireRefreshToken = this.requireRefreshToken.bind(this);
   }
 
-  public attach(req, res, next) {
+  public attach(req: Request, res: Response, next: NextFunction): void {
     if (res.locals.tokens) {
       res.cookie(this.accessTokenCookieName, res.locals.tokens.accessToken, {
         httpOnly: true,
@@ -42,25 +48,27 @@ export class TokenMiddleware {
     next();
   }
 
-  public remove(req, res, next) {
+  public remove(req: Request, res: Response, next: NextFunction): void {
     res.clearCookie(this.accessTokenCookieName);
     res.clearCookie(this.refreshTokenCookieName);
 
     next();
   }
 
-  public requireAccessToken(req, res, next) {
+  public requireAccessToken(req: AuthenticatedRequest, res: Response, next: NextFunction): void {
     const accessToken = req.cookies[this.accessTokenCookieName];
 
     if (!accessToken) {
-      return res.status(401).send({ message: 'Unauthorized' });
+      res.status(401).send({ message: 'Unauthorized' });
+      return;
     }
 
     let userId;
     try {
       ({ userId } = this.tokenService.verifyAccessToken(accessToken));
     } catch {
-      return res.status(401).send({ message: 'Unauthorized' });
+      res.status(401).send({ message: 'Unauthorized' });
+      return;
     }
 
     req.userId = userId;
@@ -68,18 +76,20 @@ export class TokenMiddleware {
     next();
   }
 
-  public requireRefreshToken(req, res, next) {
+  public requireRefreshToken(req: AuthenticatedRequest, res: Response, next: NextFunction): void {
     const refreshToken = req.cookies[this.refreshTokenCookieName];
 
     if (!refreshToken) {
-      return res.status(401).send({ message: 'Unauthorized' });
+      res.status(401).send({ message: 'Unauthorized' });
+      return;
     }
 
     let userId;
     try {
       ({ userId } = this.tokenService.verifyRefreshToken(refreshToken));
     } catch {
-      return res.status(401).send({ message: 'Unauthorized' });
+      res.status(401).send({ message: 'Unauthorized' });
+      return;
     }
 
     req.userId = userId;

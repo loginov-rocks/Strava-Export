@@ -1,6 +1,21 @@
-import { model, Schema } from 'mongoose';
+import { model, Schema, Types } from 'mongoose';
 
-const schema = new Schema({
+export interface UserSchema {
+  stravaAthleteId: string;
+  stravaToken: {
+    accessToken: string;
+    refreshToken: string;
+    expiresAt: Date;
+  };
+}
+
+export interface UserDocument extends UserSchema {
+  _id: Types.ObjectId;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const schema = new Schema<UserDocument>({
   stravaAthleteId: String,
   stravaToken: {
     accessToken: String,
@@ -11,6 +26,6 @@ const schema = new Schema({
   timestamps: true,
 });
 
-export const userModel = model('User', schema);
+export const userModel = model<UserDocument>('User', schema);
 
 export type UserModel = typeof userModel;

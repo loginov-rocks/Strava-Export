@@ -29,6 +29,10 @@ export class StravaTokenService {
 
     const user = await this.userRepository.findById(userId);
 
+    if (!user) {
+      throw new Error(`User with ID "${userId}" not found`);
+    }
+
     if (new Date() < new Date(user.stravaToken.expiresAt)) {
       this.cacheAccessToken(userId, user.stravaToken.accessToken, new Date(user.stravaToken.expiresAt));
 

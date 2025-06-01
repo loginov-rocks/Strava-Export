@@ -50,19 +50,25 @@ export class TokenService {
     return { expiresIn, jwt };
   }
 
-  verifyAccessToken(jwt: string) {
+  verifyAccessToken(jwt: string): AccessTokenPayload {
     const payload = verify(jwt, this.accessTokenSecret);
+    const userId = payload.sub;
 
-    return {
-      userId: payload.sub,
-    };
+    if (typeof userId !== 'string') {
+      throw new Error('User ID not found in JWT');
+    }
+
+    return { userId };
   }
 
-  verifyRefreshToken(jwt: string) {
+  verifyRefreshToken(jwt: string): RefreshTokenPayload {
     const payload = verify(jwt, this.refreshTokenSecret);
+    const userId = payload.sub;
 
-    return {
-      userId: payload.sub,
-    };
+    if (typeof userId !== 'string') {
+      throw new Error('User ID not found in JWT');
+    }
+
+    return { userId };
   }
 }

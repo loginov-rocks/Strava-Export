@@ -14,17 +14,13 @@ export class SyncJobWorker {
   private readonly syncJobQueueName: string;
   private readonly syncJobService: SyncJobService;
 
-  private worker: Worker | null = null;
+  private worker: Worker;
 
   constructor({ activitySyncService, syncJobQueueName, syncJobService }: Options) {
     this.activitySyncService = activitySyncService;
     this.syncJobQueueName = syncJobQueueName;
     this.syncJobService = syncJobService;
 
-    this.initWorker();
-  }
-
-  private initWorker() {
     this.worker = new Worker(
       this.syncJobQueueName,
       async (job) => {
@@ -52,6 +48,10 @@ export class SyncJobWorker {
     });
 
     this.worker.on('failed', async (job, error) => {
+      if (!job) {
+        throw new Error('Unknown job failed');
+      }
+
       const { syncJobId, userId } = job.data;
 
       console.log(`SyncJobWorker #${job.id} for ID "${syncJobId}" with user ID "${userId}" failed`, error);

@@ -1,4 +1,6 @@
-import { ActivityModel } from '../models/activityModel';
+import { RootFilterQuery } from 'mongoose';
+
+import { ActivityDocument, ActivityModel, ActivitySchema } from '../models/activityModel';
 
 interface Options {
   activityModel: ActivityModel;
@@ -33,7 +35,7 @@ export class ActivityRepository {
   }
 
   public findByUserId(userId: string, filter?: Filter) {
-    const findParams = { userId };
+    const findParams: RootFilterQuery<ActivityDocument> = { userId };
 
     if (filter) {
       if (filter.sportType) {
@@ -63,7 +65,7 @@ export class ActivityRepository {
   }
 
   public findLastByUserId(userId: string, filter?: Filter) {
-    const findParams = {
+    const findParams: RootFilterQuery<ActivityDocument> = {
       userId,
       'stravaData.start_date': { $exists: true, $ne: null },
     };
@@ -85,11 +87,11 @@ export class ActivityRepository {
     };
   }
 
-  public insertMany(activities: ActivityModel[]) {
+  public insertMany(activities: ActivitySchema[]) {
     return this.activityModel.insertMany(activities);
   }
 
-  public updateOneByStravaActivityId(stravaActivityId: string, activity: ActivityModel) {
-    return this.activityModel.updateOne({ stravaActivityId }, activity);
+  public updateOneByStravaActivityId(stravaActivityId: string, activityData: Partial<ActivitySchema>) {
+    return this.activityModel.updateOne({ stravaActivityId }, activityData);
   }
 }

@@ -11,6 +11,20 @@ interface RequestOptions {
   urlSearchParams?: URLSearchParams;
 }
 
+class ApiClientHttpError extends Error {
+  private readonly response?: any;
+  private readonly status?: number;
+  private readonly statusText?: string;
+
+  constructor(message: string, response?: any, status?: number, statusText?: string) {
+    super(message);
+
+    this.response = response;
+    this.status = status;
+    this.statusText = statusText;
+  }
+}
+
 export abstract class ApiClient {
   protected readonly baseUrl: string;
 
@@ -40,7 +54,8 @@ export abstract class ApiClient {
       response = await fetch(url, params);
     } catch (error) {
       console.error(`Failed to fetch "${endpoint}":`, error);
-      throw new Error(`Failed to fetch "${endpoint}": ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to fetch "${endpoint}": ${errorMessage}`);
     }
 
     console.log(`Received response with HTTP status ${response.status}`);
@@ -75,19 +90,20 @@ export abstract class ApiClient {
         text: errorText,
       });
 
-      const error = new Error(`Unsuccessful response from "${endpoint}": ${errorText}`);
-      error.response = errorResponse;
-      error.status = response.status;
-      error.statusText = response.statusText;
-
-      throw error;
+      throw new ApiClientHttpError(
+        `Unsuccessful response from "${endpoint}": ${errorText}`,
+        errorResponse,
+        response.status,
+        response.statusText,
+      );
     }
 
     try {
       return isJson ? await response.json() : await response.text();
     } catch (error) {
       console.error(`Failed to parse successful response from "${endpoint}":`, error);
-      throw new Error(`Failed to parse successful response from "${endpoint}": ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to parse successful response from "${endpoint}": ${errorMessage}`);
     }
   }
 }

@@ -1,6 +1,21 @@
-import { model, Schema } from 'mongoose';
+import { model, Schema, Types } from 'mongoose';
 
-const schema = new Schema({
+import { StravaDetailedActivity, StravaSummaryActivity } from '../apiClients/StravaApiClient';
+
+export interface ActivitySchema {
+  userId: string;
+  hasDetails: boolean;
+  stravaActivityId: string;
+  stravaData: StravaDetailedActivity | StravaSummaryActivity;
+}
+
+export interface ActivityDocument extends ActivitySchema {
+  _id: Types.ObjectId;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const schema = new Schema<ActivityDocument>({
   userId: String,
   hasDetails: Boolean,
   stravaActivityId: String,
@@ -9,6 +24,6 @@ const schema = new Schema({
   timestamps: true,
 });
 
-export const activityModel = model('Activity', schema);
+export const activityModel = model<ActivityDocument>('Activity', schema);
 
 export type ActivityModel = typeof activityModel;

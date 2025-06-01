@@ -5,8 +5,31 @@ interface Options extends ApiClientOptions {
   clientSecret: string;
 }
 
-export interface StravaActivity {
+// @see https://developers.strava.com/docs/reference/#api-models-SummaryActivity
+export interface StravaSummaryActivity {
   id: string;
+  name: string;
+  distance?: number | null;
+  moving_time?: number | null;
+  total_elevation_gain?: number | null;
+  sport_type: string;
+  start_date: string;
+  start_date_local?: string | null;
+  // Not mentioned in the API, but found in the response.
+  utc_offset?: number | null;
+  average_speed?: number | null;
+  max_speed?: number | null;
+  average_watts?: number | null;
+  max_watts?: number | null;
+  // Not mentioned in the API, but found in the response.
+  average_heartrate?: number | null;
+  max_heartrate?: number | null;
+}
+
+// @see https://developers.strava.com/docs/reference/#api-models-DetailedActivity
+export interface StravaDetailedActivity extends StravaSummaryActivity {
+  description?: string | null;
+  calories?: number | null;
 }
 
 export class StravaApiClient extends ApiClient {
@@ -35,17 +58,20 @@ export class StravaApiClient extends ApiClient {
     return `${this.baseUrl}/oauth/authorize?${urlSearchParams.toString()}`;
   }
 
-  public getActivities(accessToken: string, page?: number, perPage?: number): Promise<StravaActivity[]> {
-    return this.request('/api/v3/athlete/activities', {
-      accessToken,
-      urlSearchParams: new URLSearchParams({
-        page,
-        per_page: perPage,
-      })
-    });
+  public getActivities(accessToken: string, page?: number, perPage?: number): Promise<StravaSummaryActivity[]> {
+    const urlSearchParams = new URLSearchParams();
+
+    if (page) {
+      urlSearchParams.append('page', page.toString());
+    }
+    if (perPage) {
+      urlSearchParams.append('per_page', perPage.toString());
+    }
+
+    return this.request('/api/v3/athlete/activities', { accessToken, urlSearchParams });
   }
 
-  public getActivity(accessToken: string, activityId: string) {
+  public getActivity(accessToken: string, activityId: string): Promise<StravaDetailedActivity> {
     return this.request(`/api/v3/activities/${activityId}`, { accessToken });
   }
 

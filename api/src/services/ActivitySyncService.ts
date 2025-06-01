@@ -1,5 +1,7 @@
-import { StravaActivity, StravaApiClient } from '../apiClients/StravaApiClient';
+import { StravaApiClient, StravaSummaryActivity } from '../apiClients/StravaApiClient';
+import { SyncJobCompletedResult } from '../models/syncJobModel';
 import { ActivityRepository } from '../repositories/ActivityRepository';
+
 import { StravaTokenService } from './StravaTokenService';
 
 interface Options {
@@ -19,7 +21,7 @@ export class ActivitySyncService {
     this.stravaTokenService = stravaTokenService;
   }
 
-  public async processPaginatedActivities(userId: string) {
+  public async processPaginatedActivities(userId: string): Promise<SyncJobCompletedResult> {
     const perPage = 30;
 
     let page = 1;
@@ -72,7 +74,7 @@ export class ActivitySyncService {
     };
   }
 
-  private async processActivitiesPage(userId: string, activitiesPage: StravaActivity[]) {
+  private async processActivitiesPage(userId: string, activitiesPage: StravaSummaryActivity[]) {
     // Create an array of IDs for the page of activities obtained from Strava.
     const ids = activitiesPage.map(({ id }) => id);
 

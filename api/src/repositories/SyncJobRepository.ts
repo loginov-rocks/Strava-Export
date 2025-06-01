@@ -1,4 +1,4 @@
-import { SyncJobModel } from '../models/syncJobModel';
+import { SyncJobModel, SyncJobSchema } from '../models/syncJobModel';
 
 interface Options {
   syncJobModel: SyncJobModel;
@@ -11,7 +11,7 @@ export class SyncJobRepository {
     this.syncJobModel = syncJobModel;
   }
 
-  public create(syncJob: SyncJobModel) {
+  public create(syncJob: SyncJobSchema) {
     return this.syncJobModel.create(syncJob);
   }
 
@@ -23,7 +23,7 @@ export class SyncJobRepository {
     return this.syncJobModel.find({ userId }).lean();
   }
 
-  public updateOneById(id: string, syncJob: SyncJobModel) {
-    return this.syncJobModel.updateOne({ _id: id }, syncJob);
+  public updateOneById(id: string, syncJobData: Partial<SyncJobSchema>) {
+    return this.syncJobModel.updateOne({ _id: id }, syncJobData);
   }
 }

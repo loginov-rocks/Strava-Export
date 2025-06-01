@@ -1,4 +1,7 @@
+import { Response } from 'express';
+
 import { SyncJobDtoFactory } from '../dtoFactories/SyncJobDtoFactory';
+import { AuthenticatedRequest } from '../middlewares/TokenMiddleware';
 import { SyncJobService } from '../services/SyncJobService';
 
 interface Options {
@@ -19,17 +22,19 @@ export class SyncJobController {
     this.postSyncJob = this.postSyncJob.bind(this);
   }
 
-  public async getSyncJob(req, res) {
+  public async getSyncJob(req: AuthenticatedRequest, res: Response): Promise<void> {
     const { userId } = req;
 
     if (!userId) {
-      return res.status(401).send({ message: 'Unauthorized' });
+      res.status(401).send({ message: 'Unauthorized' });
+      return;
     }
 
     const { syncJobId } = req.params;
 
     if (!syncJobId) {
-      return res.status(400).send({ message: 'Bad Request' });
+      res.status(400).send({ message: 'Bad Request' });
+      return;
     }
 
     let syncJob;
@@ -38,21 +43,24 @@ export class SyncJobController {
     } catch (error) {
       console.error(error);
 
-      return res.status(500).send({ message: 'Internal Server Error' });
+      res.status(500).send({ message: 'Internal Server Error' });
+      return;
     }
 
     if (!syncJob || syncJob.userId !== userId) {
-      return res.status(404).send({ message: 'Not Found' });
+      res.status(404).send({ message: 'Not Found' });
+      return;
     }
 
-    return res.send(this.syncJobDtoFactory.createJson(syncJob));
+    res.send(this.syncJobDtoFactory.createJson(syncJob));
   }
 
-  public async getSyncJobs(req, res) {
+  public async getSyncJobs(req: AuthenticatedRequest, res: Response): Promise<void> {
     const { userId } = req;
 
     if (!userId) {
-      return res.status(401).send({ message: 'Unauthorized' });
+      res.status(401).send({ message: 'Unauthorized' });
+      return;
     }
 
     let syncJobs;
@@ -61,17 +69,19 @@ export class SyncJobController {
     } catch (error) {
       console.error(error);
 
-      return res.status(500).send({ message: 'Internal Server Error' });
+      res.status(500).send({ message: 'Internal Server Error' });
+      return;
     }
 
-    return res.send(this.syncJobDtoFactory.createJsonCollection(syncJobs));
+    res.send(this.syncJobDtoFactory.createJsonCollection(syncJobs));
   }
 
-  public async postSyncJob(req, res) {
+  public async postSyncJob(req: AuthenticatedRequest, res: Response): Promise<void> {
     const { userId } = req;
 
     if (!userId) {
-      return res.status(401).send({ message: 'Unauthorized' });
+      res.status(401).send({ message: 'Unauthorized' });
+      return;
     }
 
     let syncJob;
@@ -80,9 +90,10 @@ export class SyncJobController {
     } catch (error) {
       console.error(error);
 
-      return res.status(500).send({ message: 'Internal Server Error' });
+      res.status(500).send({ message: 'Internal Server Error' });
+      return;
     }
 
-    return res.status(201).send(this.syncJobDtoFactory.createJson(syncJob));
+    res.status(201).send(this.syncJobDtoFactory.createJson(syncJob));
   }
 }
