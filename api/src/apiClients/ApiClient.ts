@@ -12,11 +12,11 @@ interface RequestOptions {
 }
 
 class ApiClientHttpError extends Error {
-  private readonly response?: any;
+  private readonly response?: unknown;
   private readonly status?: number;
   private readonly statusText?: string;
 
-  constructor(message: string, response?: any, status?: number, statusText?: string) {
+  constructor(message: string, response?: unknown, status?: number, statusText?: string) {
     super(message);
 
     this.response = response;

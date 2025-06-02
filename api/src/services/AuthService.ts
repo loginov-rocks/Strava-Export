@@ -37,6 +37,8 @@ export class AuthService {
     return { accessToken, accessTokenExpiresIn, refreshToken, refreshTokenExpiresIn };
   }
 
+  // Disabled to keep signature consistent.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async exchangeCode(code: string, scope?: string, state?: string) {
     const tokenResponse = await this.stravaApiClient.token(code);
 
