@@ -61,7 +61,7 @@ export class SyncJobWorker {
     });
   }
 
-  run() {
+  public run() {
     return this.worker.run();
   }
 }

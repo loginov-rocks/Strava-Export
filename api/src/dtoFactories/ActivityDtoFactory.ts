@@ -1,7 +1,7 @@
 import { StravaDetailedActivity, StravaSummaryActivity } from '../apiClients/StravaApiClient';
 import { ActivityDocument } from '../models/activityModel';
 
-interface FormattedStravaData {
+interface NormalizedStravaData {
   name: string;
   sportType: string;
   startDateTime: string;
@@ -18,94 +18,193 @@ interface FormattedStravaData {
   maxHeartRate?: number;
 }
 
-interface ActivityDto extends FormattedStravaData {
+interface ActivityDto extends NormalizedStravaData {
   id: string;
   userId: string;
+}
+
+interface StatsPerSportType {
+  activitiesCount: number;
+  distanceKilometers?: number;
+  movingTimeMinutes?: number;
+  totalElevationGain?: number;
+  calories?: number;
+}
+
+interface Stats {
+  [key: string]: StatsPerSportType;
+}
+
+interface ActivitiesCollectionDto {
+  activitiesCount: number;
+  activities: ActivityDto[];
+  stats: Stats;
 }
 
 interface ActivityWithStravaDataDto extends ActivityDto {
   stravaData: StravaDetailedActivity | StravaSummaryActivity;
 }
 
+interface ActivitiesWithStravaDataCollectionDto {
+  activitiesCount: number;
+  activities: ActivityWithStravaDataDto[];
+  stats: Stats;
+}
+
 export class ActivityDtoFactory {
-  createJson(activity: ActivityDocument): ActivityDto {
+  public createJson(activity: ActivityDocument): ActivityDto {
     return {
       id: activity._id.toString(),
       userId: activity.userId,
-      ...this.formatStravaData(activity.stravaData),
+      ...this.normalizeStravaData(activity.stravaData),
     };
   }
 
-  createJsonCollection(activities: ActivityDocument[]): ActivityDto[] {
-    return activities.map((activity) => this.createJson(activity));
+  public createJsonCollection(activities: ActivityDocument[]): ActivitiesCollectionDto {
+    const activityDtos = activities.map((activity) => this.createJson(activity));
+
+    return {
+      activitiesCount: activityDtos.length,
+      activities: activityDtos,
+      stats: this.calculateStats(activityDtos),
+    };
   }
 
-  createText(activity: ActivityDocument): string {
-    const json = this.createJson(activity);
+  public createJsonWithStravaData(activity: ActivityDocument): ActivityWithStravaDataDto {
+    return {
+      ...this.createJson(activity),
+      stravaData: activity.stravaData,
+    };
+  }
 
+  public createJsonWithStravaDataCollection(activities: ActivityDocument[]): ActivitiesWithStravaDataCollectionDto {
+    const activityWithStravaDataDtos = activities.map((activity) => this.createJsonWithStravaData(activity));
+
+    return {
+      activitiesCount: activityWithStravaDataDtos.length,
+      activities: activityWithStravaDataDtos,
+      stats: this.calculateStats(activityWithStravaDataDtos),
+    };
+  }
+
+  private createTextFromDto(activityDto: ActivityDto): string {
     const lines = [
       // Reorganized according to the importance of information for LLM.
-      `Activity ID: ${json.id}`,
-      `Date Time: ${new Date(json.startDateTime).toLocaleString()}`,
-      `Sport Type: ${json.sportType}`,
-      `Name: ${json.name}`,
+      `Activity ID: ${activityDto.id}`,
+      `Date Time: ${new Date(activityDto.startDateTime).toLocaleString()}`,
+      `Sport Type: ${activityDto.sportType}`,
+      `Name: ${activityDto.name}`,
     ];
 
-    if (json.distanceKilometers) {
-      lines.push(`Distance: ${json.distanceKilometers} km`);
+    if (activityDto.distanceKilometers) {
+      lines.push(`Distance: ${activityDto.distanceKilometers} km`);
     }
 
-    if (json.movingTimeMinutes) {
-      lines.push(`Moving Time: ${json.movingTimeMinutes} minutes`);
+    if (activityDto.movingTimeMinutes) {
+      lines.push(`Moving Time: ${activityDto.movingTimeMinutes} minutes`);
     }
 
-    if (json.totalElevationGain) {
-      lines.push(`Total Elevation Gain: ${json.totalElevationGain}`);
+    // TODO: Figure out what units Strava use for elevation gain.
+    if (activityDto.totalElevationGain) {
+      lines.push(`Total Elevation Gain: ${activityDto.totalElevationGain}`);
     }
 
-    if (json.averageSpeedKilometersPerHour) {
-      lines.push(`Average Speed: ${json.averageSpeedKilometersPerHour} km/h`);
+    if (activityDto.averageSpeedKilometersPerHour) {
+      lines.push(`Average Speed: ${activityDto.averageSpeedKilometersPerHour} km/h`);
     }
 
-    if (json.maxSpeedKilometersPerHour) {
-      lines.push(`Max Speed: ${json.maxSpeedKilometersPerHour} km/h`);
+    if (activityDto.maxSpeedKilometersPerHour) {
+      lines.push(`Max Speed: ${activityDto.maxSpeedKilometersPerHour} km/h`);
     }
 
-    if (json.averageWatts) {
-      lines.push(`Average Power: ${json.averageWatts} watts`);
+    if (activityDto.averageWatts) {
+      lines.push(`Average Power: ${activityDto.averageWatts} watts`);
     }
 
-    if (json.maxWatts) {
-      lines.push(`Max Power: ${json.maxWatts} watts`);
+    if (activityDto.maxWatts) {
+      lines.push(`Max Power: ${activityDto.maxWatts} watts`);
     }
 
-    if (json.calories) {
-      lines.push(`Calories: ${json.calories}`);
+    if (activityDto.calories) {
+      lines.push(`Calories: ${activityDto.calories}`);
     }
 
-    if (json.averageHeartRate) {
-      lines.push(`Average Heart Rate: ${json.averageHeartRate} BPM`);
+    if (activityDto.averageHeartRate) {
+      lines.push(`Average Heart Rate: ${activityDto.averageHeartRate} BPM`);
     }
 
-    if (json.maxHeartRate) {
-      lines.push(`Max Heart Rate: ${json.maxHeartRate} BPM`);
+    if (activityDto.maxHeartRate) {
+      lines.push(`Max Heart Rate: ${activityDto.maxHeartRate} BPM`);
     }
 
     // The description was moved to the last since it may have critical information overriding the stats above.
-    if (json.description) {
-      lines.push(`User Comment (may have more precise information about this activity): ${json.description}`);
+    if (activityDto.description) {
+      lines.push(`User Comment (may have more precise information about this activity): ${activityDto.description}`);
     }
 
     return lines.join('\n');
   }
 
-  createTextCollection(activities: ActivityDocument[]): string {
+  public createText(activity: ActivityDocument): string {
+    return this.createTextFromDto(this.createJson(activity));
+  }
+
+  private createTextStats(stats: Stats): string {
     let text = '';
 
-    activities.forEach((activity, index) => {
-      text += this.createText(activity);
+    Object.keys(stats).forEach((sportType, index, arr) => {
+      text += `## ${sportType}\n`;
 
-      if (index < activities.length - 1) {
+      const statsPerSportType = stats[sportType];
+      const lines = [
+        `Total Sessions: ${statsPerSportType.activitiesCount}`,
+      ];
+
+      if (statsPerSportType.distanceKilometers) {
+        lines.push(`Distance: ${statsPerSportType.distanceKilometers} km`);
+      }
+
+      if (statsPerSportType.movingTimeMinutes) {
+        lines.push(`Moving Time: ${statsPerSportType.movingTimeMinutes} minutes`);
+      }
+
+      // TODO: Figure out what units Strava use for elevation gain.
+      if (statsPerSportType.totalElevationGain) {
+        lines.push(`Total Elevation Gain: ${statsPerSportType.totalElevationGain}`);
+      }
+
+      if (statsPerSportType.calories) {
+        lines.push(`Calories: ${statsPerSportType.calories}`);
+      }
+
+      text += `- ${lines.join('\n- ')}`;
+
+      if (index < arr.length - 1) {
+        text += '\n\n';
+      }
+    });
+
+    return text;
+  }
+
+  public createTextCollection(activities: ActivityDocument[]): string {
+    if (activities.length === 0) {
+      return 'No activites found';
+    }
+
+    const activityDtos = activities.map((activity) => this.createJson(activity));
+
+    let text = '# ACTIVITIES SUMMARY\n\n';
+    text += `Total Activities: ${activityDtos.length}\n\n`;
+
+    text += this.createTextStats(this.calculateStats(activityDtos));
+
+    text += '\n\n# ACTIVITIES DETAILS\n\n';
+
+    activityDtos.forEach((activityDto, index, arr) => {
+      text += this.createTextFromDto(activityDto);
+
+      if (index < arr.length - 1) {
         text += '\n\n---\n\n';
       }
     });
@@ -113,21 +212,9 @@ export class ActivityDtoFactory {
     return text;
   }
 
-  createJsonWithStravaData(activity: ActivityDocument): ActivityWithStravaDataDto {
-    return {
-      id: activity._id.toString(),
-      userId: activity.userId,
-      ...this.formatStravaData(activity.stravaData),
-      stravaData: activity.stravaData,
-    };
-  }
-
-  createJsonWithStravaDataCollection(activities: ActivityDocument[]): ActivityWithStravaDataDto[] {
-    return activities.map((activity) => this.createJsonWithStravaData(activity));
-  }
-
-  formatStravaData(stravaData: StravaDetailedActivity | StravaSummaryActivity): FormattedStravaData {
-    const data: FormattedStravaData = {
+  // TODO: Revisit implementation.
+  private normalizeStravaData(stravaData: StravaDetailedActivity | StravaSummaryActivity): NormalizedStravaData {
+    const data: NormalizedStravaData = {
       name: stravaData.name,
       sportType: stravaData.sport_type,
       startDateTime: stravaData.start_date,
@@ -195,5 +282,36 @@ export class ActivityDtoFactory {
     }
 
     return data;
+  }
+
+  private calculateStats(activityDtos: ActivityDto[]): Stats {
+    const stats: Stats = {};
+    const keys: Array<keyof StatsPerSportType & keyof ActivityDto> = [
+      'distanceKilometers', 'movingTimeMinutes', 'totalElevationGain', 'calories',
+    ];
+
+    activityDtos.forEach((activityDto) => {
+      const { sportType } = activityDto;
+
+      if (!stats[sportType]) {
+        stats[sportType] = {
+          activitiesCount: 0,
+        };
+      }
+
+      stats[sportType].activitiesCount++;
+
+      keys.forEach((key) => {
+        if (activityDto[key]) {
+          if (stats[sportType][key]) {
+            stats[sportType][key] += activityDto[key];
+          } else {
+            stats[sportType][key] = activityDto[key];
+          }
+        }
+      });
+    });
+
+    return stats;
   }
 }

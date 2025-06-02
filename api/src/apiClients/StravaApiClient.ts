@@ -59,6 +59,10 @@ export class StravaApiClient extends ApiClient {
   }
 
   public getActivities(accessToken: string, page?: number, perPage?: number): Promise<StravaSummaryActivity[]> {
+    if (perPage && perPage > 200) {
+      throw new Error('Maximum of 200 activites per page can be requested');
+    }
+
     const urlSearchParams = new URLSearchParams();
 
     if (page) {

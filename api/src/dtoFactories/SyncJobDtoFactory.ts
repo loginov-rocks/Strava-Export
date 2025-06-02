@@ -9,8 +9,13 @@ interface SyncJobDto {
   failedAt: string | null;
 }
 
+interface SyncJobsCollectionDto {
+  syncJobsCount: number;
+  syncJobs: SyncJobDto[];
+}
+
 export class SyncJobDtoFactory {
-  createJson(syncJob: SyncJobDocument): SyncJobDto {
+  public createJson(syncJob: SyncJobDocument): SyncJobDto {
     return {
       id: syncJob._id.toString(),
       userId: syncJob.userId,
@@ -21,7 +26,12 @@ export class SyncJobDtoFactory {
     };
   }
 
-  createJsonCollection(syncJobs: SyncJobDocument[]): SyncJobDto[] {
-    return syncJobs.map((syncJob) => this.createJson(syncJob));
+  public createJsonCollection(syncJobs: SyncJobDocument[]): SyncJobsCollectionDto {
+    const syncJobDtos = syncJobs.map((syncJob) => this.createJson(syncJob));
+
+    return {
+      syncJobsCount: syncJobDtos.length,
+      syncJobs: syncJobDtos,
+    };
   }
 }

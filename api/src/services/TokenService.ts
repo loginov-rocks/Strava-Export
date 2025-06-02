@@ -39,7 +39,7 @@ export class TokenService {
     return { expiresIn, jwt };
   }
 
-  signRefreshToken({ userId }: RefreshTokenPayload) {
+  public signRefreshToken({ userId }: RefreshTokenPayload) {
     const payload = {
       sub: userId,
     };
@@ -50,7 +50,7 @@ export class TokenService {
     return { expiresIn, jwt };
   }
 
-  verifyAccessToken(jwt: string): AccessTokenPayload {
+  public verifyAccessToken(jwt: string): AccessTokenPayload {
     const payload = verify(jwt, this.accessTokenSecret);
     const userId = payload.sub;
 
@@ -61,7 +61,7 @@ export class TokenService {
     return { userId };
   }
 
-  verifyRefreshToken(jwt: string): RefreshTokenPayload {
+  public verifyRefreshToken(jwt: string): RefreshTokenPayload {
     const payload = verify(jwt, this.refreshTokenSecret);
     const userId = payload.sub;
 

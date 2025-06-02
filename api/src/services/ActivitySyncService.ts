@@ -22,7 +22,7 @@ export class ActivitySyncService {
   }
 
   public async processPaginatedActivities(userId: string): Promise<SyncJobCompletedResult> {
-    const perPage = 30;
+    const perPage = 100;
 
     let page = 1;
     let hasMorePages = true;

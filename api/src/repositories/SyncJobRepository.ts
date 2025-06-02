@@ -20,7 +20,7 @@ export class SyncJobRepository {
   }
 
   public findByUserId(userId: string) {
-    return this.syncJobModel.find({ userId }).lean();
+    return this.syncJobModel.find({ userId }).sort({ 'createdAt': -1 }).lean();
   }
 
   public updateOneById(id: string, syncJobData: Partial<SyncJobSchema>) {
