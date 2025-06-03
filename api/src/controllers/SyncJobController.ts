@@ -84,9 +84,22 @@ export class SyncJobController {
       return;
     }
 
+    let refreshLastDaysInt;
+    if (req.body && req.body.refreshLastDays) {
+      refreshLastDaysInt = parseInt(req.body.refreshLastDays, 10);
+
+      if (isNaN(refreshLastDaysInt) || refreshLastDaysInt <= 0 ||
+        refreshLastDaysInt.toString() !== req.body.refreshLastDays.toString()) {
+        res.status(400).send({ message: 'Bad Request' });
+        return;
+      }
+    }
+
     let syncJob;
     try {
-      syncJob = await this.syncJobService.createSyncJob(userId);
+      syncJob = await this.syncJobService.createSyncJob(userId, {
+        refreshLastDays: refreshLastDaysInt,
+      });
     } catch (error) {
       console.error(error);
 

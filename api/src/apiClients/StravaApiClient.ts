@@ -7,7 +7,7 @@ interface Options extends ApiClientOptions {
 
 // @see https://developers.strava.com/docs/reference/#api-models-SummaryActivity
 export interface StravaSummaryActivity {
-  id: string;
+  id: number;
   name: string;
   distance?: number | null;
   moving_time?: number | null;

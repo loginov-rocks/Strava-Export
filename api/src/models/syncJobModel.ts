@@ -1,20 +1,26 @@
 import { model, Schema, Types } from 'mongoose';
 
+export interface SyncJobParams {
+  refreshLastDays?: number;
+}
+
 export interface SyncJobCompletedResult {
-  detailsProcessedCount: number;
-  detailsUpdatedCount: number;
-  existingCount: number;
-  insertedCount: number;
-  noDetailsCount: number;
-  nonExistingCount: number;
   pagesCount: number;
   perPageCount: number;
   processedCount: number;
+  existingCount: number;
+  nonExistingCount: number;
+  insertedCount: number;
+  noDetailsCount: number;
+  refreshDetailsCount: number;
+  detailsProcessedCount: number;
+  detailsUpdatedCount: number;
 }
 
 export interface SyncJobSchema {
   userId: string;
   status: 'created' | 'started' | 'completed' | 'failed';
+  params?: SyncJobParams;
   startedAt?: Date;
   completedAt?: Date;
   completedResult?: SyncJobCompletedResult;
@@ -36,6 +42,9 @@ const schema = new Schema<SyncJobDocument>({
   status: {
     type: String,
     enum: ['created', 'started', 'completed', 'failed'],
+  },
+  params: {
+    refreshLastDays: Number,
   },
   startedAt: Date,
   completedAt: Date,

@@ -24,13 +24,13 @@ export class SyncJobWorker {
     this.worker = new Worker(
       this.syncJobQueueName,
       async (job) => {
-        const { syncJobId, userId } = job.data;
+        const { syncJobId, userId, params } = job.data;
 
         console.log(`SyncJobWorker #${job.id} for ID "${syncJobId}" with user ID "${userId}" started`);
 
         await this.syncJobService.markSyncJobStarted(syncJobId);
 
-        return this.activitySyncService.processPaginatedActivities(userId);
+        return this.activitySyncService.processPaginatedActivities(userId, params);
       },
       {
         autorun: false,

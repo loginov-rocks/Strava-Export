@@ -1,6 +1,6 @@
 import { Queue } from 'bullmq';
 
-import { SyncJobCompletedResult } from '../models/syncJobModel';
+import { SyncJobCompletedResult, SyncJobParams } from '../models/syncJobModel';
 import { SyncJobRepository } from '../repositories/SyncJobRepository';
 
 interface Options {
@@ -17,13 +17,14 @@ export class SyncJobService {
     this.syncJobRepository = syncJobRepository;
   }
 
-  public async createSyncJob(userId: string) {
+  public async createSyncJob(userId: string, params?: SyncJobParams) {
     const syncJob = await this.syncJobRepository.create({
       userId,
       status: 'created',
+      params,
     });
 
-    await this.syncJobQueue.add('syncJob', { syncJobId: syncJob.id, userId });
+    await this.syncJobQueue.add('syncJob', { syncJobId: syncJob.id, userId, params });
 
     return syncJob;
   }

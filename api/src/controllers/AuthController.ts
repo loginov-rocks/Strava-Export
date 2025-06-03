@@ -48,6 +48,11 @@ export class AuthController {
   }
 
   public async postTokenMiddleware(req: Request, res: Response, next: NextFunction): Promise<void> {
+    if (!req.body) {
+      res.status(400).send({ message: 'Bad Request' });
+      return;
+    }
+
     const { code, scope, state } = req.body;
 
     let tokens;
