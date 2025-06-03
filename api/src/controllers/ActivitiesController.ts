@@ -21,7 +21,7 @@ interface GetActivitiesFilterParameters {
   order?: string;
 }
 
-export class ActivitiesController {
+export class ActivityController {
   private readonly activityDtoFactory: ActivityDtoFactory;
   private readonly activityService: ActivityService;
 
@@ -30,8 +30,8 @@ export class ActivitiesController {
     this.activityService = activityService;
 
     this.getActivities = this.getActivities.bind(this);
-    this.getActivity = this.getActivity.bind(this);
     this.getLastActivity = this.getLastActivity.bind(this);
+    this.getActivity = this.getActivity.bind(this);
   }
 
   public async getActivities(req: AuthenticatedRequest, res: Response): Promise<void> {
@@ -89,50 +89,6 @@ export class ActivitiesController {
       : this.activityDtoFactory.createJsonCollection(activities));
   }
 
-  public async getActivity(req: AuthenticatedRequest, res: Response): Promise<void> {
-    const { userId } = req;
-
-    if (!userId) {
-      res.status(401).send({ message: 'Unauthorized' });
-      return;
-    }
-
-    const { activityId } = req.params;
-
-    if (!activityId) {
-      res.status(400).send({ message: 'Bad Request' });
-      return;
-    }
-
-    const { withStravaData } = req.query;
-
-    let activity;
-    try {
-      activity = await this.activityService.getActivity(activityId);
-    } catch (error) {
-      console.error(error);
-
-      res.status(500).send({ message: 'Internal Server Error' });
-      return;
-    }
-
-    if (!activity || activity.userId !== userId) {
-      res.status(404).send({ message: 'Not Found' });
-      return;
-    }
-
-    const acceptHeader = req.get('Accept');
-
-    if (acceptHeader && acceptHeader.includes('text/plain')) {
-      res.type('text/plain').send(this.activityDtoFactory.createText(activity));
-      return;
-    }
-
-    res.send(withStravaData === 'true'
-      ? this.activityDtoFactory.createJsonWithStravaData(activity)
-      : this.activityDtoFactory.createJson(activity));
-  }
-
   public async getLastActivity(req: AuthenticatedRequest, res: Response): Promise<void> {
     const { userId } = req;
 
@@ -161,6 +117,50 @@ export class ActivitiesController {
     }
 
     if (!activity) {
+      res.status(404).send({ message: 'Not Found' });
+      return;
+    }
+
+    const acceptHeader = req.get('Accept');
+
+    if (acceptHeader && acceptHeader.includes('text/plain')) {
+      res.type('text/plain').send(this.activityDtoFactory.createText(activity));
+      return;
+    }
+
+    res.send(withStravaData === 'true'
+      ? this.activityDtoFactory.createJsonWithStravaData(activity)
+      : this.activityDtoFactory.createJson(activity));
+  }
+
+  public async getActivity(req: AuthenticatedRequest, res: Response): Promise<void> {
+    const { userId } = req;
+
+    if (!userId) {
+      res.status(401).send({ message: 'Unauthorized' });
+      return;
+    }
+
+    const { activityId } = req.params;
+
+    if (!activityId) {
+      res.status(400).send({ message: 'Bad Request' });
+      return;
+    }
+
+    const { withStravaData } = req.query;
+
+    let activity;
+    try {
+      activity = await this.activityService.getActivity(activityId);
+    } catch (error) {
+      console.error(error);
+
+      res.status(500).send({ message: 'Internal Server Error' });
+      return;
+    }
+
+    if (!activity || activity.userId !== userId) {
       res.status(404).send({ message: 'Not Found' });
       return;
     }

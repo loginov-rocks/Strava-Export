@@ -1,30 +1,35 @@
 import { Router } from 'express';
 
-import { activitiesController, authController, syncJobController, tokenMiddleware } from './container';
+import { activityController, authController, patController, syncJobController, tokenMiddleware } from './container';
 
 export const router = Router();
 
-router.get('/activities', tokenMiddleware.requireAccessToken, activitiesController.getActivities);
-router.get('/activities/last', tokenMiddleware.requireAccessToken, activitiesController.getLastActivity);
-router.get('/activities/:activityId', tokenMiddleware.requireAccessToken, activitiesController.getActivity);
-
-router.get('/auth', tokenMiddleware.requireAccessToken, authController.get);
-router.get('/auth/strava', authController.getStrava);
+router.get('/auth', tokenMiddleware.requireAccessToken, authController.getAuth);
+router.get('/auth/strava', authController.getAuthStrava);
 router.post('/auth/token',
-  authController.postTokenMiddleware,
-  tokenMiddleware.attach,
-  authController.postToken,
+  authController.postAuthTokenMiddleware,
+  tokenMiddleware.attachTokens,
+  authController.postAuthToken,
 );
 router.post('/auth/refresh',
   tokenMiddleware.requireRefreshToken,
-  authController.postRefreshMiddleware,
-  tokenMiddleware.attach,
-  authController.postRefresh);
+  authController.postAuthRefreshMiddleware,
+  tokenMiddleware.attachTokens,
+  authController.postAuthRefresh,
+);
 router.post('/auth/logout',
   tokenMiddleware.requireAccessToken,
-  tokenMiddleware.remove,
-  authController.postLogout,
+  tokenMiddleware.removeTokens,
+  authController.postAuthLogout,
 );
+
+router.get('/activities', tokenMiddleware.requireAccessToken, activityController.getActivities);
+router.get('/activities/last', tokenMiddleware.requireAccessToken, activityController.getLastActivity);
+router.get('/activities/:activityId', tokenMiddleware.requireAccessToken, activityController.getActivity);
+
+router.post('/pats', tokenMiddleware.requireAccessToken, patController.postPat);
+router.get('/pats', tokenMiddleware.requireAccessToken, patController.getPats);
+router.delete('/pats/:patId', tokenMiddleware.requireAccessToken, patController.deletePat);
 
 router.post('/sync', tokenMiddleware.requireAccessToken, syncJobController.postSyncJob);
 router.get('/sync', tokenMiddleware.requireAccessToken, syncJobController.getSyncJobs);

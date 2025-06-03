@@ -22,13 +22,13 @@ export class TokenMiddleware {
     this.refreshTokenCookieName = refreshTokenCookieName;
     this.tokenService = tokenService;
 
-    this.attach = this.attach.bind(this);
-    this.remove = this.remove.bind(this);
+    this.attachTokens = this.attachTokens.bind(this);
+    this.removeTokens = this.removeTokens.bind(this);
     this.requireAccessToken = this.requireAccessToken.bind(this);
     this.requireRefreshToken = this.requireRefreshToken.bind(this);
   }
 
-  public attach(req: Request, res: Response, next: NextFunction): void {
+  public attachTokens(req: Request, res: Response, next: NextFunction): void {
     if (res.locals.tokens) {
       res.cookie(this.accessTokenCookieName, res.locals.tokens.accessToken, {
         httpOnly: true,
@@ -48,7 +48,7 @@ export class TokenMiddleware {
     next();
   }
 
-  public remove(req: Request, res: Response, next: NextFunction): void {
+  public removeTokens(req: Request, res: Response, next: NextFunction): void {
     res.clearCookie(this.accessTokenCookieName);
     res.clearCookie(this.refreshTokenCookieName);
 

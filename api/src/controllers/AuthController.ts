@@ -13,20 +13,20 @@ export class AuthController {
   constructor({ authService }: Options) {
     this.authService = authService;
 
-    this.get = this.get.bind(this);
-    this.getStrava = this.getStrava.bind(this);
-    this.postTokenMiddleware = this.postTokenMiddleware.bind(this);
-    this.postToken = this.postToken.bind(this);
-    this.postRefreshMiddleware = this.postRefreshMiddleware.bind(this);
-    this.postRefresh = this.postRefresh.bind(this);
-    this.postLogout = this.postLogout.bind(this);
+    this.getAuth = this.getAuth.bind(this);
+    this.getAuthStrava = this.getAuthStrava.bind(this);
+    this.postAuthTokenMiddleware = this.postAuthTokenMiddleware.bind(this);
+    this.postAuthToken = this.postAuthToken.bind(this);
+    this.postAuthRefreshMiddleware = this.postAuthRefreshMiddleware.bind(this);
+    this.postAuthRefresh = this.postAuthRefresh.bind(this);
+    this.postAuthLogout = this.postAuthLogout.bind(this);
   }
 
-  public get(req: Request, res: Response): void {
+  public getAuth(req: Request, res: Response): void {
     res.status(204).send();
   }
 
-  public getStrava(req: Request, res: Response): void {
+  public getAuthStrava(req: Request, res: Response): void {
     const { redirectUri, state } = req.query;
 
     if (!redirectUri || typeof redirectUri !== 'string' || (state && typeof state !== 'string')) {
@@ -47,7 +47,7 @@ export class AuthController {
     res.send({ url });
   }
 
-  public async postTokenMiddleware(req: Request, res: Response, next: NextFunction): Promise<void> {
+  public async postAuthTokenMiddleware(req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!req.body) {
       res.status(400).send({ message: 'Bad Request' });
       return;
@@ -70,11 +70,11 @@ export class AuthController {
     next();
   }
 
-  public postToken(req: Request, res: Response): void {
+  public postAuthToken(req: Request, res: Response): void {
     res.status(204).send();
   }
 
-  public postRefreshMiddleware(req: AuthenticatedRequest, res: Response, next: NextFunction): void {
+  public postAuthRefreshMiddleware(req: AuthenticatedRequest, res: Response, next: NextFunction): void {
     const { userId } = req;
 
     if (!userId) {
@@ -97,11 +97,11 @@ export class AuthController {
     next();
   }
 
-  public postRefresh(req: Request, res: Response): void {
+  public postAuthRefresh(req: Request, res: Response): void {
     res.status(204).send();
   }
 
-  public postLogout(req: Request, res: Response): void {
+  public postAuthLogout(req: Request, res: Response): void {
     res.status(204).send();
   }
 }
