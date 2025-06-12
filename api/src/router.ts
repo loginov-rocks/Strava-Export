@@ -29,6 +29,7 @@ router.get('/activities/:activityId', tokenMiddleware.requireAccessToken, activi
 
 router.post('/pats', tokenMiddleware.requireAccessToken, patController.postPat);
 router.get('/pats', tokenMiddleware.requireAccessToken, patController.getPats);
+router.get('/pats/:patId', tokenMiddleware.requireAccessToken, patController.getPat);
 router.delete('/pats/:patId', tokenMiddleware.requireAccessToken, patController.deletePat);
 
 router.post('/sync', tokenMiddleware.requireAccessToken, syncJobController.postSyncJob);

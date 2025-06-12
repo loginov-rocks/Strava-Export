@@ -12,21 +12,25 @@ import { PatController } from './controllers/PatController';
 import { SyncJobController } from './controllers/SyncJobController';
 
 import { ActivityDtoFactory } from './dtoFactories/ActivityDtoFactory';
+import { PatDtoFactory } from './dtoFactories/PatDtoFactory';
 import { SyncJobDtoFactory } from './dtoFactories/SyncJobDtoFactory';
 
 import { TokenMiddleware } from './middlewares/TokenMiddleware';
 
 import { activityModel } from './models/activityModel';
+import { patModel } from './models/patModel';
 import { syncJobModel } from './models/syncJobModel';
 import { userModel } from './models/userModel';
 
 import { ActivityRepository } from './repositories/ActivityRepository';
+import { PatRepository } from './repositories/PatRepository';
 import { SyncJobRepository } from './repositories/SyncJobRepository';
 import { UserRepository } from './repositories/UserRepository';
 
 import { ActivityService } from './services/ActivityService';
 import { ActivitySyncService } from './services/ActivitySyncService';
 import { AuthService } from './services/AuthService';
+import { PatService } from './services/PatService';
 import { StravaTokenService } from './services/StravaTokenService';
 import { SyncJobService } from './services/SyncJobService';
 import { TokenService } from './services/TokenService';
@@ -47,6 +51,10 @@ const activityRepository = new ActivityRepository({
   activityModel,
 });
 
+const patRepository = new PatRepository({
+  patModel,
+});
+
 const syncJobRepository = new SyncJobRepository({
   syncJobModel,
 });
@@ -60,6 +68,20 @@ const userRepository = new UserRepository({
 // Services.
 const activityService = new ActivityService({
   activityRepository,
+});
+
+const patService = new PatService({
+  patRepository,
+});
+
+const stravaTokenService = new StravaTokenService({
+  stravaApiClient,
+  userRepository,
+});
+
+const syncJobService = new SyncJobService({
+  syncJobQueue,
+  syncJobRepository,
 });
 
 const tokenService = new TokenService({
@@ -76,20 +98,10 @@ const authService = new AuthService({
   webAppUrl: WEB_APP_URL,
 });
 
-const stravaTokenService = new StravaTokenService({
-  stravaApiClient,
-  userRepository,
-});
-
 const activitySyncService = new ActivitySyncService({
   activityRepository,
   stravaApiClient,
   stravaTokenService,
-});
-
-const syncJobService = new SyncJobService({
-  syncJobQueue,
-  syncJobRepository,
 });
 
 // Middlewares.
@@ -101,6 +113,8 @@ export const tokenMiddleware = new TokenMiddleware({
 
 // DTO Factories.
 const activityDtoFactory = new ActivityDtoFactory();
+
+const patDtoFactory = new PatDtoFactory();
 
 const syncJobDtoFactory = new SyncJobDtoFactory();
 
@@ -114,7 +128,10 @@ export const authController = new AuthController({
   authService,
 });
 
-export const patController = new PatController();
+export const patController = new PatController({
+  patDtoFactory,
+  patService,
+});
 
 export const syncJobController = new SyncJobController({
   syncJobDtoFactory,
