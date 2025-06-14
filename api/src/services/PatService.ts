@@ -33,4 +33,15 @@ export class PatService {
   public deletePat(patId: string) {
     return this.patRepository.deleteOneById(patId);
   }
+
+  public async verifyPat(token: string) {
+    const pat = await this.patRepository.findOneByTokenAndUpdateLastUsedAt(token);
+
+    if (!pat) {
+      throw new Error('PAT not found');
+    }
+
+    return { userId: pat.userId };
+  }
 }
+

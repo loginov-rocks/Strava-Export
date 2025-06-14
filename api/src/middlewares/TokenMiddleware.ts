@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 
 import { TokenService } from '../services/TokenService';
 
-export interface AuthenticatedRequest extends Request {
+export interface TokenAuthenticatedRequest extends Request {
   userId?: string;
 }
 
@@ -55,18 +55,10 @@ export class TokenMiddleware {
     next();
   }
 
-  public requireAccessToken(req: AuthenticatedRequest, res: Response, next: NextFunction): void {
-    const accessToken = req.cookies[this.accessTokenCookieName];
+  public requireAccessToken(req: TokenAuthenticatedRequest, res: Response, next: NextFunction): void {
+    const userId = this.authenticateRequest(req, 'access');
 
-    if (!accessToken) {
-      res.status(401).send({ message: 'Unauthorized' });
-      return;
-    }
-
-    let userId;
-    try {
-      ({ userId } = this.tokenService.verifyAccessToken(accessToken));
-    } catch {
+    if (!userId) {
       res.status(401).send({ message: 'Unauthorized' });
       return;
     }
@@ -76,18 +68,10 @@ export class TokenMiddleware {
     next();
   }
 
-  public requireRefreshToken(req: AuthenticatedRequest, res: Response, next: NextFunction): void {
-    const refreshToken = req.cookies[this.refreshTokenCookieName];
+  public requireRefreshToken(req: TokenAuthenticatedRequest, res: Response, next: NextFunction): void {
+    const userId = this.authenticateRequest(req, 'refresh');
 
-    if (!refreshToken) {
-      res.status(401).send({ message: 'Unauthorized' });
-      return;
-    }
-
-    let userId;
-    try {
-      ({ userId } = this.tokenService.verifyRefreshToken(refreshToken));
-    } catch {
+    if (!userId) {
       res.status(401).send({ message: 'Unauthorized' });
       return;
     }
@@ -95,5 +79,24 @@ export class TokenMiddleware {
     req.userId = userId;
 
     next();
+  }
+
+  public authenticateRequest(req: Request, tokenType: 'access' | 'refresh') {
+    const token = req.cookies[tokenType === 'refresh' ? this.refreshTokenCookieName : this.accessTokenCookieName];
+
+    if (!token) {
+      return null;
+    }
+
+    let userId;
+    try {
+      ({ userId } = tokenType === 'refresh'
+        ? this.tokenService.verifyRefreshToken(token)
+        : this.tokenService.verifyAccessToken(token));
+    } catch {
+      return null;
+    }
+
+    return userId;
   }
 }

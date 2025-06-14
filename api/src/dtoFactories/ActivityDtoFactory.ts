@@ -138,6 +138,7 @@ export class ActivityDtoFactory {
     }
 
     // The description was moved to the last since it may have critical information overriding the stats above.
+    // TODO: Think about formatting description since may contain new lines.
     if (activityDto.description) {
       lines.push(`User Comment (may have more precise information about this activity): ${activityDto.description}`);
     }
@@ -284,6 +285,7 @@ export class ActivityDtoFactory {
     return data;
   }
 
+  // TODO: Format numbers.
   private calculateStats(activityDtos: ActivityDto[]): Stats {
     const stats: Stats = {};
     const keys: Array<keyof StatsPerSportType & keyof ActivityDto> = [

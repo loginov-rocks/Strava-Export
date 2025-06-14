@@ -1,6 +1,8 @@
 import { Router } from 'express';
 
-import { activityController, authController, patController, syncJobController, tokenMiddleware } from './container';
+import {
+  activityController, authController, compositeAuthMiddleware, patController, syncJobController, tokenMiddleware,
+} from './container';
 
 export const router = Router();
 
@@ -23,9 +25,9 @@ router.post('/auth/logout',
   authController.postAuthLogout,
 );
 
-router.get('/activities', tokenMiddleware.requireAccessToken, activityController.getActivities);
-router.get('/activities/last', tokenMiddleware.requireAccessToken, activityController.getLastActivity);
-router.get('/activities/:activityId', tokenMiddleware.requireAccessToken, activityController.getActivity);
+router.get('/activities', compositeAuthMiddleware.requireAccessTokenOrPat, activityController.getActivities);
+router.get('/activities/last', compositeAuthMiddleware.requireAccessTokenOrPat, activityController.getLastActivity);
+router.get('/activities/:activityId', compositeAuthMiddleware.requireAccessTokenOrPat, activityController.getActivity);
 
 router.post('/pats', tokenMiddleware.requireAccessToken, patController.postPat);
 router.get('/pats', tokenMiddleware.requireAccessToken, patController.getPats);

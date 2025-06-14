@@ -1,7 +1,7 @@
 import { Response } from 'express';
 
 import { PatDtoFactory } from '../dtoFactories/PatDtoFactory';
-import { AuthenticatedRequest } from '../middlewares/TokenMiddleware';
+import { TokenAuthenticatedRequest } from '../middlewares/TokenMiddleware';
 import { PatService } from '../services/PatService';
 
 interface Options {
@@ -23,7 +23,7 @@ export class PatController {
     this.deletePat = this.deletePat.bind(this);
   }
 
-  public async postPat(req: AuthenticatedRequest, res: Response): Promise<void> {
+  public async postPat(req: TokenAuthenticatedRequest, res: Response): Promise<void> {
     const { userId } = req;
 
     if (!userId) {
@@ -43,9 +43,9 @@ export class PatController {
       return;
     }
 
-    let createdPat;
+    let pat, token;
     try {
-      createdPat = await this.patService.createPat(userId, { name: trimmedName });
+      ({ pat, token } = await this.patService.createPat(userId, { name: trimmedName }));
     } catch (error) {
       console.error(error);
 
@@ -53,10 +53,10 @@ export class PatController {
       return;
     }
 
-    res.status(201).send(this.patDtoFactory.createCreatedJson(createdPat));
+    res.status(201).send(this.patDtoFactory.createCreatedJson(pat, token));
   }
 
-  public async getPats(req: AuthenticatedRequest, res: Response): Promise<void> {
+  public async getPats(req: TokenAuthenticatedRequest, res: Response): Promise<void> {
     const { userId } = req;
 
     if (!userId) {
@@ -77,7 +77,7 @@ export class PatController {
     res.send(this.patDtoFactory.createJsonCollection(pats));
   }
 
-  public async getPat(req: AuthenticatedRequest, res: Response): Promise<void> {
+  public async getPat(req: TokenAuthenticatedRequest, res: Response): Promise<void> {
     const { userId } = req;
 
     if (!userId) {
@@ -110,7 +110,7 @@ export class PatController {
     res.send(this.patDtoFactory.createJson(pat));
   }
 
-  public async deletePat(req: AuthenticatedRequest, res: Response): Promise<void> {
+  public async deletePat(req: TokenAuthenticatedRequest, res: Response): Promise<void> {
     const { userId } = req;
 
     if (!userId) {

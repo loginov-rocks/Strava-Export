@@ -1,7 +1,8 @@
 import {
-  ACCESS_TOKEN_COOKIE_NAME, ACCESS_TOKEN_EXPIRES_IN, ACCESS_TOKEN_SECRET, REFRESH_TOKEN_COOKIE_NAME,
-  REFRESH_TOKEN_EXPIRES_IN, REFRESH_TOKEN_SECRET, STRAVA_API_BASE_URL, STRAVA_API_CLIENT_ID, STRAVA_API_CLIENT_SECRET,
-  SYNC_JOB_QUEUE_NAME, USER_REPOSITORY_ENCRYPTION_IV, USER_REPOSITORY_ENCRYPTION_KEY, WEB_APP_URL,
+  ACCESS_TOKEN_COOKIE_NAME, ACCESS_TOKEN_EXPIRES_IN, ACCESS_TOKEN_SECRET, PAT_REPOSITORY_DISPLAY_LENGTH,
+  PAT_REPOSITORY_TOKEN_PREFIX, PAT_REPOSITORY_TOKEN_RANDOM_LENGTH, REFRESH_TOKEN_COOKIE_NAME, REFRESH_TOKEN_EXPIRES_IN,
+  REFRESH_TOKEN_SECRET, STRAVA_API_BASE_URL, STRAVA_API_CLIENT_ID, STRAVA_API_CLIENT_SECRET, SYNC_JOB_QUEUE_NAME,
+  USER_REPOSITORY_ENCRYPTION_IV, USER_REPOSITORY_ENCRYPTION_KEY, WEB_APP_URL,
 } from './constants';
 
 import { StravaApiClient } from './apiClients/StravaApiClient';
@@ -15,6 +16,8 @@ import { ActivityDtoFactory } from './dtoFactories/ActivityDtoFactory';
 import { PatDtoFactory } from './dtoFactories/PatDtoFactory';
 import { SyncJobDtoFactory } from './dtoFactories/SyncJobDtoFactory';
 
+import { CompositeAuthMiddleware } from './middlewares/CompositeAuthMiddleware';
+import { PatMiddleware } from './middlewares/PatMiddleware';
 import { TokenMiddleware } from './middlewares/TokenMiddleware';
 
 import { activityModel } from './models/activityModel';
@@ -52,7 +55,10 @@ const activityRepository = new ActivityRepository({
 });
 
 const patRepository = new PatRepository({
+  displayLength: PAT_REPOSITORY_DISPLAY_LENGTH,
   patModel,
+  tokenPrefix: PAT_REPOSITORY_TOKEN_PREFIX,
+  tokenRandomLength: PAT_REPOSITORY_TOKEN_RANDOM_LENGTH,
 });
 
 const syncJobRepository = new SyncJobRepository({
@@ -105,10 +111,19 @@ const activitySyncService = new ActivitySyncService({
 });
 
 // Middlewares.
+const patMiddleware = new PatMiddleware({
+  patService,
+});
+
 export const tokenMiddleware = new TokenMiddleware({
   accessTokenCookieName: ACCESS_TOKEN_COOKIE_NAME,
   refreshTokenCookieName: REFRESH_TOKEN_COOKIE_NAME,
   tokenService,
+});
+
+export const compositeAuthMiddleware = new CompositeAuthMiddleware({
+  patMiddleware,
+  tokenMiddleware,
 });
 
 // DTO Factories.

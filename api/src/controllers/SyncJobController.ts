@@ -1,7 +1,7 @@
 import { Response } from 'express';
 
 import { SyncJobDtoFactory } from '../dtoFactories/SyncJobDtoFactory';
-import { AuthenticatedRequest } from '../middlewares/TokenMiddleware';
+import { TokenAuthenticatedRequest } from '../middlewares/TokenMiddleware';
 import { SyncJobService } from '../services/SyncJobService';
 
 interface Options {
@@ -22,7 +22,7 @@ export class SyncJobController {
     this.getSyncJob = this.getSyncJob.bind(this);
   }
 
-  public async postSyncJob(req: AuthenticatedRequest, res: Response): Promise<void> {
+  public async postSyncJob(req: TokenAuthenticatedRequest, res: Response): Promise<void> {
     const { userId } = req;
 
     if (!userId) {
@@ -56,7 +56,7 @@ export class SyncJobController {
     res.status(201).send(this.syncJobDtoFactory.createJson(syncJob));
   }
 
-  public async getSyncJobs(req: AuthenticatedRequest, res: Response): Promise<void> {
+  public async getSyncJobs(req: TokenAuthenticatedRequest, res: Response): Promise<void> {
     const { userId } = req;
 
     if (!userId) {
@@ -77,7 +77,7 @@ export class SyncJobController {
     res.send(this.syncJobDtoFactory.createJsonCollection(syncJobs));
   }
 
-  public async getSyncJob(req: AuthenticatedRequest, res: Response): Promise<void> {
+  public async getSyncJob(req: TokenAuthenticatedRequest, res: Response): Promise<void> {
     const { userId } = req;
 
     if (!userId) {

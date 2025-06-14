@@ -1,9 +1,12 @@
-import { createHash, randomBytes } from 'crypto';
+import { createHash, randomInt } from 'crypto';
 
-import { PatDocument, PatModel } from '../models/patModel';
+import { PatModel } from '../models/patModel';
 
 interface Options {
+  displayLength: number;
   patModel: PatModel;
+  tokenPrefix: string;
+  tokenRandomLength: number;
 }
 
 interface CreateParams {
@@ -11,15 +14,17 @@ interface CreateParams {
   name: string;
 }
 
-export interface CreatedPatDocument extends PatDocument {
-  token: string;
-}
-
 export class PatRepository {
+  private readonly displayLength: number;
   private readonly patModel: PatModel;
+  private readonly tokenPrefix: string;
+  private readonly tokenRandomLength: number;
 
-  constructor({ patModel }: Options) {
+  constructor({ displayLength, patModel, tokenPrefix, tokenRandomLength }: Options) {
+    this.displayLength = displayLength;
     this.patModel = patModel;
+    this.tokenPrefix = tokenPrefix;
+    this.tokenRandomLength = tokenRandomLength;
   }
 
   public async create(patParams: CreateParams) {
@@ -32,7 +37,7 @@ export class PatRepository {
     });
 
     return {
-      ...pat,
+      pat,
       token,
     };
   }
@@ -45,17 +50,33 @@ export class PatRepository {
     return this.patModel.findById(id).lean();
   }
 
+  public findOneByTokenAndUpdateLastUsedAt(token: string) {
+    if (!token.startsWith(this.tokenPrefix)) {
+      return null;
+    }
+
+    const hash = PatRepository.generateTokenHash(token);
+
+    return this.patModel.findOneAndUpdate({ hash }, { lastUsedAt: new Date() }, { new: true }).lean();
+  }
+
   public findByUserId(userId: string) {
     return this.patModel.find({ userId }).sort({ 'name': 1 }).lean();
   }
 
-  // TODO: Revisit.
   private generateToken() {
-    const randomPart = randomBytes(32);
-    const token = `pat_${randomPart}`;
-    const hash = createHash('sha256').update(token).digest('hex');
-    const display = token.substring(0, 12);
+    const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const randomPart = Array.from({ length: this.tokenRandomLength }, () => (
+      charset[randomInt(0, charset.length)]
+    )).join('');
+    const token = `${this.tokenPrefix}${randomPart}`;
+    const hash = PatRepository.generateTokenHash(token);
+    const display = token.substring(0, this.displayLength);
 
     return { token, hash, display };
+  }
+
+  private static generateTokenHash(token: string) {
+    return createHash('sha256').update(token).digest('hex');
   }
 }

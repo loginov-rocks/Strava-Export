@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 
-import { AuthenticatedRequest } from '../middlewares/TokenMiddleware';
+import { TokenAuthenticatedRequest } from '../middlewares/TokenMiddleware';
 import { AuthService } from '../services/AuthService';
 
 interface Options {
@@ -74,7 +74,7 @@ export class AuthController {
     res.status(204).send();
   }
 
-  public postAuthRefreshMiddleware(req: AuthenticatedRequest, res: Response, next: NextFunction): void {
+  public postAuthRefreshMiddleware(req: TokenAuthenticatedRequest, res: Response, next: NextFunction): void {
     const { userId } = req;
 
     if (!userId) {

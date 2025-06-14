@@ -1,5 +1,4 @@
 import { PatDocument } from '../models/patModel';
-import { CreatedPatDocument } from '../repositories/PatRepository';
 
 interface PatDto {
   id: string;
@@ -29,12 +28,12 @@ export class PatDtoFactory {
     };
   }
 
-  public createCreatedJson(createdPat: CreatedPatDocument): CreatedPatDto {
+  public createCreatedJson(createdPat: PatDocument, token: string): CreatedPatDto {
     const patDto = this.createJson(createdPat);
 
     return {
       ...patDto,
-      token: createdPat.token,
+      token,
     };
   }
 

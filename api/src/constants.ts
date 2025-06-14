@@ -7,6 +7,10 @@ export const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || '';
 
 export const MONGOOSE_CONNECT_URI = process.env.MONGOOSE_CONNECT_URI || '';
 
+export const PAT_REPOSITORY_DISPLAY_LENGTH = 8;
+export const PAT_REPOSITORY_TOKEN_PREFIX = 'pat_';
+export const PAT_REPOSITORY_TOKEN_RANDOM_LENGTH = 32;
+
 export const PORT = process.env.PORT;
 
 export const STRAVA_API_BASE_URL = process.env.STRAVA_API_BASE_URL || '';

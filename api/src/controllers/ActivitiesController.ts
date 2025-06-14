@@ -1,7 +1,7 @@
 import { Response } from 'express';
 
 import { ActivityDtoFactory } from '../dtoFactories/ActivityDtoFactory';
-import { AuthenticatedRequest } from '../middlewares/TokenMiddleware';
+import { CompositeAuthenticatedRequest } from '../middlewares/CompositeAuthMiddleware';
 import { ActivityService } from '../services/ActivityService';
 
 interface Options {
@@ -34,7 +34,7 @@ export class ActivityController {
     this.getActivity = this.getActivity.bind(this);
   }
 
-  public async getActivities(req: AuthenticatedRequest, res: Response): Promise<void> {
+  public async getActivities(req: CompositeAuthenticatedRequest, res: Response): Promise<void> {
     const { userId } = req;
 
     if (!userId) {
@@ -89,7 +89,7 @@ export class ActivityController {
       : this.activityDtoFactory.createJsonCollection(activities));
   }
 
-  public async getLastActivity(req: AuthenticatedRequest, res: Response): Promise<void> {
+  public async getLastActivity(req: CompositeAuthenticatedRequest, res: Response): Promise<void> {
     const { userId } = req;
 
     if (!userId) {
@@ -133,7 +133,7 @@ export class ActivityController {
       : this.activityDtoFactory.createJson(activity));
   }
 
-  public async getActivity(req: AuthenticatedRequest, res: Response): Promise<void> {
+  public async getActivity(req: CompositeAuthenticatedRequest, res: Response): Promise<void> {
     const { userId } = req;
 
     if (!userId) {
