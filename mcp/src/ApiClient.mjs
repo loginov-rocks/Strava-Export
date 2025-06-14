@@ -1,7 +1,7 @@
 export class ApiClient {
-  constructor({ baseUrl, cookie }) {
+  constructor({ baseUrl, pat }) {
     this.baseUrl = baseUrl;
-    this.cookie = cookie;
+    this.pat = pat;
   }
 
   async request(endpoint, options) {
@@ -11,7 +11,7 @@ export class ApiClient {
     const params = {
       headers: {
         Accept: 'text/plain',
-        Cookie: this.cookie,
+        Authorization: `Bearer ${this.pat}`,
       },
     };
 

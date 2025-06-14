@@ -4,11 +4,11 @@ import { z } from 'zod';
 
 import { ApiClient } from './ApiClient.mjs';
 
-import { API_BASE_URL, API_COOKIE } from './constants.mjs';
+import { API_BASE_URL, API_PAT } from './constants.mjs';
 
 const apiClient = new ApiClient({
   baseUrl: API_BASE_URL,
-  cookie: API_COOKIE,
+  pat: API_PAT,
 });
 
 const server = new McpServer({

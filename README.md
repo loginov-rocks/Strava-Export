@@ -10,6 +10,8 @@ Use `npm start` command to start both `api` and `web-app`, then go to `http://lo
 
 Use `npm run start:worker` to start worker.
 
+Authorize in Strava, schedule a sync job and generate Personal Access Token (PAT) to be used by MCP server.
+
 ## MCP
 
 ### Claude
@@ -26,7 +28,7 @@ Use `npm run start:worker` to start worker.
       ],
       "env": {
         "API_BASE_URL": "http://localhost:3001",
-        "API_COOKIE": "stravaExportAccessToken=ACCESS_TOKEN"
+        "API_PAT": "pat_PmTDhKdDT3MxPSZYuiucbT5GNQD5xGNA"
       }
     }
   }
