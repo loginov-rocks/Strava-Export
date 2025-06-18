@@ -7,8 +7,9 @@ interface NormalizedStravaData {
   startDateTime: string;
   distanceKilometers?: number;
   movingTimeMinutes?: number;
-  totalElevationGain?: number;
+  totalElevationGainMeters?: number;
   averageSpeedKilometersPerHour?: number;
+  averagePaceMinutesPerKilometer?: number;
   maxSpeedKilometersPerHour?: number;
   averageWatts?: number;
   maxWatts?: number;
@@ -27,8 +28,11 @@ interface StatsPerSportType {
   activitiesCount: number;
   distanceKilometers?: number;
   movingTimeMinutes?: number;
-  totalElevationGain?: number;
+  totalElevationGainMeters?: number;
+  maxSpeedKilometersPerHour?: number;
+  maxWatts?: number;
   calories?: number;
+  maxHeartRate?: number;
 }
 
 interface Stats {
@@ -93,7 +97,7 @@ export class ActivityDtoFactory {
       `Activity ID: ${activityDto.id}`,
       `Date Time: ${new Date(activityDto.startDateTime).toLocaleString()}`,
       `Sport Type: ${activityDto.sportType}`,
-      `Name: ${activityDto.name}`,
+      `Name: "${activityDto.name}"`,
     ];
 
     if (activityDto.distanceKilometers) {
@@ -104,13 +108,16 @@ export class ActivityDtoFactory {
       lines.push(`Moving Time: ${activityDto.movingTimeMinutes} minutes`);
     }
 
-    // TODO: Figure out what units Strava use for elevation gain.
-    if (activityDto.totalElevationGain) {
-      lines.push(`Total Elevation Gain: ${activityDto.totalElevationGain}`);
+    if (activityDto.totalElevationGainMeters) {
+      lines.push(`Total Elevation Gain: ${activityDto.totalElevationGainMeters} meters`);
     }
 
     if (activityDto.averageSpeedKilometersPerHour) {
       lines.push(`Average Speed: ${activityDto.averageSpeedKilometersPerHour} km/h`);
+    }
+
+    if (activityDto.averagePaceMinutesPerKilometer) {
+      lines.push(`Average Pace: ${activityDto.averagePaceMinutesPerKilometer} min/km`);
     }
 
     if (activityDto.maxSpeedKilometersPerHour) {
@@ -138,9 +145,9 @@ export class ActivityDtoFactory {
     }
 
     // The description was moved to the last since it may have critical information overriding the stats above.
-    // TODO: Think about formatting description since may contain new lines.
     if (activityDto.description) {
-      lines.push(`User Comment (may have more precise information about this activity): ${activityDto.description}`);
+      lines.push(`User Comment (may have more precise information about this activity):`);
+      lines.push(`> ${activityDto.description.split('\n').join('\n> ')}`);
     }
 
     return lines.join('\n');
@@ -169,13 +176,24 @@ export class ActivityDtoFactory {
         lines.push(`Moving Time: ${statsPerSportType.movingTimeMinutes} minutes`);
       }
 
-      // TODO: Figure out what units Strava use for elevation gain.
-      if (statsPerSportType.totalElevationGain) {
-        lines.push(`Total Elevation Gain: ${statsPerSportType.totalElevationGain}`);
+      if (statsPerSportType.totalElevationGainMeters) {
+        lines.push(`Total Elevation Gain: ${statsPerSportType.totalElevationGainMeters} meters`);
+      }
+
+      if (statsPerSportType.maxSpeedKilometersPerHour) {
+        lines.push(`Max Speed: ${statsPerSportType.maxSpeedKilometersPerHour} km/h`);
+      }
+
+      if (statsPerSportType.maxWatts) {
+        lines.push(`Max Power: ${statsPerSportType.maxWatts} watts`);
       }
 
       if (statsPerSportType.calories) {
         lines.push(`Calories: ${statsPerSportType.calories}`);
+      }
+
+      if (statsPerSportType.maxHeartRate) {
+        lines.push(`Max Heart Rate: ${statsPerSportType.maxHeartRate} BPM`);
       }
 
       text += `- ${lines.join('\n- ')}`;
@@ -247,11 +265,12 @@ export class ActivityDtoFactory {
     }
 
     if (isValidNumeric(stravaData.total_elevation_gain)) {
-      data.totalElevationGain = stravaData.total_elevation_gain as number;
+      data.totalElevationGainMeters = Number((stravaData.total_elevation_gain as number).toFixed(2));
     }
 
     if (isValidNumeric(stravaData.average_speed)) {
       data.averageSpeedKilometersPerHour = Number(((stravaData.average_speed as number) * 3.6).toFixed(2));
+      data.averagePaceMinutesPerKilometer = Number((1000 / 60 / (stravaData.average_speed as number)).toFixed(2));
     }
 
     if (isValidNumeric(stravaData.max_speed)) {
@@ -259,11 +278,11 @@ export class ActivityDtoFactory {
     }
 
     if (isValidNumeric(stravaData.average_watts)) {
-      data.averageWatts = stravaData.average_watts as number;
+      data.averageWatts = Number((stravaData.average_watts as number).toFixed(2));
     }
 
     if (isValidNumeric(stravaData.max_watts)) {
-      data.maxWatts = stravaData.max_watts as number;
+      data.maxWatts = Number((stravaData.max_watts as number).toFixed(2));
     }
 
     if (isValidText((stravaData as StravaDetailedActivity).description)) {
@@ -271,25 +290,30 @@ export class ActivityDtoFactory {
     }
 
     if (isValidNumeric((stravaData as StravaDetailedActivity).calories)) {
-      data.calories = (stravaData as StravaDetailedActivity).calories as number;
+      data.calories = Number(((stravaData as StravaDetailedActivity).calories as number).toFixed(2));
     }
 
     if (isValidNumeric(stravaData.average_heartrate)) {
-      data.averageHeartRate = stravaData.average_heartrate as number;
+      data.averageHeartRate = Number((stravaData.average_heartrate as number).toFixed(2));
     }
 
     if (isValidNumeric(stravaData.max_heartrate)) {
-      data.maxHeartRate = stravaData.max_heartrate as number;
+      data.maxHeartRate = Number((stravaData.max_heartrate as number).toFixed(2));
     }
 
     return data;
   }
 
-  // TODO: Format numbers.
   private calculateStats(activityDtos: ActivityDto[]): Stats {
     const stats: Stats = {};
     const keys: Array<keyof StatsPerSportType & keyof ActivityDto> = [
-      'distanceKilometers', 'movingTimeMinutes', 'totalElevationGain', 'calories',
+      'distanceKilometers',
+      'movingTimeMinutes',
+      'totalElevationGainMeters',
+      'maxSpeedKilometersPerHour',
+      'maxWatts',
+      'calories',
+      'maxHeartRate',
     ];
 
     activityDtos.forEach((activityDto) => {
@@ -306,10 +330,22 @@ export class ActivityDtoFactory {
       keys.forEach((key) => {
         if (activityDto[key]) {
           if (stats[sportType][key]) {
-            stats[sportType][key] += activityDto[key];
+            if (['maxSpeedKilometersPerHour', 'maxWatts', 'maxHeartRate'].includes(key)) {
+              stats[sportType][key] = Math.max(stats[sportType][key], activityDto[key]);
+            } else {
+              stats[sportType][key] += activityDto[key];
+            }
           } else {
             stats[sportType][key] = activityDto[key];
           }
+        }
+      });
+    });
+
+    Object.keys(stats).forEach((sportType) => {
+      keys.forEach((key) => {
+        if (stats[sportType][key]) {
+          stats[sportType][key] = Number(stats[sportType][key].toFixed(2));
         }
       });
     });

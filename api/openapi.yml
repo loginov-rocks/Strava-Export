@@ -2,36 +2,48 @@ openapi: 3.0.3
 info:
   title: Strava Export API
   description: API for exporting and managing Strava activity data
-  version: 1.0.0
+  version: 0.1.0
   contact:
-    name: Strava Export
-    url: http://localhost:3000
+    name: Danila Loginov
+    email: danila@loginov.rocks
+    url: https://loginov.rocks
+  license:
+    name: MIT
+    url: https://github.com/loginov-rocks/Strava-Export/blob/main/LICENSE
+
+externalDocs:
+  description: GitHub
+  url: https://github.com/loginov-rocks/Strava-Export
 
 servers:
   - url: http://localhost:3001
-    description: Development server
+    description: Local Server
 
 security:
-  - cookieAuth: []
   - bearerAuth: []
+  - cookieAuth: []
 
 paths:
   /auth:
     get:
       summary: Check authentication status
       description: Verify if the user is currently authenticated
+      tags:
+        - Auth
       security:
         - cookieAuth: []
       responses:
-        "204":
+        204:
           description: User is authenticated
-        "401":
+        401:
           $ref: "#/components/responses/Unauthorized"
 
   /auth/strava:
     get:
       summary: Get Strava authorization URL
       description: Generate Strava OAuth authorization URL for user authentication
+      tags:
+        - Auth
       parameters:
         - name: redirectUri
           in: query
@@ -47,7 +59,7 @@ paths:
             type: string
           description: Optional state parameter for OAuth flow
       responses:
-        "200":
+        200:
           description: Authorization URL generated successfully
           content:
             application/json:
@@ -60,13 +72,15 @@ paths:
                     description: Strava authorization URL
                 required:
                   - url
-        "400":
+        400:
           $ref: "#/components/responses/BadRequest"
 
   /auth/token:
     post:
       summary: Exchange authorization code for tokens
       description: Exchange OAuth authorization code for access and refresh tokens
+      tags:
+        - Auth
       requestBody:
         required: true
         content:
@@ -88,56 +102,62 @@ paths:
               required:
                 - code
       responses:
-        "204":
+        204:
           description: Tokens exchanged successfully
           headers:
             Set-Cookie:
               description: Access and refresh tokens set as HTTP-only cookies
               schema:
                 type: string
-        "400":
+        400:
           $ref: "#/components/responses/BadRequest"
-        "401":
+        401:
           $ref: "#/components/responses/Unauthorized"
 
   /auth/refresh:
     post:
       summary: Refresh access token
       description: Refresh expired access token using refresh token
+      tags:
+        - Auth
       security:
         - cookieAuth: []
       responses:
-        "204":
+        204:
           description: Token refreshed successfully
           headers:
             Set-Cookie:
               description: New access and refresh tokens set as HTTP-only cookies
               schema:
                 type: string
-        "401":
+        401:
           $ref: "#/components/responses/Unauthorized"
 
   /auth/logout:
     post:
       summary: Logout user
       description: Clear authentication tokens and logout user
+      tags:
+        - Auth
       security:
         - cookieAuth: []
       responses:
-        "204":
+        204:
           description: Logged out successfully
           headers:
             Set-Cookie:
               description: Authentication cookies cleared
               schema:
                 type: string
-        "401":
+        401:
           $ref: "#/components/responses/Unauthorized"
 
   /activities:
     get:
       summary: Get activities
       description: Retrieve user's activities with optional filtering and sorting
+      tags:
+        - Activities
       security:
         - cookieAuth: []
         - bearerAuth: []
@@ -202,15 +222,10 @@ paths:
           in: query
           schema:
             type: boolean
+            default: false
           description: Include raw Strava data in response
-        - name: Accept
-          in: header
-          schema:
-            type: string
-            enum: [application/json, text/plain]
-          description: Response format
       responses:
-        "200":
+        200:
           description: Activities retrieved successfully
           content:
             application/json:
@@ -222,17 +237,19 @@ paths:
               schema:
                 type: string
                 description: Activities formatted as plain text
-        "400":
+        400:
           $ref: "#/components/responses/BadRequest"
-        "401":
+        401:
           $ref: "#/components/responses/Unauthorized"
-        "500":
+        500:
           $ref: "#/components/responses/InternalServerError"
 
   /activities/last:
     get:
       summary: Get last activity
       description: Retrieve user's most recent activity
+      tags:
+        - Activities
       security:
         - cookieAuth: []
         - bearerAuth: []
@@ -247,15 +264,10 @@ paths:
           in: query
           schema:
             type: boolean
+            default: false
           description: Include raw Strava data in response
-        - name: Accept
-          in: header
-          schema:
-            type: string
-            enum: [application/json, text/plain]
-          description: Response format
       responses:
-        "200":
+        200:
           description: Last activity retrieved successfully
           content:
             application/json:
@@ -267,19 +279,21 @@ paths:
               schema:
                 type: string
                 description: Activity formatted as plain text
-        "400":
+        400:
           $ref: "#/components/responses/BadRequest"
-        "401":
+        401:
           $ref: "#/components/responses/Unauthorized"
-        "404":
+        404:
           $ref: "#/components/responses/NotFound"
-        "500":
+        500:
           $ref: "#/components/responses/InternalServerError"
 
   /activities/{activityId}:
     get:
       summary: Get activity by ID
       description: Retrieve a specific activity by its ID
+      tags:
+        - Activities
       security:
         - cookieAuth: []
         - bearerAuth: []
@@ -294,15 +308,10 @@ paths:
           in: query
           schema:
             type: boolean
+            default: false
           description: Include raw Strava data in response
-        - name: Accept
-          in: header
-          schema:
-            type: string
-            enum: [application/json, text/plain]
-          description: Response format
       responses:
-        "200":
+        200:
           description: Activity retrieved successfully
           content:
             application/json:
@@ -314,19 +323,21 @@ paths:
               schema:
                 type: string
                 description: Activity formatted as plain text
-        "400":
+        400:
           $ref: "#/components/responses/BadRequest"
-        "401":
+        401:
           $ref: "#/components/responses/Unauthorized"
-        "404":
+        404:
           $ref: "#/components/responses/NotFound"
-        "500":
+        500:
           $ref: "#/components/responses/InternalServerError"
 
   /pats:
     post:
       summary: Create Personal Access Token
       description: Create a new Personal Access Token for API authentication
+      tags:
+        - Personal Access Tokens
       security:
         - cookieAuth: []
       requestBody:
@@ -342,40 +353,44 @@ paths:
               required:
                 - name
       responses:
-        "201":
+        201:
           description: PAT created successfully
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/CreatedPat"
-        "400":
+        400:
           $ref: "#/components/responses/BadRequest"
-        "401":
+        401:
           $ref: "#/components/responses/Unauthorized"
-        "500":
+        500:
           $ref: "#/components/responses/InternalServerError"
 
     get:
       summary: Get Personal Access Tokens
       description: Retrieve all PATs for the authenticated user
+      tags:
+        - Personal Access Tokens
       security:
         - cookieAuth: []
       responses:
-        "200":
+        200:
           description: PATs retrieved successfully
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/PatsCollection"
-        "401":
+        401:
           $ref: "#/components/responses/Unauthorized"
-        "500":
+        500:
           $ref: "#/components/responses/InternalServerError"
 
   /pats/{patId}:
     get:
       summary: Get Personal Access Token by ID
       description: Retrieve a specific PAT by its ID
+      tags:
+        - Personal Access Tokens
       security:
         - cookieAuth: []
       parameters:
@@ -386,24 +401,26 @@ paths:
             type: string
           description: PAT ID
       responses:
-        "200":
+        200:
           description: PAT retrieved successfully
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Pat"
-        "400":
+        400:
           $ref: "#/components/responses/BadRequest"
-        "401":
+        401:
           $ref: "#/components/responses/Unauthorized"
-        "404":
+        404:
           $ref: "#/components/responses/NotFound"
-        "500":
+        500:
           $ref: "#/components/responses/InternalServerError"
 
     delete:
       summary: Delete Personal Access Token
       description: Delete a specific PAT by its ID
+      tags:
+        - Personal Access Tokens
       security:
         - cookieAuth: []
       parameters:
@@ -414,21 +431,23 @@ paths:
             type: string
           description: PAT ID
       responses:
-        "204":
+        204:
           description: PAT deleted successfully
-        "400":
+        400:
           $ref: "#/components/responses/BadRequest"
-        "401":
+        401:
           $ref: "#/components/responses/Unauthorized"
-        "404":
+        404:
           $ref: "#/components/responses/NotFound"
-        "500":
+        500:
           $ref: "#/components/responses/InternalServerError"
 
   /sync:
     post:
       summary: Create sync job
       description: Create a new sync job to synchronize activities from Strava
+      tags:
+        - Sync Jobs
       security:
         - cookieAuth: []
       requestBody:
@@ -443,40 +462,44 @@ paths:
                   minimum: 1
                   description: Refresh details for activities from the last N days
       responses:
-        "201":
+        201:
           description: Sync job created successfully
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/SyncJob"
-        "400":
+        400:
           $ref: "#/components/responses/BadRequest"
-        "401":
+        401:
           $ref: "#/components/responses/Unauthorized"
-        "500":
+        500:
           $ref: "#/components/responses/InternalServerError"
 
     get:
       summary: Get sync jobs
       description: Retrieve all sync jobs for the authenticated user
+      tags:
+        - Sync Jobs
       security:
         - cookieAuth: []
       responses:
-        "200":
+        200:
           description: Sync jobs retrieved successfully
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/SyncJobsCollection"
-        "401":
+        401:
           $ref: "#/components/responses/Unauthorized"
-        "500":
+        500:
           $ref: "#/components/responses/InternalServerError"
 
   /sync/{syncJobId}:
     get:
       summary: Get sync job by ID
       description: Retrieve a specific sync job by its ID
+      tags:
+        - Sync Jobs
       security:
         - cookieAuth: []
       parameters:
@@ -487,32 +510,32 @@ paths:
             type: string
           description: Sync job ID
       responses:
-        "200":
+        200:
           description: Sync job retrieved successfully
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/SyncJob"
-        "400":
+        400:
           $ref: "#/components/responses/BadRequest"
-        "401":
+        401:
           $ref: "#/components/responses/Unauthorized"
-        "404":
+        404:
           $ref: "#/components/responses/NotFound"
-        "500":
+        500:
           $ref: "#/components/responses/InternalServerError"
 
 components:
   securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: Authentication via Personal Access Token (for APIs)
     cookieAuth:
       type: apiKey
       in: cookie
       name: stravaExportAccessToken
-      description: Authentication via HTTP-only cookies
-    bearerAuth:
-      type: http
-      scheme: bearer
-      description: Authentication via Personal Access Token
+      description: Authentication via HTTP-only cookies (for Web App)
 
   schemas:
     Activity:
@@ -541,12 +564,15 @@ components:
         movingTimeMinutes:
           type: number
           description: Moving time in minutes
-        totalElevationGain:
+        totalElevationGainMeters:
           type: number
-          description: Total elevation gain
+          description: Total elevation gain in meters
         averageSpeedKilometersPerHour:
           type: number
           description: Average speed in km/h
+        averagePaceMinutesPerKilometer:
+          type: number
+          description: Average pace in min/km
         maxSpeedKilometersPerHour:
           type: number
           description: Maximum speed in km/h
@@ -594,16 +620,25 @@ components:
           description: Number of activities
         distanceKilometers:
           type: number
-          description: Total distance in kilometers
+          description: Distance in kilometers
         movingTimeMinutes:
           type: number
-          description: Total moving time in minutes
-        totalElevationGain:
+          description: Moving time in minutes
+        totalElevationGainMeters:
           type: number
-          description: Total elevation gain
+          description: Total elevation gain in meters
+        maxSpeedKilometersPerHour:
+          type: number
+          description: Maximum speed in km/h
+        maxWatts:
+          type: number
+          description: Maximum power in watts
         calories:
           type: number
-          description: Total calories burned
+          description: Calories burned
+        maxHeartRate:
+          type: number
+          description: Maximum heart rate in BPM
       required:
         - activitiesCount
 

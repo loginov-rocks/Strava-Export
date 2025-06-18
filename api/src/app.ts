@@ -1,6 +1,5 @@
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
-import 'dotenv/config';
 import express from 'express';
 
 import { MONGOOSE_CONNECT_URI, PORT, WEB_APP_URL } from './constants';

@@ -6,9 +6,9 @@ Copy `api/.env.example` to `api/.env` and use `Client ID` and `Client Secret` fr
 
 Run database: `docker compose up`, Express UI available at `http://localhost:3002`, Redis UI at `http://localhost:3003`.
 
-Use `npm start` command to start both `api` and `web-app`, then go to `http://localhost:3000`.
+Use `npm run dev` command to start `api` and `npm start` for `web-app`, then go to `http://localhost:3000`.
 
-Use `npm run start:worker` to start worker.
+Use `npm run dev:workers` to start workers.
 
 Authorize in Strava, schedule a sync job and generate Personal Access Token (PAT) to be used by MCP server.
 
