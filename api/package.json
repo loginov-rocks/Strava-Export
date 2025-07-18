@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "dev": "tsx --env-file=.env src/app",
+    "dev": "tsx watch --env-file=.env src/app",
     "dev:workers": "tsx --env-file=.env src/workers",
     "generate-access-token-secret": "node -e \"console.log('ACCESS_TOKEN_SECRET=' + require('crypto').randomBytes(32).toString('base64'))\"",
     "generate-refresh-token-secret": "node -e \"console.log('REFRESH_TOKEN_SECRET=' + require('crypto').randomBytes(32).toString('base64'))\"",

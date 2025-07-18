@@ -165,8 +165,7 @@ paths:
         - name: sportType
           in: query
           schema:
-            type: string
-            enum: [Hike, Ride, Run, Swim]
+            $ref: "#/components/schemas/SportType"
           description: Filter by sport type
         - name: from
           in: query
@@ -257,8 +256,7 @@ paths:
         - name: sportType
           in: query
           schema:
-            type: string
-            enum: [Hike, Ride, Run, Swim]
+            $ref: "#/components/schemas/SportType"
           description: Filter by sport type
         - name: withStravaData
           in: query
@@ -538,6 +536,63 @@ components:
       description: Authentication via HTTP-only cookies (for Web App)
 
   schemas:
+    SportType:
+      type: string
+      enum:
+        [
+          AlpineSki,
+          BackcountrySki,
+          Badminton,
+          Canoeing,
+          Crossfit,
+          EBikeRide,
+          Elliptical,
+          EMountainBikeRide,
+          Golf,
+          GravelRide,
+          Handcycle,
+          HighIntensityIntervalTraining,
+          Hike,
+          IceSkate,
+          InlineSkate,
+          Kayaking,
+          Kitesurf,
+          MountainBikeRide,
+          NordicSki,
+          Pickleball,
+          Pilates,
+          Racquetball,
+          Ride,
+          RockClimbing,
+          RollerSki,
+          Rowing,
+          Run,
+          Sail,
+          Skateboard,
+          Snowboard,
+          Snowshoe,
+          Soccer,
+          Squash,
+          StairStepper,
+          StandUpPaddling,
+          Surfing,
+          Swim,
+          TableTennis,
+          Tennis,
+          TrailRun,
+          Velomobile,
+          VirtualRide,
+          VirtualRow,
+          VirtualRun,
+          Walk,
+          WeightTraining,
+          Wheelchair,
+          Windsurf,
+          Workout,
+          Yoga,
+        ]
+      description: Sport type
+
     Activity:
       type: object
       properties:
@@ -551,13 +606,14 @@ components:
           type: string
           description: Activity name
         sportType:
-          type: string
-          enum: [Hike, Ride, Run, Swim]
-          description: Sport type
+          $ref: "#/components/schemas/SportType"
         startDateTime:
           type: string
           format: date-time
           description: Activity start date and time
+        distanceMeters:
+          type: number
+          description: Distance in meters
         distanceKilometers:
           type: number
           description: Distance in kilometers
@@ -570,6 +626,9 @@ components:
         averageSpeedKilometersPerHour:
           type: number
           description: Average speed in km/h
+        averagePaceMinutesPer100Meters:
+          type: number
+          description: Average pace in min/100 m
         averagePaceMinutesPerKilometer:
           type: number
           description: Average pace in min/km
@@ -618,6 +677,9 @@ components:
         activitiesCount:
           type: integer
           description: Number of activities
+        distanceMeters:
+          type: number
+          description: Distance in meters
         distanceKilometers:
           type: number
           description: Distance in kilometers

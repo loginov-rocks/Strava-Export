@@ -1,15 +1,17 @@
-import { StravaDetailedActivity, StravaSummaryActivity } from '../apiClients/StravaApiClient';
+import { StravaDetailedActivity, StravaSportType, StravaSummaryActivity } from '../apiClients/StravaApiClient';
 import { ActivityDocument } from '../models/activityModel';
 
 interface NormalizedStravaData {
   name: string;
-  sportType: string;
+  sportType: StravaSportType;
   startDateTime: string;
+  distanceMeters?: number;
   distanceKilometers?: number;
   movingTimeMinutes?: number;
   totalElevationGainMeters?: number;
   averageSpeedKilometersPerHour?: number;
   averagePaceMinutesPerKilometer?: number;
+  averagePaceMinutesPer100Meters?: number;
   maxSpeedKilometersPerHour?: number;
   averageWatts?: number;
   maxWatts?: number;
@@ -26,6 +28,7 @@ interface ActivityDto extends NormalizedStravaData {
 
 interface StatsPerSportType {
   activitiesCount: number;
+  distanceMeters?: number;
   distanceKilometers?: number;
   movingTimeMinutes?: number;
   totalElevationGainMeters?: number;
@@ -100,7 +103,11 @@ export class ActivityDtoFactory {
       `Name: "${activityDto.name}"`,
     ];
 
-    if (activityDto.distanceKilometers) {
+    if (['Swim'].includes(activityDto.sportType)) {
+      if (activityDto.distanceMeters) {
+        lines.push(`Distance: ${activityDto.distanceMeters} m`);
+      }
+    } else if (activityDto.distanceKilometers) {
       lines.push(`Distance: ${activityDto.distanceKilometers} km`);
     }
 
@@ -116,7 +123,11 @@ export class ActivityDtoFactory {
       lines.push(`Average Speed: ${activityDto.averageSpeedKilometersPerHour} km/h`);
     }
 
-    if (activityDto.averagePaceMinutesPerKilometer) {
+    if (['Swim'].includes(activityDto.sportType)) {
+      if (activityDto.averagePaceMinutesPer100Meters) {
+        lines.push(`Average Pace: ${activityDto.averagePaceMinutesPer100Meters} min/100 m`);
+      }
+    } else if (activityDto.averagePaceMinutesPerKilometer) {
       lines.push(`Average Pace: ${activityDto.averagePaceMinutesPerKilometer} min/km`);
     }
 
@@ -168,7 +179,11 @@ export class ActivityDtoFactory {
         `Total Sessions: ${statsPerSportType.activitiesCount}`,
       ];
 
-      if (statsPerSportType.distanceKilometers) {
+      if (['Swim'].includes(sportType)) {
+        if (statsPerSportType.distanceMeters) {
+          lines.push(`Distance: ${statsPerSportType.distanceMeters} m`);
+        }
+      } else if (statsPerSportType.distanceKilometers) {
         lines.push(`Distance: ${statsPerSportType.distanceKilometers} km`);
       }
 
@@ -257,6 +272,7 @@ export class ActivityDtoFactory {
     }
 
     if (isValidNumeric(stravaData.distance)) {
+      data.distanceMeters = Number((stravaData.distance as number).toFixed(2));
       data.distanceKilometers = Number(((stravaData.distance as number) / 1000).toFixed(2));
     }
 
@@ -270,10 +286,12 @@ export class ActivityDtoFactory {
 
     if (isValidNumeric(stravaData.average_speed)) {
       data.averageSpeedKilometersPerHour = Number(((stravaData.average_speed as number) * 3.6).toFixed(2));
+      data.averagePaceMinutesPer100Meters = Number((100 / 60 / (stravaData.average_speed as number)).toFixed(2));
       data.averagePaceMinutesPerKilometer = Number((1000 / 60 / (stravaData.average_speed as number)).toFixed(2));
     }
 
-    if (isValidNumeric(stravaData.max_speed)) {
+    // Max speed for swimming found to be incorrect.
+    if (!['Swim'].includes(data.sportType) && isValidNumeric(stravaData.max_speed)) {
       data.maxSpeedKilometersPerHour = Number(((stravaData.max_speed as number) * 3.6).toFixed(2));
     }
 
@@ -307,6 +325,7 @@ export class ActivityDtoFactory {
   private calculateStats(activityDtos: ActivityDto[]): Stats {
     const stats: Stats = {};
     const keys: Array<keyof StatsPerSportType & keyof ActivityDto> = [
+      'distanceMeters',
       'distanceKilometers',
       'movingTimeMinutes',
       'totalElevationGainMeters',
