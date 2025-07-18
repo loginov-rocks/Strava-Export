@@ -5,6 +5,15 @@ interface Options extends ApiClientOptions {
   clientSecret: string;
 }
 
+// @see https://developers.strava.com/docs/reference/#api-models-SportType
+export type StravaSportType = 'AlpineSki' | 'BackcountrySki' | 'Badminton' | 'Canoeing' | 'Crossfit' | 'EBikeRide'
+  | 'Elliptical' | 'EMountainBikeRide' | 'Golf' | 'GravelRide' | 'Handcycle' | 'HighIntensityIntervalTraining' | 'Hike'
+  | 'IceSkate' | 'InlineSkate' | 'Kayaking' | 'Kitesurf' | 'MountainBikeRide' | 'NordicSki' | 'Pickleball' | 'Pilates'
+  | 'Racquetball' | 'Ride' | 'RockClimbing' | 'RollerSki' | 'Rowing' | 'Run' | 'Sail' | 'Skateboard' | 'Snowboard'
+  | 'Snowshoe' | 'Soccer' | 'Squash' | 'StairStepper' | 'StandUpPaddling' | 'Surfing' | 'Swim' | 'TableTennis'
+  | 'Tennis' | 'TrailRun' | 'Velomobile' | 'VirtualRide' | 'VirtualRow' | 'VirtualRun' | 'Walk' | 'WeightTraining'
+  | 'Wheelchair' | 'Windsurf' | 'Workout' | 'Yoga';
+
 // @see https://developers.strava.com/docs/reference/#api-models-SummaryActivity
 export interface StravaSummaryActivity {
   id: number;
@@ -12,7 +21,7 @@ export interface StravaSummaryActivity {
   distance?: number | null;
   moving_time?: number | null;
   total_elevation_gain?: number | null;
-  sport_type: string;
+  sport_type: StravaSportType;
   start_date: string;
   start_date_local?: string | null;
   // Not mentioned in the API, but found in the response.

@@ -99,7 +99,7 @@ export class ActivityController {
 
     const { sportType, withStravaData } = req.query;
 
-    const filterScheme = this.activityService.getFilterScheme();
+    const filterScheme = this.activityService.getFilterValues();
 
     if (sportType && (typeof sportType !== 'string' || !filterScheme.sportType.includes(sportType))) {
       res.status(400).send({ message: 'Bad Request' });
@@ -181,7 +181,7 @@ export class ActivityController {
   private createGetActivitiesFilter({
     sportType, from, to, lastDays, lastWeeks, lastMonths, lastYears, sort, order,
   }: GetActivitiesFilterParameters) {
-    const filterScheme = this.activityService.getFilterScheme();
+    const filterScheme = this.activityService.getFilterValues();
 
     const isValidISODate = (value: string) => {
       const date = new Date(value);

@@ -1,4 +1,4 @@
-import { ActivityRepository, Filter } from '../repositories/ActivityRepository';
+import { ActivityRepository, ActivityRepositoryFilter } from '../repositories/ActivityRepository';
 
 interface Options {
   activityRepository: ActivityRepository;
@@ -11,7 +11,7 @@ export class ActivityService {
     this.activityRepository = activityRepository;
   }
 
-  public getActivitiesByUserId(userId: string, filter?: Filter) {
+  public getActivitiesByUserId(userId: string, filter?: ActivityRepositoryFilter) {
     return this.activityRepository.findByUserId(userId, filter);
   }
 
@@ -19,11 +19,11 @@ export class ActivityService {
     return this.activityRepository.findById(activityId);
   }
 
-  public getLastActivityByUserId(userId: string, filter?: Filter) {
+  public getLastActivityByUserId(userId: string, filter?: ActivityRepositoryFilter) {
     return this.activityRepository.findLastByUserId(userId, filter);
   }
 
-  public getFilterScheme() {
-    return this.activityRepository.getFilterScheme();
+  public getFilterValues() {
+    return this.activityRepository.getFilterValues();
   }
 }

@@ -6,20 +6,31 @@ interface Options {
   activityModel: ActivityModel;
 }
 
-// TODO: Match types to the allowed in ActivityRepository static props.
-export interface Filter {
-  sportType?: string;
+// Extract the sport type constraint from the ActivitySchema to ensure filtering is limited to what can be stored in
+// the database. This maintains architectural boundaries by getting type information through the model layer rather
+// than directly importing from StravaApiClient. Defined outside the class so it can be reused both in the exported
+// ActivityRepositoryFilter interface type definition and in the class methods for runtime validation.
+// @see /api/src/apiClients/StravaApiClient.ts
+const FILTER_SPORT_TYPE_VALUES: Array<ActivitySchema['stravaData']['sport_type']> = [
+  'AlpineSki', 'BackcountrySki', 'Badminton', 'Canoeing', 'Crossfit', 'EBikeRide', 'Elliptical', 'EMountainBikeRide',
+  'Golf', 'GravelRide', 'Handcycle', 'HighIntensityIntervalTraining', 'Hike', 'IceSkate', 'InlineSkate', 'Kayaking',
+  'Kitesurf', 'MountainBikeRide', 'NordicSki', 'Pickleball', 'Pilates', 'Racquetball', 'Ride', 'RockClimbing',
+  'RollerSki', 'Rowing', 'Run', 'Sail', 'Skateboard', 'Snowboard', 'Snowshoe', 'Soccer', 'Squash', 'StairStepper',
+  'StandUpPaddling', 'Surfing', 'Swim', 'TableTennis', 'Tennis', 'TrailRun', 'Velomobile', 'VirtualRide', 'VirtualRow',
+  'VirtualRun', 'Walk', 'WeightTraining', 'Wheelchair', 'Windsurf', 'Workout', 'Yoga',
+] as const;
+const FILTER_SORT_VALUES = ['startDateTime'] as const;
+const FILTER_ORDER_VALUES = ['asc', 'desc'] as const;
+
+export interface ActivityRepositoryFilter {
+  sportType?: typeof FILTER_SPORT_TYPE_VALUES[number];
   from?: string;
   to?: string;
-  sort?: string;
-  order?: string;
+  sort?: typeof FILTER_SORT_VALUES[number];
+  order?: typeof FILTER_ORDER_VALUES[number];
 }
 
 export class ActivityRepository {
-  private static FILTER_SPORT_TYPE = ['Hike', 'Ride', 'Run', 'Swim'];
-  private static FILTER_SORT = ['startDateTime'];
-  private static FILTER_ORDER = ['asc', 'desc'];
-
   private readonly activityModel: ActivityModel;
 
   constructor({ activityModel }: Options) {
@@ -34,7 +45,7 @@ export class ActivityRepository {
     return this.activityModel.find({ stravaActivityId: { $in: stravaActivityIds } }).lean();
   }
 
-  public findByUserId(userId: string, filter?: Filter) {
+  public findByUserId(userId: string, filter?: ActivityRepositoryFilter) {
     const findParams: RootFilterQuery<ActivityDocument> = { userId };
 
     if (filter) {
@@ -64,7 +75,7 @@ export class ActivityRepository {
     return query.lean();
   }
 
-  public findLastByUserId(userId: string, filter?: Filter) {
+  public findLastByUserId(userId: string, filter?: ActivityRepositoryFilter) {
     const findParams: RootFilterQuery<ActivityDocument> = {
       userId,
       'stravaData.start_date': { $exists: true, $ne: null },
@@ -79,11 +90,12 @@ export class ActivityRepository {
     return this.activityModel.findOne(findParams).sort({ 'stravaData.start_date': -1 }).lean();
   }
 
-  public getFilterScheme() {
+  // Defined as an instance method instead of making it static to keep consistency across class usage.
+  public getFilterValues() {
     return {
-      sportType: ActivityRepository.FILTER_SPORT_TYPE,
-      sort: ActivityRepository.FILTER_SORT,
-      order: ActivityRepository.FILTER_ORDER,
+      sportType: FILTER_SPORT_TYPE_VALUES,
+      sort: FILTER_SORT_VALUES,
+      order: FILTER_ORDER_VALUES,
     };
   }
 
