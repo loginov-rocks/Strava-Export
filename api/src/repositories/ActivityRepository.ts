@@ -22,7 +22,7 @@ const FILTER_SPORT_TYPE_VALUES: Array<ActivitySchema['stravaData']['sport_type']
 const FILTER_SORT_VALUES = ['startDateTime'] as const;
 const FILTER_ORDER_VALUES = ['asc', 'desc'] as const;
 
-export interface ActivityRepositoryFilter {
+interface Filter {
   sportType?: typeof FILTER_SPORT_TYPE_VALUES[number];
   from?: string;
   to?: string;
@@ -45,7 +45,7 @@ export class ActivityRepository {
     return this.activityModel.find({ stravaActivityId: { $in: stravaActivityIds } }).lean();
   }
 
-  public findByUserId(userId: string, filter?: ActivityRepositoryFilter) {
+  public findByUserId(userId: string, filter?: Filter) {
     const findParams: RootFilterQuery<ActivityDocument> = { userId };
 
     if (filter) {
@@ -75,7 +75,7 @@ export class ActivityRepository {
     return query.lean();
   }
 
-  public findLastByUserId(userId: string, filter?: ActivityRepositoryFilter) {
+  public findLastByUserId(userId: string, filter?: Filter) {
     const findParams: RootFilterQuery<ActivityDocument> = {
       userId,
       'stravaData.start_date': { $exists: true, $ne: null },

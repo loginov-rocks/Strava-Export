@@ -3,22 +3,14 @@ import { Response } from 'express';
 import { ActivityDtoFactory } from '../dtoFactories/ActivityDtoFactory';
 import { CompositeAuthenticatedRequest } from '../middlewares/CompositeAuthMiddleware';
 import { ActivityService } from '../services/ActivityService';
+import {
+  getDateAgoFromDays, getDateAgoFromMonths, getDateAgoFromWeeks, getDateAgoFromYears,
+} from '../utils/getDateAgo';
+import { isValidPositiveInteger, isValidStringIsoDate } from '../utils/isValidString';
 
 interface Options {
   activityDtoFactory: ActivityDtoFactory;
   activityService: ActivityService;
-}
-
-interface GetActivitiesFilterParameters {
-  sportType?: string;
-  from?: string;
-  to?: string;
-  lastDays?: string;
-  lastWeeks?: string;
-  lastMonths?: string;
-  lastYears?: string;
-  sort?: string;
-  order?: string;
 }
 
 export class ActivityController {
@@ -42,24 +34,13 @@ export class ActivityController {
       return;
     }
 
-    const { sportType, from, to, lastDays, lastWeeks, lastMonths, lastYears, sort, order, withStravaData } = req.query;
-
-    if ((sportType && typeof sportType !== 'string') ||
-      (from && typeof from !== 'string') ||
-      (to && typeof to !== 'string') ||
-      (lastDays && typeof lastDays !== 'string') ||
-      (lastWeeks && typeof lastWeeks !== 'string') ||
-      (lastMonths && typeof lastMonths !== 'string') ||
-      (lastYears && typeof lastYears !== 'string') ||
-      (sort && typeof sort !== 'string') ||
-      (order && typeof order !== 'string')) {
-      res.status(400).send({ message: 'Bad Request' });
-      return;
-    }
+    const {
+      sportType, from, to, lastDays, lastWeeks, lastMonths, lastYears, sort, order, withStravaData,
+    } = req.query;
 
     let filter;
     try {
-      filter = this.createGetActivitiesFilter({
+      filter = this.createActivitiesFilter({
         sportType, from, to, lastDays, lastWeeks, lastMonths, lastYears, sort, order,
       });
     } catch {
@@ -99,16 +80,17 @@ export class ActivityController {
 
     const { sportType, withStravaData } = req.query;
 
-    const filterScheme = this.activityService.getFilterValues();
-
-    if (sportType && (typeof sportType !== 'string' || !filterScheme.sportType.includes(sportType))) {
+    let filter;
+    try {
+      filter = this.createActivitiesFilter({ sportType });
+    } catch {
       res.status(400).send({ message: 'Bad Request' });
       return;
     }
 
     let activity;
     try {
-      activity = await this.activityService.getLastActivityByUserId(userId, { sportType });
+      activity = await this.activityService.getLastActivityByUserId(userId, filter);
     } catch (error) {
       console.error(error);
 
@@ -177,75 +159,111 @@ export class ActivityController {
       : this.activityDtoFactory.createJson(activity));
   }
 
-  // TODO: Revisit implementation.
-  private createGetActivitiesFilter({
+  private createActivitiesFilter({
     sportType, from, to, lastDays, lastWeeks, lastMonths, lastYears, sort, order,
-  }: GetActivitiesFilterParameters) {
-    const filterScheme = this.activityService.getFilterValues();
+  }: Record<string, unknown>) {
+    // Inherit expected types from the service method signature rather than importing them across layers, which would
+    // violate the separation of concerns and architectural boundaries.
+    const filter: Parameters<typeof this.activityService.getActivitiesByUserId>[1]
+      | Parameters<typeof this.activityService.getLastActivityByUserId>[1] = {};
+    const filterValues = this.activityService.getFilterValues();
 
-    const isValidISODate = (value: string) => {
-      const date = new Date(value);
-
-      return date instanceof Date && !isNaN(date.getTime()) && date.toISOString() === value;
-    };
-
-    const isValidPositiveInteger = (value: string) => {
-      const num = parseInt(value, 10);
-
-      return !isNaN(num) && num > 0 && num.toString() === value.toString();
-    };
-
-    if (sportType && !filterScheme.sportType.includes(sportType)) {
-      throw new Error('Incorrect sport type parameter');
-    }
-
-    if ((from && !isValidISODate(from)) || (to && !isValidISODate(to)) ||
-      (from && to && new Date(from) >= new Date(to))) {
-      throw new Error('Incorrect from or to parameters');
-    }
-
-    if ((lastDays && !isValidPositiveInteger(lastDays)) ||
-      (lastWeeks && !isValidPositiveInteger(lastWeeks)) ||
-      (lastMonths && !isValidPositiveInteger(lastMonths)) ||
-      (lastYears && !isValidPositiveInteger(lastYears))) {
-      throw new Error('Incorrect lastDays, lastWeeks, lastMonths or lastYears parameters');
-    }
-
-    if ((sort && !filterScheme.sort.includes(sort)) || (order && !filterScheme.order.includes(order))) {
-      throw new Error('Incorrect sort or order parameters');
-    }
-
-    let calculatedFrom: undefined | string | Date = from;
-
-    if (!from && !to && (lastDays || lastWeeks || lastMonths || lastYears)) {
-      const now = new Date();
-
-      if (lastDays) {
-        calculatedFrom = new Date(now.getTime() - (parseInt(lastDays, 10) * 24 * 60 * 60 * 1000));
-      } else if (lastWeeks) {
-        calculatedFrom = new Date(now.getTime() - (parseInt(lastWeeks, 10) * 7 * 24 * 60 * 60 * 1000));
-      } else if (lastMonths) {
-        calculatedFrom = new Date(now);
-        calculatedFrom.setMonth(calculatedFrom.getMonth() - parseInt(lastMonths, 10));
-
-        // Fix for incorrect dates.
-        if (calculatedFrom.getDate() !== now.getDate()) {
-          calculatedFrom.setDate(0);
-        }
-      } else if (lastYears) {
-        calculatedFrom = new Date(now);
-        calculatedFrom.setFullYear(calculatedFrom.getFullYear() - parseInt(lastYears, 10));
+    if (sportType) {
+      // Cast to any for runtime validation since TS only knows the sportType is unknown, not the specific literal
+      // union type expected by the filter after validation.
+      // eslint-disable-next-line
+      if (filterValues.sportType.includes(sportType as any)) {
+        filter.sportType = sportType as typeof filterValues.sportType[number];
+      } else {
+        throw new Error('Parameter "sportType" must be one of the allowed sport type values');
       }
-
-      calculatedFrom = (calculatedFrom as Date).toISOString();
     }
 
-    return {
-      sportType,
-      from: calculatedFrom,
-      to,
-      sort: sort ? sort : 'startDateTime',
-      order: order ? order : 'desc',
-    };
+    if (from) {
+      if (isValidStringIsoDate(from)) {
+        filter.from = from as string;
+      } else {
+        throw new Error('Parameter "from" must be a valid ISO date');
+      }
+    }
+
+    if (to) {
+      if (isValidStringIsoDate(to)) {
+        filter.to = to as string;
+      } else {
+        throw new Error('Parameter "to" must be a valid ISO date');
+      }
+    }
+
+    if (filter.from && filter.to && new Date(filter.from) >= new Date(filter.to)) {
+      throw new Error('Parameter "from" must be earlier than parameter "to"');
+    }
+
+    if (lastDays) {
+      if (!isValidPositiveInteger(lastDays)) {
+        throw new Error('Parameter "lastDays" must be a valid positive integer');
+      }
+      // Apply the lastDays filter only when explicit from/to dates are not provided, as they take precedence.
+      else if (!filter.from && !filter.to) {
+        filter.from = getDateAgoFromDays(parseInt(lastDays as string, 10)).toISOString();
+      }
+    }
+
+    if (lastWeeks) {
+      if (!isValidPositiveInteger(lastWeeks)) {
+        throw new Error('Parameter "lastWeeks" must be a valid positive integer');
+      }
+      // Apply lastWeeks filter only when explicit from/to dates and lastDays are not provided, as they take
+      // precedence and lastDays already sets the from parameter.
+      else if (!filter.from && !filter.to) {
+        filter.from = getDateAgoFromWeeks(parseInt(lastWeeks as string, 10)).toISOString();
+      }
+    }
+
+    if (lastMonths) {
+      if (!isValidPositiveInteger(lastMonths)) {
+        throw new Error('Parameter "lastMonths" must be a valid positive integer');
+      }
+      // Apply lastWeeks filter only when explicit from/to dates, lastDays, and lastWeeks are not provided, as they
+      // take precedence and lastDays already sets the from parameter.
+      else if (!filter.from && !filter.to) {
+        filter.from = getDateAgoFromMonths(parseInt(lastMonths as string, 10)).toISOString();
+      }
+    }
+
+    if (lastYears) {
+      if (!isValidPositiveInteger(lastYears)) {
+        throw new Error('Parameter "lastYears" must be a valid positive integer');
+      }
+      // Apply lastWeeks filter only when explicit from/to dates, lastDays, lastWeeks, and lastMonths are not provided,
+      // as they take precedence and lastDays already sets the from parameter.
+      else if (!filter.from && !filter.to) {
+        filter.from = getDateAgoFromYears(parseInt(lastYears as string, 10)).toISOString();
+      }
+    }
+
+    if (sort) {
+      // Cast to any for runtime validation since TS only knows the sort is unknown, not the specific literal union
+      // type expected by the filter after validation.
+      // eslint-disable-next-line
+      if (filterValues.sort.includes(sort as any)) {
+        filter.sort = sort as typeof filterValues.sort[number];
+      } else {
+        throw new Error('Parameter "sort" must be one of the allowed sort values');
+      }
+    }
+
+    if (order) {
+      // Cast to any for runtime validation since TS only knows the order is unknown, not the specific literal union
+      // type expected by the filter after validation.
+      // eslint-disable-next-line
+      if (filterValues.order.includes(order as any)) {
+        filter.order = order as typeof filterValues.order[number];
+      } else {
+        throw new Error('Parameter "order" must be one of the allowed order values');
+      }
+    }
+
+    return filter;
   }
 }
