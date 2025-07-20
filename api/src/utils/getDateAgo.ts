@@ -1,4 +1,8 @@
 export const getDateAgoFromDays = (lastDays: number): Date => {
+  if (lastDays <= 0) {
+    throw new Error('Parameter "lastDays" must be a positive number');
+  }
+
   const millisPerDay = 24 * 60 * 60 * 1000;
   const date = new Date(Date.now() - (lastDays * millisPerDay));
 
@@ -6,6 +10,10 @@ export const getDateAgoFromDays = (lastDays: number): Date => {
 };
 
 export const getDateAgoFromWeeks = (lastWeeks: number): Date => {
+  if (lastWeeks <= 0) {
+    throw new Error('Parameter "lastWeeks" must be a positive number');
+  }
+
   const millisPerWeek = 7 * 24 * 60 * 60 * 1000;
   const date = new Date(Date.now() - (lastWeeks * millisPerWeek));
 
@@ -13,6 +21,10 @@ export const getDateAgoFromWeeks = (lastWeeks: number): Date => {
 };
 
 export const getDateAgoFromMonths = (lastMonths: number): Date => {
+  if (lastMonths <= 0) {
+    throw new Error('Parameter "lastMonths" must be a positive number');
+  }
+
   const date = new Date();
   const originalDay = date.getDate();
 
@@ -27,6 +39,10 @@ export const getDateAgoFromMonths = (lastMonths: number): Date => {
 };
 
 export const getDateAgoFromYears = (lastYears: number): Date => {
+  if (lastYears <= 0) {
+    throw new Error('Parameter "lastYears" must be a positive number');
+  }
+
   const date = new Date();
   const originalDay = date.getDate();
 

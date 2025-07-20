@@ -3,6 +3,7 @@ import { Response } from 'express';
 import { SyncJobDtoFactory } from '../dtoFactories/SyncJobDtoFactory';
 import { TokenAuthenticatedRequest } from '../middlewares/TokenMiddleware';
 import { SyncJobService } from '../services/SyncJobService';
+import { isValidPositiveIntegerString } from '../utils/isValid';
 
 interface Options {
   syncJobDtoFactory: SyncJobDtoFactory;
@@ -30,12 +31,11 @@ export class SyncJobController {
       return;
     }
 
-    let refreshLastDaysInt;
+    let refreshLastDays;
     if (req.body && req.body.refreshLastDays) {
-      refreshLastDaysInt = parseInt(req.body.refreshLastDays, 10);
-
-      if (isNaN(refreshLastDaysInt) || refreshLastDaysInt <= 0 ||
-        refreshLastDaysInt.toString() !== req.body.refreshLastDays.toString()) {
+      if (isValidPositiveIntegerString(req.body.refreshLastDays) && parseInt(req.body.refreshLastDays, 10) > 0) {
+        refreshLastDays = parseInt(req.body.refreshLastDays, 10);
+      } else {
         res.status(400).send({ message: 'Bad Request' });
         return;
       }
@@ -44,7 +44,7 @@ export class SyncJobController {
     let syncJob;
     try {
       syncJob = await this.syncJobService.createSyncJob(userId, {
-        refreshLastDays: refreshLastDaysInt,
+        refreshLastDays,
       });
     } catch (error) {
       console.error(error);

@@ -6,7 +6,7 @@ import { ActivityService } from '../services/ActivityService';
 import {
   getDateAgoFromDays, getDateAgoFromMonths, getDateAgoFromWeeks, getDateAgoFromYears,
 } from '../utils/getDateAgo';
-import { isValidPositiveInteger, isValidStringIsoDate } from '../utils/isValidString';
+import { isValidIsoDateString, isValidPositiveIntegerString } from '../utils/isValid';
 
 interface Options {
   activityDtoFactory: ActivityDtoFactory;
@@ -180,7 +180,7 @@ export class ActivityController {
     }
 
     if (from) {
-      if (isValidStringIsoDate(from)) {
+      if (isValidIsoDateString(from)) {
         filter.from = from as string;
       } else {
         throw new Error('Parameter "from" must be a valid ISO date');
@@ -188,7 +188,7 @@ export class ActivityController {
     }
 
     if (to) {
-      if (isValidStringIsoDate(to)) {
+      if (isValidIsoDateString(to)) {
         filter.to = to as string;
       } else {
         throw new Error('Parameter "to" must be a valid ISO date');
@@ -200,7 +200,7 @@ export class ActivityController {
     }
 
     if (lastDays) {
-      if (!isValidPositiveInteger(lastDays)) {
+      if (!isValidPositiveIntegerString(lastDays)) {
         throw new Error('Parameter "lastDays" must be a valid positive integer');
       }
       // Apply the lastDays filter only when explicit from/to dates are not provided, as they take precedence.
@@ -210,7 +210,7 @@ export class ActivityController {
     }
 
     if (lastWeeks) {
-      if (!isValidPositiveInteger(lastWeeks)) {
+      if (!isValidPositiveIntegerString(lastWeeks)) {
         throw new Error('Parameter "lastWeeks" must be a valid positive integer');
       }
       // Apply lastWeeks filter only when explicit from/to dates and lastDays are not provided, as they take
@@ -221,7 +221,7 @@ export class ActivityController {
     }
 
     if (lastMonths) {
-      if (!isValidPositiveInteger(lastMonths)) {
+      if (!isValidPositiveIntegerString(lastMonths)) {
         throw new Error('Parameter "lastMonths" must be a valid positive integer');
       }
       // Apply lastWeeks filter only when explicit from/to dates, lastDays, and lastWeeks are not provided, as they
@@ -232,7 +232,7 @@ export class ActivityController {
     }
 
     if (lastYears) {
-      if (!isValidPositiveInteger(lastYears)) {
+      if (!isValidPositiveIntegerString(lastYears)) {
         throw new Error('Parameter "lastYears" must be a valid positive integer');
       }
       // Apply lastWeeks filter only when explicit from/to dates, lastDays, lastWeeks, and lastMonths are not provided,

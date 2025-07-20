@@ -1,5 +1,6 @@
 import { StravaDetailedActivity, StravaSportType, StravaSummaryActivity } from '../apiClients/StravaApiClient';
 import { ActivityDocument } from '../models/activityModel';
+import { isValidNonEmptyString, isValidNonZeroNumber } from '../utils/isValid';
 
 interface NormalizedStravaData {
   name: string;
@@ -39,7 +40,8 @@ interface StatsPerSportType {
 }
 
 interface Stats {
-  [key: string]: StatsPerSportType;
+  // TODO: Think about typing sportType: StravaSportType.
+  [sportType: string]: StatsPerSportType;
 }
 
 interface ActivitiesCollectionDto {
@@ -59,6 +61,8 @@ interface ActivitiesWithStravaDataCollectionDto {
 }
 
 export class ActivityDtoFactory {
+  private static readonly SWIM_SPORT_TYPE_VALUES: StravaSportType[] = ['Swim'];
+
   public createJson(activity: ActivityDocument): ActivityDto {
     return {
       id: activity._id.toString(),
@@ -103,7 +107,7 @@ export class ActivityDtoFactory {
       `Name: "${activityDto.name}"`,
     ];
 
-    if (['Swim'].includes(activityDto.sportType)) {
+    if (ActivityDtoFactory.SWIM_SPORT_TYPE_VALUES.includes(activityDto.sportType)) {
       if (activityDto.distanceMeters) {
         lines.push(`Distance: ${activityDto.distanceMeters} m`);
       }
@@ -123,7 +127,7 @@ export class ActivityDtoFactory {
       lines.push(`Average Speed: ${activityDto.averageSpeedKilometersPerHour} km/h`);
     }
 
-    if (['Swim'].includes(activityDto.sportType)) {
+    if (ActivityDtoFactory.SWIM_SPORT_TYPE_VALUES.includes(activityDto.sportType)) {
       if (activityDto.averagePaceMinutesPer100Meters) {
         lines.push(`Average Pace: ${activityDto.averagePaceMinutesPer100Meters} min/100 m`);
       }
@@ -179,7 +183,7 @@ export class ActivityDtoFactory {
         `Total Sessions: ${statsPerSportType.activitiesCount}`,
       ];
 
-      if (['Swim'].includes(sportType)) {
+      if (ActivityDtoFactory.SWIM_SPORT_TYPE_VALUES.includes(sportType as StravaSportType)) {
         if (statsPerSportType.distanceMeters) {
           lines.push(`Distance: ${statsPerSportType.distanceMeters} m`);
         }
@@ -254,68 +258,64 @@ export class ActivityDtoFactory {
       startDateTime: stravaData.start_date,
     };
 
-    const isValidNumeric = (value: undefined | null | number) => (
-      value !== undefined && value !== null && value !== 0 && !isNaN(value)
-    );
-
-    const isValidText = (value: undefined | null | string) => (
-      value !== undefined && typeof value === 'string' && value.trim() !== ''
-    );
-
-    if (isValidNumeric(stravaData.utc_offset) && isValidText(stravaData.start_date_local)) {
+    // TODO: Think if it will skip 0 UTC offset.
+    if (isValidNonZeroNumber(stravaData.utc_offset) && isValidNonEmptyString(stravaData.start_date_local)) {
+      // TODO: Move to utils.
       const offsetHours = Math.floor(Math.abs(stravaData.utc_offset as number) / 3600);
       const offsetMins = Math.floor((Math.abs(stravaData.utc_offset as number) % 3600) / 60);
       const sign = (stravaData.utc_offset as number) >= 0 ? '+' : '-';
-      const offsetString = `${sign}${offsetHours.toString().padStart(2, '0')}:${offsetMins.toString().padStart(2, '0')}`;
+      const offsetString =
+        `${sign}${offsetHours.toString().padStart(2, '0')}:${offsetMins.toString().padStart(2, '0')}`;
 
       data.startDateTime = (stravaData.start_date_local as string).replace('Z', offsetString);
     }
 
-    if (isValidNumeric(stravaData.distance)) {
+    if (isValidNonZeroNumber(stravaData.distance)) {
       data.distanceMeters = Number((stravaData.distance as number).toFixed(2));
       data.distanceKilometers = Number(((stravaData.distance as number) / 1000).toFixed(2));
     }
 
-    if (isValidNumeric(stravaData.moving_time)) {
+    if (isValidNonZeroNumber(stravaData.moving_time)) {
       data.movingTimeMinutes = Number(((stravaData.moving_time as number) / 60).toFixed(2));
     }
 
-    if (isValidNumeric(stravaData.total_elevation_gain)) {
+    if (isValidNonZeroNumber(stravaData.total_elevation_gain)) {
       data.totalElevationGainMeters = Number((stravaData.total_elevation_gain as number).toFixed(2));
     }
 
-    if (isValidNumeric(stravaData.average_speed)) {
+    if (isValidNonZeroNumber(stravaData.average_speed)) {
       data.averageSpeedKilometersPerHour = Number(((stravaData.average_speed as number) * 3.6).toFixed(2));
       data.averagePaceMinutesPer100Meters = Number((100 / 60 / (stravaData.average_speed as number)).toFixed(2));
       data.averagePaceMinutesPerKilometer = Number((1000 / 60 / (stravaData.average_speed as number)).toFixed(2));
     }
 
     // Max speed for swimming found to be incorrect.
-    if (!['Swim'].includes(data.sportType) && isValidNumeric(stravaData.max_speed)) {
+    if (!ActivityDtoFactory.SWIM_SPORT_TYPE_VALUES.includes(data.sportType)
+      && isValidNonZeroNumber(stravaData.max_speed)) {
       data.maxSpeedKilometersPerHour = Number(((stravaData.max_speed as number) * 3.6).toFixed(2));
     }
 
-    if (isValidNumeric(stravaData.average_watts)) {
+    if (isValidNonZeroNumber(stravaData.average_watts)) {
       data.averageWatts = Number((stravaData.average_watts as number).toFixed(2));
     }
 
-    if (isValidNumeric(stravaData.max_watts)) {
+    if (isValidNonZeroNumber(stravaData.max_watts)) {
       data.maxWatts = Number((stravaData.max_watts as number).toFixed(2));
     }
 
-    if (isValidText((stravaData as StravaDetailedActivity).description)) {
+    if (isValidNonEmptyString((stravaData as StravaDetailedActivity).description)) {
       data.description = ((stravaData as StravaDetailedActivity).description as string).trim();
     }
 
-    if (isValidNumeric((stravaData as StravaDetailedActivity).calories)) {
+    if (isValidNonZeroNumber((stravaData as StravaDetailedActivity).calories)) {
       data.calories = Number(((stravaData as StravaDetailedActivity).calories as number).toFixed(2));
     }
 
-    if (isValidNumeric(stravaData.average_heartrate)) {
+    if (isValidNonZeroNumber(stravaData.average_heartrate)) {
       data.averageHeartRate = Number((stravaData.average_heartrate as number).toFixed(2));
     }
 
-    if (isValidNumeric(stravaData.max_heartrate)) {
+    if (isValidNonZeroNumber(stravaData.max_heartrate)) {
       data.maxHeartRate = Number((stravaData.max_heartrate as number).toFixed(2));
     }
 

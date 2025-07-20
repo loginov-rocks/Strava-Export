@@ -208,14 +208,12 @@ paths:
           schema:
             type: string
             enum: [startDateTime]
-            default: startDateTime
           description: Sort field
         - name: order
           in: query
           schema:
             type: string
             enum: [asc, desc]
-            default: desc
           description: Sort order
         - name: withStravaData
           in: query

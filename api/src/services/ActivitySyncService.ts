@@ -1,6 +1,7 @@
 import { StravaApiClient, StravaSummaryActivity } from '../apiClients/StravaApiClient';
 import { SyncJobCompletedResult, SyncJobParams } from '../models/syncJobModel';
 import { ActivityRepository } from '../repositories/ActivityRepository';
+import { isValidDateStringFromLastDays } from '../utils/isValid';
 
 import { StravaTokenService } from './StravaTokenService';
 
@@ -136,7 +137,7 @@ export class ActivitySyncService {
         }
 
         // Check if activity start date within the last N days requested to refresh.
-        return ActivitySyncService.isNotOlderThan(stravaData.start_date, params.refreshLastDays as number);
+        return isValidDateStringFromLastDays(stravaData.start_date, params.refreshLastDays as number);
       })
         .map(({ stravaActivityId }) => stravaActivityId);
     }
@@ -178,26 +179,5 @@ export class ActivitySyncService {
       processedCount: stravaActivitiesIds.length,
       updatedCount,
     };
-  }
-
-  /**
-   * Checks if a date string is not older than the specified number of days from now. Future dates are considered "not
-   * old" and will return true. Returns false for null, undefined, or invalid date strings.
-   */
-  private static isNotOlderThan(dateString: string | null | undefined, maxDaysOld: number): boolean {
-    if (!dateString) {
-      return false;
-    }
-
-    const date = new Date(dateString.trim());
-
-    if (isNaN(date.getTime())) {
-      return false;
-    }
-
-    const millisecondsDifference = Date.now() - date.getTime();
-    const daysDifference = millisecondsDifference / (24 * 60 * 60 * 1000);
-
-    return daysDifference <= maxDaysOld;
   }
 }
