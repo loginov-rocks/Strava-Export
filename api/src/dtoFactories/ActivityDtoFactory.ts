@@ -1,5 +1,8 @@
 import { StravaDetailedActivity, StravaSportType, StravaSummaryActivity } from '../apiClients/StravaApiClient';
 import { ActivityDocument } from '../models/activityModel';
+import {
+  formatIsoDateStringToLocaleString, formatLocalDateStringWithTimezone, formatNumberToTwoDecimals,
+} from '../utils/format';
 import { isValidNonEmptyString, isValidNonZeroNumber } from '../utils/isValid';
 
 interface NormalizedStravaData {
@@ -39,10 +42,7 @@ interface StatsPerSportType {
   maxHeartRate?: number;
 }
 
-interface Stats {
-  // TODO: Think about typing sportType: StravaSportType.
-  [sportType: string]: StatsPerSportType;
-}
+type Stats = Partial<Record<StravaSportType, StatsPerSportType>>;
 
 interface ActivitiesCollectionDto {
   activitiesCount: number;
@@ -102,7 +102,7 @@ export class ActivityDtoFactory {
     const lines = [
       // Reorganized according to the importance of information for LLM.
       `Activity ID: ${activityDto.id}`,
-      `Date Time: ${new Date(activityDto.startDateTime).toLocaleString()}`,
+      `Date Time: ${formatIsoDateStringToLocaleString(activityDto.startDateTime)}`,
       `Sport Type: ${activityDto.sportType}`,
       `Name: "${activityDto.name}"`,
     ];
@@ -175,10 +175,9 @@ export class ActivityDtoFactory {
   private createTextStats(stats: Stats): string {
     let text = '';
 
-    Object.keys(stats).forEach((sportType, index, arr) => {
+    Object.entries(stats).forEach(([sportType, statsPerSportType], index, arr) => {
       text += `## ${sportType}\n`;
 
-      const statsPerSportType = stats[sportType];
       const lines = [
         `Total Sessions: ${statsPerSportType.activitiesCount}`,
       ];
@@ -250,7 +249,6 @@ export class ActivityDtoFactory {
     return text;
   }
 
-  // TODO: Revisit implementation.
   private normalizeStravaData(stravaData: StravaDetailedActivity | StravaSummaryActivity): NormalizedStravaData {
     const data: NormalizedStravaData = {
       name: stravaData.name,
@@ -258,49 +256,43 @@ export class ActivityDtoFactory {
       startDateTime: stravaData.start_date,
     };
 
-    // TODO: Think if it will skip 0 UTC offset.
+    // Provide startDateTime with timezone only if the UTC offset is non-zero.
     if (isValidNonZeroNumber(stravaData.utc_offset) && isValidNonEmptyString(stravaData.start_date_local)) {
-      // TODO: Move to utils.
-      const offsetHours = Math.floor(Math.abs(stravaData.utc_offset as number) / 3600);
-      const offsetMins = Math.floor((Math.abs(stravaData.utc_offset as number) % 3600) / 60);
-      const sign = (stravaData.utc_offset as number) >= 0 ? '+' : '-';
-      const offsetString =
-        `${sign}${offsetHours.toString().padStart(2, '0')}:${offsetMins.toString().padStart(2, '0')}`;
-
-      data.startDateTime = (stravaData.start_date_local as string).replace('Z', offsetString);
+      data.startDateTime = formatLocalDateStringWithTimezone(stravaData.start_date_local as string,
+        stravaData.utc_offset as number);
     }
 
     if (isValidNonZeroNumber(stravaData.distance)) {
-      data.distanceMeters = Number((stravaData.distance as number).toFixed(2));
-      data.distanceKilometers = Number(((stravaData.distance as number) / 1000).toFixed(2));
+      data.distanceMeters = formatNumberToTwoDecimals(stravaData.distance as number);
+      data.distanceKilometers = formatNumberToTwoDecimals((stravaData.distance as number) / 1000);
     }
 
     if (isValidNonZeroNumber(stravaData.moving_time)) {
-      data.movingTimeMinutes = Number(((stravaData.moving_time as number) / 60).toFixed(2));
+      data.movingTimeMinutes = formatNumberToTwoDecimals((stravaData.moving_time as number) / 60);
     }
 
     if (isValidNonZeroNumber(stravaData.total_elevation_gain)) {
-      data.totalElevationGainMeters = Number((stravaData.total_elevation_gain as number).toFixed(2));
+      data.totalElevationGainMeters = formatNumberToTwoDecimals(stravaData.total_elevation_gain as number);
     }
 
     if (isValidNonZeroNumber(stravaData.average_speed)) {
-      data.averageSpeedKilometersPerHour = Number(((stravaData.average_speed as number) * 3.6).toFixed(2));
-      data.averagePaceMinutesPer100Meters = Number((100 / 60 / (stravaData.average_speed as number)).toFixed(2));
-      data.averagePaceMinutesPerKilometer = Number((1000 / 60 / (stravaData.average_speed as number)).toFixed(2));
+      data.averageSpeedKilometersPerHour = formatNumberToTwoDecimals((stravaData.average_speed as number) * 3.6);
+      data.averagePaceMinutesPer100Meters = formatNumberToTwoDecimals(100 / 60 / (stravaData.average_speed as number));
+      data.averagePaceMinutesPerKilometer = formatNumberToTwoDecimals(1000 / 60 / (stravaData.average_speed as number));
     }
 
-    // Max speed for swimming found to be incorrect.
+    // The max speed for swimming was found to be incorrect.
     if (!ActivityDtoFactory.SWIM_SPORT_TYPE_VALUES.includes(data.sportType)
       && isValidNonZeroNumber(stravaData.max_speed)) {
-      data.maxSpeedKilometersPerHour = Number(((stravaData.max_speed as number) * 3.6).toFixed(2));
+      data.maxSpeedKilometersPerHour = formatNumberToTwoDecimals((stravaData.max_speed as number) * 3.6);
     }
 
     if (isValidNonZeroNumber(stravaData.average_watts)) {
-      data.averageWatts = Number((stravaData.average_watts as number).toFixed(2));
+      data.averageWatts = formatNumberToTwoDecimals(stravaData.average_watts as number);
     }
 
     if (isValidNonZeroNumber(stravaData.max_watts)) {
-      data.maxWatts = Number((stravaData.max_watts as number).toFixed(2));
+      data.maxWatts = formatNumberToTwoDecimals(stravaData.max_watts as number);
     }
 
     if (isValidNonEmptyString((stravaData as StravaDetailedActivity).description)) {
@@ -308,15 +300,15 @@ export class ActivityDtoFactory {
     }
 
     if (isValidNonZeroNumber((stravaData as StravaDetailedActivity).calories)) {
-      data.calories = Number(((stravaData as StravaDetailedActivity).calories as number).toFixed(2));
+      data.calories = formatNumberToTwoDecimals((stravaData as StravaDetailedActivity).calories as number);
     }
 
     if (isValidNonZeroNumber(stravaData.average_heartrate)) {
-      data.averageHeartRate = Number((stravaData.average_heartrate as number).toFixed(2));
+      data.averageHeartRate = formatNumberToTwoDecimals(stravaData.average_heartrate as number);
     }
 
     if (isValidNonZeroNumber(stravaData.max_heartrate)) {
-      data.maxHeartRate = Number((stravaData.max_heartrate as number).toFixed(2));
+      data.maxHeartRate = formatNumberToTwoDecimals(stravaData.max_heartrate as number);
     }
 
     return data;
@@ -334,6 +326,11 @@ export class ActivityDtoFactory {
       'calories',
       'maxHeartRate',
     ];
+    const maxKeys: Array<typeof keys[number]> = [
+      'maxSpeedKilometersPerHour',
+      'maxWatts',
+      'maxHeartRate',
+    ];
 
     activityDtos.forEach((activityDto) => {
       const { sportType } = activityDto;
@@ -348,23 +345,25 @@ export class ActivityDtoFactory {
 
       keys.forEach((key) => {
         if (activityDto[key]) {
-          if (stats[sportType][key]) {
-            if (['maxSpeedKilometersPerHour', 'maxWatts', 'maxHeartRate'].includes(key)) {
-              stats[sportType][key] = Math.max(stats[sportType][key], activityDto[key]);
+          const statsPerSportType = stats[sportType] as StatsPerSportType;
+
+          if (statsPerSportType[key]) {
+            if (maxKeys.includes(key)) {
+              statsPerSportType[key] = Math.max(statsPerSportType[key], activityDto[key]);
             } else {
-              stats[sportType][key] += activityDto[key];
+              statsPerSportType[key] += activityDto[key];
             }
           } else {
-            stats[sportType][key] = activityDto[key];
+            statsPerSportType[key] = activityDto[key];
           }
         }
       });
     });
 
-    Object.keys(stats).forEach((sportType) => {
+    Object.values(stats).forEach((statsPerSportType) => {
       keys.forEach((key) => {
-        if (stats[sportType][key]) {
-          stats[sportType][key] = Number(stats[sportType][key].toFixed(2));
+        if (statsPerSportType[key]) {
+          statsPerSportType[key] = formatNumberToTwoDecimals(statsPerSportType[key]);
         }
       });
     });
