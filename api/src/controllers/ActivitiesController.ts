@@ -2,6 +2,7 @@ import { Response } from 'express';
 
 import { ActivityDtoFactory } from '../dtoFactories/ActivityDtoFactory';
 import { CompositeAuthenticatedRequest } from '../middlewares/CompositeAuthMiddleware';
+import { TokenAuthenticatedRequest } from '../middlewares/TokenMiddleware';
 import { ActivityService } from '../services/ActivityService';
 import {
   getDateAgoFromDays, getDateAgoFromMonths, getDateAgoFromWeeks, getDateAgoFromYears,
@@ -22,6 +23,7 @@ export class ActivityController {
     this.activityService = activityService;
 
     this.getActivities = this.getActivities.bind(this);
+    this.deleteActivities = this.deleteActivities.bind(this);
     this.getLastActivity = this.getLastActivity.bind(this);
     this.getActivity = this.getActivity.bind(this);
   }
@@ -68,6 +70,26 @@ export class ActivityController {
     res.send(withStravaData === 'true'
       ? this.activityDtoFactory.createJsonWithStravaDataCollection(activities)
       : this.activityDtoFactory.createJsonCollection(activities));
+  }
+
+  public async deleteActivities(req: TokenAuthenticatedRequest, res: Response): Promise<void> {
+    const { userId } = req;
+
+    if (!userId) {
+      res.status(401).send({ message: 'Unauthorized' });
+      return;
+    }
+
+    try {
+      await this.activityService.deleteActivitiesByUserId(userId);
+    } catch (error) {
+      console.error(error);
+
+      res.status(500).send({ message: 'Internal Server Error' });
+      return;
+    }
+
+    res.status(204).send();
   }
 
   public async getLastActivity(req: CompositeAuthenticatedRequest, res: Response): Promise<void> {

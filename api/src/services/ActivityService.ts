@@ -11,6 +11,10 @@ export class ActivityService {
     this.activityRepository = activityRepository;
   }
 
+  public deleteActivitiesByUserId(userId: string) {
+    return this.activityRepository.deleteByUserId(userId);
+  }
+
   public getActivitiesByUserId(userId: string, filter?: Parameters<typeof this.activityRepository.findByUserId>[1]) {
     return this.activityRepository.findByUserId(userId, filter);
   }

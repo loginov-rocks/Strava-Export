@@ -35,6 +35,10 @@ Authorize in Strava, schedule a sync job and generate Personal Access Token (PAT
 }
 ```
 
+## TODO
+
+1. Sync Jobs manual/automatic clean up.
+
 ## Reference
 
 * https://developers.strava.com/docs/authentication/

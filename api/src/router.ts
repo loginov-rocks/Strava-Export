@@ -26,6 +26,7 @@ router.post('/auth/logout',
 );
 
 router.get('/activities', compositeAuthMiddleware.requireAccessTokenOrPat, activityController.getActivities);
+router.delete('/activities', compositeAuthMiddleware.requireAccessTokenOrPat, activityController.deleteActivities);
 router.get('/activities/last', compositeAuthMiddleware.requireAccessTokenOrPat, activityController.getLastActivity);
 router.get('/activities/:activityId', compositeAuthMiddleware.requireAccessTokenOrPat, activityController.getActivity);
 

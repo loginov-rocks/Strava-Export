@@ -240,6 +240,20 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         500:
           $ref: "#/components/responses/InternalServerError"
+    delete:
+      summary: Delete activities
+      description: Delete all user's activities
+      tags:
+        - Activities
+      security:
+        - cookieAuth: []
+      responses:
+        204:
+          description: All activities deleted successfully
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        500:
+          $ref: "#/components/responses/InternalServerError"
 
   /activities/last:
     get:

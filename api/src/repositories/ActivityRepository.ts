@@ -37,6 +37,10 @@ export class ActivityRepository {
     this.activityModel = activityModel;
   }
 
+  public deleteByUserId(userId: string) {
+    return this.activityModel.deleteMany({ userId });
+  }
+
   public findById(id: string) {
     return this.activityModel.findById(id).lean();
   }
