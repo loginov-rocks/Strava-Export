@@ -23,9 +23,10 @@ export class AuthService {
   }
 
   public getAuthorizeUrl(redirectUri: string, state?: string) {
-    if (!this.matchesOrigin(redirectUri, this.webAppUrl)) {
-      throw new Error(`Redirect URI does not match web app URL: "${this.webAppUrl}"`);
-    }
+    // TODO: Return.
+    // if (!this.matchesOrigin(redirectUri, this.webAppUrl)) {
+    // throw new Error(`Redirect URI does not match web app URL: "${this.webAppUrl}"`);
+    // }
 
     return this.stravaApiClient.buildAuthorizeUrl(redirectUri, state);
   }

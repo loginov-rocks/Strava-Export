@@ -16,6 +16,8 @@ export class AuthController {
 
     this.getServerMetadata = this.getServerMetadata.bind(this);
     this.postRegister = this.postRegister.bind(this);
+    this.getAuthorize = this.getAuthorize.bind(this);
+    this.getRedirect = this.getRedirect.bind(this);
 
     this.getAuth = this.getAuth.bind(this);
     this.getAuthStrava = this.getAuthStrava.bind(this);
@@ -43,18 +45,54 @@ export class AuthController {
   }
 
   public postRegister(req: Request, res: Response): void {
-    const params = req.body;
+    const claudeParams = req.body;
     const clientId = randomUUID();
 
     res.status(201).send({
       client_id: clientId,
-      client_name: params.client_name,
-      grant_types: params.grant_types,
-      response_types: params.response_types,
-      token_endpoint_auth_method: params.token_endpoint_auth_method,
-      scope: params.scope,
-      redirect_uris: params.redirect_uris,
+      client_name: claudeParams.client_name,
+      grant_types: claudeParams.grant_types,
+      response_types: claudeParams.response_types,
+      token_endpoint_auth_method: claudeParams.token_endpoint_auth_method,
+      scope: claudeParams.scope,
+      redirect_uris: claudeParams.redirect_uris,
     });
+  }
+
+  public getAuthorize(req: Request, res: Response): void {
+    const claudeParams = req.query;
+    const state = JSON.stringify(claudeParams);
+
+    let url;
+    try {
+      url = this.authService.getAuthorizeUrl(`${req.protocol}://${req.get('host')}/auth/redirect`, state);
+    } catch (error) {
+      console.error(error);
+
+      res.status(400).send({ message: 'Bad Request' });
+      return;
+    }
+
+    res.redirect(url);
+  }
+
+  public getRedirect(req: Request, res: Response): void {
+    if (typeof req.query.code !== 'string' || typeof req.query.state !== 'string') {
+      res.status(400).send({ message: 'Bad Request' });
+      return;
+    }
+
+    const claudeParams = JSON.parse(req.query.state);
+    const stravaCode = req.query.code;
+
+    const redirectUrl = new URL(claudeParams.redirect_uri);
+    redirectUrl.searchParams.set('code', stravaCode);
+
+    if (claudeParams.state) {
+      redirectUrl.searchParams.set('state', claudeParams.state);
+    }
+
+    res.redirect(redirectUrl.toString());
   }
 
   public getAuth(req: Request, res: Response): void {

@@ -8,6 +8,8 @@ export const router = Router();
 
 router.get('/.well-known/oauth-authorization-server', authController.getServerMetadata);
 router.post('/auth/register', authController.postRegister);
+router.get('/auth/authorize', authController.getAuthorize);
+router.get('/auth/redirect', authController.getRedirect);
 
 router.get('/auth', tokenMiddleware.requireAccessToken, authController.getAuth);
 router.get('/auth/strava', authController.getAuthStrava);
