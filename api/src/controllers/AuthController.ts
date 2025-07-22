@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import { NextFunction, Request, Response } from 'express';
 
 import { TokenAuthenticatedRequest } from '../middlewares/TokenMiddleware';
@@ -14,6 +15,8 @@ export class AuthController {
     this.authService = authService;
 
     this.getServerMetadata = this.getServerMetadata.bind(this);
+    this.postRegister = this.postRegister.bind(this);
+
     this.getAuth = this.getAuth.bind(this);
     this.getAuthStrava = this.getAuthStrava.bind(this);
     this.postAuthTokenMiddleware = this.postAuthTokenMiddleware.bind(this);
@@ -36,6 +39,21 @@ export class AuthController {
         'client_credentials',
       ],
       code_challenge_methods_supported: ['S256'],
+    });
+  }
+
+  public postRegister(req: Request, res: Response): void {
+    const params = req.body;
+    const clientId = randomUUID();
+
+    res.status(201).send({
+      client_id: clientId,
+      client_name: params.client_name,
+      grant_types: params.grant_types,
+      response_types: params.response_types,
+      token_endpoint_auth_method: params.token_endpoint_auth_method,
+      scope: params.scope,
+      redirect_uris: params.redirect_uris,
     });
   }
 
