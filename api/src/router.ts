@@ -6,6 +6,7 @@ import {
 
 export const router = Router();
 
+router.get('/.well-known/oauth-authorization-server', authController.getServerMetadata);
 router.get('/auth', tokenMiddleware.requireAccessToken, authController.getAuth);
 router.get('/auth/strava', authController.getAuthStrava);
 router.post('/auth/token',

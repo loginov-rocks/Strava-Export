@@ -13,6 +13,7 @@ export class AuthController {
   constructor({ authService }: Options) {
     this.authService = authService;
 
+    this.getServerMetadata = this.getServerMetadata.bind(this);
     this.getAuth = this.getAuth.bind(this);
     this.getAuthStrava = this.getAuthStrava.bind(this);
     this.postAuthTokenMiddleware = this.postAuthTokenMiddleware.bind(this);
@@ -20,6 +21,22 @@ export class AuthController {
     this.postAuthRefreshMiddleware = this.postAuthRefreshMiddleware.bind(this);
     this.postAuthRefresh = this.postAuthRefresh.bind(this);
     this.postAuthLogout = this.postAuthLogout.bind(this);
+  }
+
+  public getServerMetadata(req: Request, res: Response): void {
+    const issuer = `${req.protocol}://${req.get('host')}`;
+
+    res.send({
+      issuer,
+      authorization_endpoint: `${issuer}/auth/authorize`,
+      token_endpoint: `${issuer}/auth/token`,
+      registration_endpoint: `${issuer}/auth/register`,
+      grant_types_supported: [
+        'authorization_code',
+        'client_credentials',
+      ],
+      code_challenge_methods_supported: ['S256'],
+    });
   }
 
   public getAuth(req: Request, res: Response): void {
