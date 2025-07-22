@@ -12,6 +12,7 @@
     "typecheck": "tsc"
   },
   "dependencies": {
+    "body-parser": "^2.2.0",
     "bullmq": "^5.54.2",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",

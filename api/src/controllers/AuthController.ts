@@ -15,9 +15,10 @@ export class AuthController {
     this.authService = authService;
 
     this.getServerMetadata = this.getServerMetadata.bind(this);
-    this.postRegister = this.postRegister.bind(this);
-    this.getAuthorize = this.getAuthorize.bind(this);
-    this.getRedirect = this.getRedirect.bind(this);
+    this.postOAuthRegister = this.postOAuthRegister.bind(this);
+    this.getOAuthAuthorize = this.getOAuthAuthorize.bind(this);
+    this.getOAuthRedirect = this.getOAuthRedirect.bind(this);
+    this.postOAuthToken = this.postOAuthToken.bind(this);
 
     this.getAuth = this.getAuth.bind(this);
     this.getAuthStrava = this.getAuthStrava.bind(this);
@@ -33,9 +34,9 @@ export class AuthController {
 
     res.send({
       issuer,
-      authorization_endpoint: `${issuer}/auth/authorize`,
-      token_endpoint: `${issuer}/auth/token`,
-      registration_endpoint: `${issuer}/auth/register`,
+      authorization_endpoint: `${issuer}/oauth/authorize`,
+      token_endpoint: `${issuer}/oauth/token`,
+      registration_endpoint: `${issuer}/oauth/register`,
       grant_types_supported: [
         'authorization_code',
         'client_credentials',
@@ -44,7 +45,7 @@ export class AuthController {
     });
   }
 
-  public postRegister(req: Request, res: Response): void {
+  public postOAuthRegister(req: Request, res: Response): void {
     const claudeParams = req.body;
     const clientId = randomUUID();
 
@@ -59,13 +60,13 @@ export class AuthController {
     });
   }
 
-  public getAuthorize(req: Request, res: Response): void {
+  public getOAuthAuthorize(req: Request, res: Response): void {
     const claudeParams = req.query;
     const state = JSON.stringify(claudeParams);
 
     let url;
     try {
-      url = this.authService.getAuthorizeUrl(`${req.protocol}://${req.get('host')}/auth/redirect`, state);
+      url = this.authService.getAuthorizeUrl(`${req.protocol}://${req.get('host')}/oauth/redirect`, state);
     } catch (error) {
       console.error(error);
 
@@ -76,7 +77,7 @@ export class AuthController {
     res.redirect(url);
   }
 
-  public getRedirect(req: Request, res: Response): void {
+  public getOAuthRedirect(req: Request, res: Response): void {
     if (typeof req.query.code !== 'string' || typeof req.query.state !== 'string') {
       res.status(400).send({ message: 'Bad Request' });
       return;
@@ -93,6 +94,28 @@ export class AuthController {
     }
 
     res.redirect(redirectUrl.toString());
+  }
+
+  public async postOAuthToken(req: Request, res: Response): Promise<void> {
+    const { code } = req.body;
+
+    let tokens;
+    try {
+      tokens = await this.authService.exchangeCode(code);
+    } catch (error) {
+      console.error(error);
+
+      res.status(401).send({ message: 'Unauthorized' });
+      return;
+    }
+
+    res.send({
+      access_token: tokens.accessToken,
+      token_type: 'Bearer',
+      expires_in: tokens.accessTokenExpiresIn,
+      refresh_token: tokens.refreshToken,
+      scope: 'claudeai',
+    });
   }
 
   public getAuth(req: Request, res: Response): void {
