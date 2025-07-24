@@ -55,8 +55,8 @@ export class ApiClient {
     }
   }
 
-  getAuth() {
-    return this.request('/auth');
+  getAuthMe() {
+    return this.request('/auth/me');
   }
 
   getAuthStrava(redirectUri, state) {

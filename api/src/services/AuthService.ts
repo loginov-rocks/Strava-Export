@@ -3,30 +3,27 @@ import { UserRepository } from '../repositories/UserRepository';
 import { TokenService } from './TokenService';
 
 interface Options {
+  apiBaseUrl: string;
   stravaApiClient: StravaApiClient;
   tokenService: TokenService;
   userRepository: UserRepository;
-  webAppUrl: string;
 }
 
 export class AuthService {
+  private readonly apiBaseUrl: string;
   private readonly stravaApiClient: StravaApiClient;
   private readonly tokenService: TokenService;
   private readonly userRepository: UserRepository;
-  private readonly webAppUrl: string;
 
-  constructor({ stravaApiClient, tokenService, userRepository, webAppUrl }: Options) {
+  constructor({ apiBaseUrl, stravaApiClient, tokenService, userRepository }: Options) {
+    this.apiBaseUrl = apiBaseUrl;
     this.stravaApiClient = stravaApiClient;
     this.tokenService = tokenService;
     this.userRepository = userRepository;
-    this.webAppUrl = webAppUrl;
   }
 
-  public getAuthorizeUrl(redirectUri: string, state?: string) {
-    // TODO: Return.
-    // if (!this.matchesOrigin(redirectUri, this.webAppUrl)) {
-    // throw new Error(`Redirect URI does not match web app URL: "${this.webAppUrl}"`);
-    // }
+  public buildAuthorizeUrl(redirectPath: string, state?: string) {
+    const redirectUri = `${this.apiBaseUrl}${redirectPath}`;
 
     return this.stravaApiClient.buildAuthorizeUrl(redirectUri, state);
   }
@@ -60,18 +57,5 @@ export class AuthService {
 
   public refreshTokens(userId: string) {
     return this.createTokens(userId);
-  }
-
-  private matchesOrigin(redirectUrl: string, originUrl: string) {
-    let origin, redirect;
-    try {
-      origin = new URL(originUrl);
-      redirect = new URL(redirectUrl);
-    } catch {
-      return false;
-    }
-
-    return redirect.protocol === origin.protocol && redirect.hostname === origin.hostname
-      && redirect.port === origin.port;
   }
 }

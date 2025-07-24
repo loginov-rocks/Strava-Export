@@ -16,7 +16,7 @@ export class OAuthController {
     this.getServerMetadata = this.getServerMetadata.bind(this);
     this.postOAuthRegister = this.postOAuthRegister.bind(this);
     this.getOAuthAuthorize = this.getOAuthAuthorize.bind(this);
-    this.getOAuthRedirect = this.getOAuthRedirect.bind(this);
+    this.getOAuthCallback = this.getOAuthCallback.bind(this);
     this.postOAuthToken = this.postOAuthToken.bind(this);
   }
 
@@ -55,20 +55,13 @@ export class OAuthController {
     const claudeParams = req.query;
     const state = JSON.stringify(claudeParams);
 
-    let url;
-    try {
-      url = this.authService.getAuthorizeUrl(`${req.protocol}://${req.get('host')}/oauth/redirect`, state);
-    } catch (error) {
-      console.error(error);
-
-      res.status(400).send({ message: 'Bad Request' });
-      return;
-    }
+    // TODO: Extract constant.
+    const url = this.authService.buildAuthorizeUrl('/oauth/callback', state);
 
     res.redirect(url);
   }
 
-  public getOAuthRedirect(req: Request, res: Response): void {
+  public getOAuthCallback(req: Request, res: Response): void {
     if (typeof req.query.code !== 'string' || typeof req.query.state !== 'string') {
       res.status(400).send({ message: 'Bad Request' });
       return;

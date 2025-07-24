@@ -11,9 +11,10 @@ export class App {
   }
 
   async onAuthorizeClick() {
-    const response = await this.apiClient.getAuthStrava(this.redirectUri);
+    // TODO: Refactor.
+    // const response = await this.apiClient.getAuthStrava(this.redirectUri);
 
-    window.location.href = response.url;
+    window.location.href = 'http://localhost:3001/auth/login';
   }
 
   async onLogoutClick() {
@@ -39,7 +40,7 @@ export class App {
 
   async start() {
     try {
-      await this.apiClient.getAuth();
+      await this.apiClient.getAuthMe();
 
       this.isAuthorized = true;
     } catch {

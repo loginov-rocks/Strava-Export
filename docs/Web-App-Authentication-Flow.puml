@@ -1,0 +1,31 @@
+@startuml Web App Authentication Flow
+
+participant User
+participant "Web App" as WebApp
+participant "API Server" as API
+participant "Strava OAuth" as Strava
+
+User -> WebApp: Click Login
+WebApp -> API: GET /auth/login
+API -> API: Generate state parameter
+API -> Strava: Redirect to OAuth authorize\n(with client_id, redirect_uri, state)
+Strava -> User: Show authorization screen
+User -> Strava: Approve authorization
+Strava -> API: Redirect to /auth/callback\n(with code, state)
+API -> API: Validate state parameter
+API -> Strava: POST /oauth/token\n(exchange code for tokens)
+Strava -> API: Return access_token, refresh_token, user info
+API -> API: Create/find user account\n(using Strava user ID)
+API -> API: Generate internal JWT tokens\n(access + refresh)
+API -> API: Set HttpOnly cookies\n(access + refresh tokens)
+API -> WebApp: Redirect to web app URL
+WebApp -> User: Show authenticated interface
+
+note right of API
+  Cookies are set with:
+  - httpOnly: true
+  - secure: true (prod)
+  - sameSite: 'lax'
+end note
+
+@enduml

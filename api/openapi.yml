@@ -24,21 +24,8 @@ security:
   - cookieAuth: []
 
 paths:
-  /auth:
-    get:
-      summary: Check authentication status
-      description: Verify if the user is currently authenticated
-      tags:
-        - Auth
-      security:
-        - cookieAuth: []
-      responses:
-        204:
-          description: User is authenticated
-        401:
-          $ref: "#/components/responses/Unauthorized"
-
-  /auth/strava:
+  # TODO: Update
+  /auth/login:
     get:
       summary: Get Strava authorization URL
       description: Generate Strava OAuth authorization URL for user authentication
@@ -75,8 +62,9 @@ paths:
         400:
           $ref: "#/components/responses/BadRequest"
 
-  /auth/token:
-    post:
+  # TODO: Update
+  /auth/callback:
+    get:
       summary: Exchange authorization code for tokens
       description: Exchange OAuth authorization code for access and refresh tokens
       tags:
@@ -111,6 +99,21 @@ paths:
                 type: string
         400:
           $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+
+  # TODO: Update
+  /auth/me:
+    get:
+      summary: Check authentication status
+      description: Verify if the user is currently authenticated
+      tags:
+        - Auth
+      security:
+        - cookieAuth: []
+      responses:
+        204:
+          description: User is authenticated
         401:
           $ref: "#/components/responses/Unauthorized"
 

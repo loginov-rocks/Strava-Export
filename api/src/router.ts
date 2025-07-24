@@ -7,13 +7,13 @@ import {
 
 export const router = Router();
 
-router.get('/auth', tokenMiddleware.requireAccessToken, webAuthController.getAuth);
-router.get('/auth/strava', webAuthController.getAuthStrava);
-router.post('/auth/token',
-  webAuthController.postAuthTokenMiddleware,
+router.get('/auth/login', webAuthController.getAuthLogin);
+router.get('/auth/callback',
+  webAuthController.getAuthCallbackMiddleware,
   tokenMiddleware.attachTokens,
-  webAuthController.postAuthToken,
+  webAuthController.getAuthCallback,
 );
+router.get('/auth/me', tokenMiddleware.requireAccessToken, webAuthController.getAuthMe);
 router.post('/auth/refresh',
   tokenMiddleware.requireRefreshToken,
   webAuthController.postAuthRefreshMiddleware,
@@ -29,7 +29,7 @@ router.post('/auth/logout',
 router.get('/.well-known/oauth-authorization-server', oauthController.getServerMetadata);
 router.post('/oauth/register', oauthController.postOAuthRegister);
 router.get('/oauth/authorize', oauthController.getOAuthAuthorize);
-router.get('/oauth/redirect', oauthController.getOAuthRedirect);
+router.get('/oauth/callback', oauthController.getOAuthCallback);
 router.post('/oauth/token', oauthController.postOAuthToken);
 
 router.get('/activities', compositeAuthMiddleware.requireAccessTokenOrPat, activityController.getActivities);

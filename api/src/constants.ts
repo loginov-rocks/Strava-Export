@@ -1,3 +1,5 @@
+export const API_BASE_URL = process.env.API_BASE_URL || '';
+
 export const ACCESS_TOKEN_COOKIE_NAME = 'stravaExportAccessToken';
 export const ACCESS_TOKEN_EXPIRES_IN = 15 * 60; // seconds (15 minutes)
 export const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || '';

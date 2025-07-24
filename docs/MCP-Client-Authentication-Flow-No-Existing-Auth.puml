@@ -1,0 +1,32 @@
+@startuml MCP Client Authentication Flow (No Existing Auth)
+
+participant User
+participant "MCP Client" as MCP
+participant "API Server" as API
+participant "Strava OAuth" as Strava
+
+User -> MCP: Connect to MCP Server
+MCP -> API: GET /oauth/authorize\n(with client_id, redirect_uri, code_challenge, state)
+API -> API: Check for existing auth cookies\n(none found)
+API -> API: Generate Strava state parameter
+API -> Strava: Redirect to OAuth authorize\n(with client_id, redirect_uri, strava_state)
+Strava -> User: Show authorization screen
+User -> Strava: Approve authorization
+Strava -> API: Redirect to /oauth/callback\n(with code, strava_state)
+API -> API: Validate Strava state
+API -> Strava: POST /oauth/token\n(exchange code for tokens)
+Strava -> API: Return access_token, refresh_token, user info
+API -> API: Create/find user account\n(using Strava user ID)
+API -> API: Generate OAuth authorization code\n(for MCP client)
+API -> MCP: Redirect to MCP redirect_uri\n(with authorization code, original state)
+MCP -> API: POST /oauth/token\n(exchange auth code for tokens, PKCE)
+API -> API: Validate PKCE code_verifier
+API -> MCP: Return access_token, refresh_token
+MCP -> User: Connection successful
+
+note right of API
+  Authorization code is short-lived
+  (~10 minutes) and single-use
+end note
+
+@enduml

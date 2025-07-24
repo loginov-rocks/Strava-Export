@@ -13,47 +13,29 @@ export class WebAuthController {
   constructor({ authService }: Options) {
     this.authService = authService;
 
-    this.getAuth = this.getAuth.bind(this);
-    this.getAuthStrava = this.getAuthStrava.bind(this);
-    this.postAuthTokenMiddleware = this.postAuthTokenMiddleware.bind(this);
-    this.postAuthToken = this.postAuthToken.bind(this);
+    this.getAuthLogin = this.getAuthLogin.bind(this);
+    this.getAuthCallbackMiddleware = this.getAuthCallbackMiddleware.bind(this);
+    this.getAuthCallback = this.getAuthCallback.bind(this);
+    this.getAuthMe = this.getAuthMe.bind(this);
     this.postAuthRefreshMiddleware = this.postAuthRefreshMiddleware.bind(this);
     this.postAuthRefresh = this.postAuthRefresh.bind(this);
     this.postAuthLogout = this.postAuthLogout.bind(this);
   }
 
-  public getAuth(req: Request, res: Response): void {
-    res.status(204).send();
+  public getAuthLogin(req: Request, res: Response): void {
+    // TODO: Extract constant.
+    const url = this.authService.buildAuthorizeUrl('/auth/callback');
+
+    res.redirect(url);
   }
 
-  public getAuthStrava(req: Request, res: Response): void {
-    const { redirectUri, state } = req.query;
+  public async getAuthCallbackMiddleware(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { code, scope, state } = req.query;
 
-    if (!redirectUri || typeof redirectUri !== 'string' || (state && typeof state !== 'string')) {
+    if (typeof code !== 'string' || (scope && typeof scope !== 'string') || (state && typeof state !== 'string')) {
       res.status(400).send({ message: 'Bad Request' });
       return;
     }
-
-    let url;
-    try {
-      url = this.authService.getAuthorizeUrl(redirectUri, state);
-    } catch (error) {
-      console.error(error);
-
-      res.status(400).send({ message: 'Bad Request' });
-      return;
-    }
-
-    res.send({ url });
-  }
-
-  public async postAuthTokenMiddleware(req: Request, res: Response, next: NextFunction): Promise<void> {
-    if (!req.body) {
-      res.status(400).send({ message: 'Bad Request' });
-      return;
-    }
-
-    const { code, scope, state } = req.body;
 
     let tokens;
     try {
@@ -70,8 +52,20 @@ export class WebAuthController {
     next();
   }
 
-  public postAuthToken(req: Request, res: Response): void {
-    res.status(204).send();
+  public getAuthCallback(req: Request, res: Response): void {
+    // TODO: Extract constant.
+    res.redirect('http://localhost:3000');
+  }
+
+  public getAuthMe(req: TokenAuthenticatedRequest, res: Response): void {
+    const { userId } = req;
+
+    if (!userId) {
+      res.status(401).send({ message: 'Unauthorized' });
+      return;
+    }
+
+    res.send({ userId });
   }
 
   public postAuthRefreshMiddleware(req: TokenAuthenticatedRequest, res: Response, next: NextFunction): void {
