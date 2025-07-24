@@ -1,31 +1,43 @@
 @startuml Web App Authentication Flow
 
-participant User
+actor User
 participant "Web App" as WebApp
-participant "API Server" as API
-participant "Strava OAuth" as Strava
+participant API
+participant Strava
 
 User -> WebApp: Click Login
-WebApp -> API: GET /auth/login
-API -> API: Generate state parameter
-API -> Strava: Redirect to OAuth authorize\n(with client_id, redirect_uri, state)
-Strava -> User: Show authorization screen
-User -> Strava: Approve authorization
-Strava -> API: Redirect to /auth/callback\n(with code, state)
-API -> API: Validate state parameter
-API -> Strava: POST /oauth/token\n(exchange code for tokens)
-Strava -> API: Return access_token, refresh_token, user info
-API -> API: Create/find user account\n(using Strava user ID)
-API -> API: Generate internal JWT tokens\n(access + refresh)
-API -> API: Set HttpOnly cookies\n(access + refresh tokens)
-API -> WebApp: Redirect to web app URL
-WebApp -> User: Show authenticated interface
-
-note right of API
-  Cookies are set with:
-  - httpOnly: true
-  - secure: true (prod)
-  - sameSite: 'lax'
+WebApp -> API: Redirect to GET /auth/login
+API -> Strava: Redirect to OAuth authorize
+note right
+  GET https://www.strava.com/oauth/authorize
+  client_id
+  redirect_uri = "/auth/callback"
+  response_type = "code"
+  scope = "activity:read_all"
 end note
+Strava --> User: Show authorization screen
+
+User -> Strava: Approve authorization
+Strava --> API: Redirect to GET /auth/callback\n(with code, scope, state)
+
+API -> Strava: Exchange code
+note right
+  POST https://www.strava.com/api/v3/oauth/token
+  client_id
+  client_secret
+  code
+  grant_type = "authorization_code"
+end note
+Strava --> API: Return access_token, refresh_token,\nexpires_at, athlete ID
+
+API -> API: Create/update user based on athlete ID,\nsave Strava tokens to database
+API -> API: Create Web access and refresh tokens
+API -> API: Attach tokens as HTTP only cookies to response
+API --> WebApp: Redirect to Web App
+
+WebApp -> API: GET /auth/me
+API --> WebApp: Confirm authenticated state
+
+WebApp -> User: Show authenticated state
 
 @enduml

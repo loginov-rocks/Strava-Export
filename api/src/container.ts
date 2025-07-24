@@ -141,6 +141,7 @@ export const activityController = new ActivityController({
 });
 
 export const oauthController = new OAuthController({
+  apiBaseUrl: API_BASE_URL,
   authService,
 });
 
