@@ -8,9 +8,10 @@ import {
 import { StravaApiClient } from './apiClients/StravaApiClient';
 
 import { ActivityController } from './controllers/ActivitiesController';
-import { AuthController } from './controllers/AuthController';
+import { OAuthController } from './controllers/OAuthController';
 import { PatController } from './controllers/PatController';
 import { SyncJobController } from './controllers/SyncJobController';
+import { WebAuthController } from './controllers/WebAuthController';
 
 import { ActivityDtoFactory } from './dtoFactories/ActivityDtoFactory';
 import { PatDtoFactory } from './dtoFactories/PatDtoFactory';
@@ -139,7 +140,7 @@ export const activityController = new ActivityController({
   activityService,
 });
 
-export const authController = new AuthController({
+export const oauthController = new OAuthController({
   authService,
 });
 
@@ -151,6 +152,10 @@ export const patController = new PatController({
 export const syncJobController = new SyncJobController({
   syncJobDtoFactory,
   syncJobService,
+});
+
+export const webAuthController = new WebAuthController({
+  authService,
 });
 
 // Workers.

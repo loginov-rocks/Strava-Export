@@ -1,35 +1,36 @@
 import { Router } from 'express';
 
 import {
-  activityController, authController, compositeAuthMiddleware, patController, syncJobController, tokenMiddleware,
+  activityController, oauthController, compositeAuthMiddleware, patController, syncJobController, tokenMiddleware,
+  webAuthController,
 } from './container';
 
 export const router = Router();
 
-router.get('/.well-known/oauth-authorization-server', authController.getServerMetadata);
-router.post('/oauth/register', authController.postOAuthRegister);
-router.get('/oauth/authorize', authController.getOAuthAuthorize);
-router.get('/oauth/redirect', authController.getOAuthRedirect);
-router.post('/oauth/token', authController.postOAuthToken);
-
-router.get('/auth', tokenMiddleware.requireAccessToken, authController.getAuth);
-router.get('/auth/strava', authController.getAuthStrava);
+router.get('/auth', tokenMiddleware.requireAccessToken, webAuthController.getAuth);
+router.get('/auth/strava', webAuthController.getAuthStrava);
 router.post('/auth/token',
-  authController.postAuthTokenMiddleware,
+  webAuthController.postAuthTokenMiddleware,
   tokenMiddleware.attachTokens,
-  authController.postAuthToken,
+  webAuthController.postAuthToken,
 );
 router.post('/auth/refresh',
   tokenMiddleware.requireRefreshToken,
-  authController.postAuthRefreshMiddleware,
+  webAuthController.postAuthRefreshMiddleware,
   tokenMiddleware.attachTokens,
-  authController.postAuthRefresh,
+  webAuthController.postAuthRefresh,
 );
 router.post('/auth/logout',
   tokenMiddleware.requireAccessToken,
   tokenMiddleware.removeTokens,
-  authController.postAuthLogout,
+  webAuthController.postAuthLogout,
 );
+
+router.get('/.well-known/oauth-authorization-server', oauthController.getServerMetadata);
+router.post('/oauth/register', oauthController.postOAuthRegister);
+router.get('/oauth/authorize', oauthController.getOAuthAuthorize);
+router.get('/oauth/redirect', oauthController.getOAuthRedirect);
+router.post('/oauth/token', oauthController.postOAuthToken);
 
 router.get('/activities', compositeAuthMiddleware.requireAccessTokenOrPat, activityController.getActivities);
 router.delete('/activities', compositeAuthMiddleware.requireAccessTokenOrPat, activityController.deleteActivities);
