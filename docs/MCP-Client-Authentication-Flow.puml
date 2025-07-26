@@ -1,0 +1,84 @@
+@startuml MCP Client Authentication Flow
+
+actor User
+participant "MCP Client" as MCP
+participant API
+participant Strava
+
+User -> MCP: Connect to MCP Server
+MCP -> API: GET /oauth/authorize
+note right
+  MCP params: client_id, code_challenge,
+  code_challenge_method=S256, redirect_uri,
+  response_type=code, scope, state
+end note
+API -> API: Validate client exists, redirect_uri, scope
+API -> API: Check for existing auth cookies
+
+alt Existing valid authentication cookies
+  API -> API: Validate existing session
+  API -> API: Skip Strava - user already authenticated
+  note right
+    No Strava interaction needed!
+    Existing web app authentication
+    enables seamless MCP connection
+  end note
+else No authentication or invalid cookies
+  API -> API: Generate state_id, store OAuth state
+  note right
+    Store: {clientId, codeChallenge, redirectUri, scope, state}
+    TTL: 30 minutes
+  end note
+  API -> Strava: Redirect to OAuth authorize
+  note right
+    API->Strava params: client_id (API's Strava app),
+    redirect_uri=/oauth/callback, state=state_id
+  end note
+  Strava -> User: Show authorization screen
+  User -> Strava: Approve authorization
+  Strava -> API: Redirect to /oauth/callback
+  note right
+    Strava params: code (strava_code),
+    state=state_id, scope (optional)
+  end note
+  API -> API: Retrieve stored OAuth state by state_id
+  API -> Strava: POST /oauth/token\n(exchange strava_code for tokens)
+  Strava -> API: Return Strava tokens
+  note right
+    Strava response: access_token, refresh_token,
+    user_info (athlete data)
+  end note
+  API -> API: Create/find user account\n(using Strava athlete.id)
+  API -> API: Delete OAuth state (cleanup)
+end
+
+API -> API: Generate authorization code
+API -> API: Store authorization code mapping
+note right
+  Store: {userId, clientId, codeChallenge, redirectUri, scope}
+  TTL: 10 minutes
+end note
+API -> MCP: Redirect to MCP redirect_uri
+note right
+  API->MCP params: code=authorization_code,
+  state=original_state
+end note
+MCP -> API: POST /oauth/token
+note right
+  MCP params: grant_type=authorization_code,
+  code=authorization_code, client_id,
+  code_verifier, redirect_uri
+end note
+API -> API: Validate client exists
+API -> API: Lookup stored code by authorization_code
+API -> API: Validate PKCE, client_id, redirect_uri
+API -> API: Create tokens with userId, clientId, scope
+API -> API: Delete authorization_code (single-use cleanup)
+API -> MCP: Return API tokens
+note right
+  API response: access_token, token_type=Bearer,
+  expires_in, refresh_token, scope
+end note
+MCP -> User: Connection successful
+
+@enduml

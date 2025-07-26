@@ -32,7 +32,7 @@ export class PatMiddleware {
     next();
   }
 
-  public async authenticateRequest(req: Request) {
+  public async authenticateRequest(req: Request): Promise<string | null> {
     const { authorization } = req.headers;
 
     if (!authorization || !authorization.startsWith('Bearer ')) {

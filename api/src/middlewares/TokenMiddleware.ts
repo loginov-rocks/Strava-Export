@@ -24,6 +24,7 @@ export class TokenMiddleware {
 
     this.attachTokens = this.attachTokens.bind(this);
     this.removeTokens = this.removeTokens.bind(this);
+    this.optionalAccessToken = this.optionalAccessToken.bind(this);
     this.requireAccessToken = this.requireAccessToken.bind(this);
     this.requireRefreshToken = this.requireRefreshToken.bind(this);
   }
@@ -55,6 +56,16 @@ export class TokenMiddleware {
     next();
   }
 
+  public optionalAccessToken(req: TokenAuthenticatedRequest, res: Response, next: NextFunction): void {
+    const userId = this.authenticateRequest(req, 'access');
+
+    if (userId) {
+      req.userId = userId;
+    }
+
+    next();
+  }
+
   public requireAccessToken(req: TokenAuthenticatedRequest, res: Response, next: NextFunction): void {
     const userId = this.authenticateRequest(req, 'access');
 
@@ -81,7 +92,7 @@ export class TokenMiddleware {
     next();
   }
 
-  public authenticateRequest(req: Request, tokenType: 'access' | 'refresh') {
+  public authenticateRequest(req: Request, tokenType: 'access' | 'refresh'): string | null {
     const token = req.cookies[tokenType === 'refresh' ? this.refreshTokenCookieName : this.accessTokenCookieName];
 
     if (!token) {

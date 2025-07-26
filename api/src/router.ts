@@ -28,7 +28,7 @@ router.post('/auth/logout',
 
 router.get('/.well-known/oauth-authorization-server', oauthController.getServerMetadata);
 router.post('/oauth/register', oauthController.postOAuthRegister);
-router.get('/oauth/authorize', oauthController.getOAuthAuthorize);
+router.get('/oauth/authorize', tokenMiddleware.optionalAccessToken, oauthController.getOAuthAuthorize);
 router.get('/oauth/callback', oauthController.getOAuthCallback);
 router.post('/oauth/token', oauthController.postOAuthToken);
 

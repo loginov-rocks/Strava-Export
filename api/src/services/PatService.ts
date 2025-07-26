@@ -15,11 +15,8 @@ export class PatService {
     this.patRepository = patRepository;
   }
 
-  public createPat(userId: string, { name }: CreatePatParams) {
-    return this.patRepository.create({
-      userId,
-      name,
-    });
+  public createPat(userId: string, params: CreatePatParams) {
+    return this.patRepository.create({ userId, ...params });
   }
 
   public getPat(patId: string) {

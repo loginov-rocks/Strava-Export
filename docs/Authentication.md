@@ -101,11 +101,7 @@ User → Web App (already logged in) → Create PAT → Use in API clients
 
 Figure
 
-### MCP Client Authentication Flow (No Existing Auth)
-
-Figure
-
-### MCP Client Authentication Flow (Existing Auth)
+### MCP Client Authentication Flow
 
 Figure
 
@@ -175,7 +171,133 @@ Figure
 - **Independent secret rotation**: Can rotate secrets per system without cross-impact
 - **Clean architecture alignment**: Reinforces existing separation boundaries
 
-### 6. Alternative: Unified OAuth 2.1 Server
+### 6. Authorization Code Generation Strategy
+
+**Options**:
+- **Generate API's own authorization codes** (traditional OAuth)
+- **Use Strava authorization codes directly** (pass-through)
+
+**Option A: Generate Own Authorization Codes**
+```
+1. API generates unique authorization code
+2. Store mapping: api_auth_code → {strava_code, oauth_params}
+3. Return api_auth_code to MCP client
+4. MCP exchanges api_auth_code for tokens
+5. API validates and exchanges strava_code with Strava
+```
+
+**Pros**:
+- **Traditional OAuth pattern**: Standard authorization server behavior
+- **Full control**: API controls code format, expiration, validation
+- **Flexible storage**: Can store additional context with codes
+- **Clean separation**: Clear distinction between internal and external codes
+
+**Cons**:
+- **Storage requirement**: Need to store authorization code mappings
+- **Additional complexity**: Code generation, validation, cleanup logic
+- **More failure points**: Additional abstraction layer
+
+**Option B: Use Strava Codes Directly**
+```
+1. Receive Strava authorization code from callback
+2. Pass Strava code directly to MCP client
+3. MCP exchanges Strava code for API tokens
+4. API validates with Strava during token exchange
+```
+
+**Pros**:
+- **Eliminates auth code storage**: No need to store code mappings
+- **Simplified implementation**: Direct pass-through, fewer operations
+- **Standards compliant**: Authorization codes are opaque to clients
+- **Fewer failure points**: Less abstraction, more direct flow
+- **PKCE compatible**: Can validate PKCE during token exchange
+
+**Cons**:
+- **Strava dependency**: Bound by Strava's code expiration rules
+- **Less flexibility**: Limited ability to add OAuth-specific metadata
+- **Architectural coupling**: Tighter coupling to Strava implementation
+
+**Standards Compliance Analysis**:
+Both approaches maintain OAuth 2.1 compliance:
+- **Interface compliance**: Both provide standard `/oauth/authorize` and `/oauth/token` endpoints
+- **Code opacity**: Clients treat authorization codes as opaque regardless of source
+- **PKCE support**: Both can implement proper PKCE validation
+- **Token issuance**: Both issue API's own access/refresh tokens
+
+**Decision**: **Generate own authorization codes**
+**Justification**: 
+- **Best practices alignment**: Traditional OAuth 2.1 authorization server pattern
+- **Enhanced UX capability**: Enables "skip Strava" scenario (Scenario 6) when combined with storage-based state
+- **Future flexibility**: Easier to extend with additional OAuth features
+- **Clean architecture**: Proper separation between identity provider (Strava) and authorization server (API)
+
+### 7. OAuth State Management Strategy
+
+**Options Considered**:
+
+**Option A: Stateless (JSON state parameter)**
+```
+Encode {code_challenge, redirect_uri, state} as JSON in Strava state parameter
+```
+
+**Option B: Stateless + Signing (JWT state parameter)**
+```
+Sign OAuth parameters as JWT to prevent tampering
+```
+
+**Option C: Storage-based (server-side state)**
+```
+Store OAuth parameters server-side, send only state ID to Strava
+```
+
+**Security Analysis**:
+
+**Parameter Exposure Risk**:
+- **Options A & B**: OAuth parameters travel in URLs through entire OAuth flow
+- **Exposure points**: Browser history, server logs, proxy logs, analytics, CDN caches
+- **Risk**: `code_challenge`, `redirect_uri` visible in plaintext across infrastructure
+- **Defense in depth violation**: Sensitive OAuth data scattered across systems
+
+**Parameter Tampering Risk**:
+- **Option A**: Vulnerable to parameter substitution attacks
+  - Attacker can modify `code_challenge` to their own value
+  - Bypass PKCE protection using corresponding `code_verifier`
+  - Redirect manipulation to attacker-controlled endpoints
+- **Option B**: JWT signing prevents tampering but doesn't solve exposure
+- **Option C**: No tampering possible - parameters never leave server
+
+**Mitigation Options**:
+- **Signing (Option B)**: Solves tampering but not exposure
+- **Encryption**: Could encrypt state but still exposes encrypted payload
+- **Storage (Option C)**: Eliminates both exposure and tampering risks
+
+**Decision**: **Storage-based approach (Option C)**
+**Justification**:
+- **Security first**: Prevents both parameter exposure and tampering
+- **Best practices**: Follows OAuth 2.1 security recommendations
+- **Clean audit trails**: No sensitive data in logs or URLs
+- **Defense in depth**: OAuth parameters never leave secure server environment
+- **Controlled expiration**: Server manages authorization code lifetime
+- **Single-use enforcement**: Can ensure codes are used only once
+
+**Implementation**:
+```
+1. Generate state ID, store {code_challenge, redirect_uri, original_state}
+2. Send only state ID to Strava
+3. Retrieve stored parameters on callback using state ID
+4. Generate own authorization code with PKCE validation
+```
+
+**Trade-offs Accepted**:
+- **Storage requirement**: Redis/cache needed for OAuth state (short-term, ~10 minutes)
+- **Operational complexity**: State management and cleanup required
+- **Implementation complexity**: More moving parts than stateless approaches
+
+**Benefit Gained**: 
+- **Superior UX**: Scenario 6 (skip Strava when already authenticated) possible
+- **Security compliance**: Meets OAuth 2.1 security best practices
+
+### 8. Alternative: Unified OAuth 2.1 Server
 
 **Option**: Make web app an OAuth client using standard OAuth 2.1 flow
 

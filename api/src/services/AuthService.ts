@@ -1,5 +1,6 @@
 import { StravaApiClient } from '../apiClients/StravaApiClient';
 import { UserRepository } from '../repositories/UserRepository';
+
 import { TokenService } from './TokenService';
 
 interface Options {

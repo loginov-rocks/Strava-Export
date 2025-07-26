@@ -1,4 +1,4 @@
-import { sign, verify } from 'jsonwebtoken';
+import { JwtPayload, sign, verify } from 'jsonwebtoken';
 
 interface Options {
   accessTokenExpiresIn: number;
@@ -9,10 +9,14 @@ interface Options {
 
 interface AccessTokenPayload {
   userId: string;
+  clientId?: string;
+  scope?: string;
 }
 
 interface RefreshTokenPayload {
   userId: string;
+  clientId?: string;
+  scope?: string;
 }
 
 export class TokenService {
@@ -28,9 +32,11 @@ export class TokenService {
     this.refreshTokenSecret = refreshTokenSecret;
   }
 
-  public signAccessToken({ userId }: AccessTokenPayload) {
+  public signAccessToken({ userId, clientId, scope }: AccessTokenPayload) {
     const payload = {
       sub: userId,
+      client_id: clientId,
+      scope,
     };
 
     const expiresIn = this.accessTokenExpiresIn;
@@ -39,9 +45,11 @@ export class TokenService {
     return { expiresIn, jwt };
   }
 
-  public signRefreshToken({ userId }: RefreshTokenPayload) {
+  public signRefreshToken({ userId, clientId, scope }: RefreshTokenPayload) {
     const payload = {
       sub: userId,
+      client_id: clientId,
+      scope,
     };
 
     const expiresIn = this.refreshTokenExpiresIn;
@@ -51,24 +59,28 @@ export class TokenService {
   }
 
   public verifyAccessToken(jwt: string): AccessTokenPayload {
-    const payload = verify(jwt, this.accessTokenSecret);
+    const payload = verify(jwt, this.accessTokenSecret) as JwtPayload;
     const userId = payload.sub;
+    const clientId = payload.client_id;
+    const scope = payload.scope;
 
     if (typeof userId !== 'string') {
       throw new Error('User ID not found in JWT');
     }
 
-    return { userId };
+    return { userId, clientId, scope };
   }
 
   public verifyRefreshToken(jwt: string): RefreshTokenPayload {
-    const payload = verify(jwt, this.refreshTokenSecret);
+    const payload = verify(jwt, this.refreshTokenSecret) as JwtPayload;
     const userId = payload.sub;
+    const clientId = payload.client_id;
+    const scope = payload.scope;
 
     if (typeof userId !== 'string') {
       throw new Error('User ID not found in JWT');
     }
 
-    return { userId };
+    return { userId, clientId, scope };
   }
 }

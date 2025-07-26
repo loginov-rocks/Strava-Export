@@ -1,20 +1,20 @@
-import { randomUUID } from 'crypto';
 import { Request, Response } from 'express';
 
-import { AuthService } from '../services/AuthService';
+import { TokenAuthenticatedRequest } from '../middlewares/TokenMiddleware';
+import { OAuthService } from '../services/OAuthService';
 
 interface Options {
   apiBaseUrl: string;
-  authService: AuthService;
+  oauthService: OAuthService;
 }
 
 export class OAuthController {
   private readonly apiBaseUrl: string;
-  private readonly authService: AuthService;
+  private readonly oauthService: OAuthService;
 
-  constructor({ apiBaseUrl, authService }: Options) {
+  constructor({ apiBaseUrl, oauthService }: Options) {
     this.apiBaseUrl = apiBaseUrl;
-    this.authService = authService;
+    this.oauthService = oauthService;
 
     this.getServerMetadata = this.getServerMetadata.bind(this);
     this.postOAuthRegister = this.postOAuthRegister.bind(this);
@@ -26,7 +26,7 @@ export class OAuthController {
   public getServerMetadata(req: Request, res: Response): void {
     const issuer = this.apiBaseUrl;
 
-    // TODO: Extract constants.
+    // TODO: Unbind from routing constants.
     res.send({
       issuer,
       authorization_endpoint: `${issuer}/oauth/authorize`,
@@ -42,7 +42,7 @@ export class OAuthController {
     });
   }
 
-  public postOAuthRegister(req: Request, res: Response): void {
+  public async postOAuthRegister(req: Request, res: Response): Promise<void> {
     const { client_name, grant_types, response_types, token_endpoint_auth_method, scope, redirect_uris } = req.body;
 
     // TODO: Improve validation.
@@ -52,14 +52,32 @@ export class OAuthController {
       return;
     }
 
-    const client_id = randomUUID();
+    let client;
+    try {
+      client = await this.oauthService.createClient({
+        name: client_name,
+        redirectUris: redirect_uris,
+        scope,
+      });
+    } catch (error) {
+      console.error(error);
+
+      res.status(500).send({ message: 'Internal Server Error' });
+      return;
+    }
 
     res.status(201).send({
-      client_id, client_name, grant_types, response_types, token_endpoint_auth_method, scope, redirect_uris,
+      client_id: client._id.toString(),
+      client_name: client.name,
+      grant_types,
+      response_types,
+      token_endpoint_auth_method,
+      scope: client.scope,
+      redirect_uris: client.redirectUris,
     });
   }
 
-  public getOAuthAuthorize(req: Request, res: Response): void {
+  public async getOAuthAuthorize(req: TokenAuthenticatedRequest, res: Response): Promise<void> {
     const { client_id, code_challenge, code_challenge_method, redirect_uri, response_type, scope, state } = req.query;
 
     // TODO: Improve validation.
@@ -70,18 +88,69 @@ export class OAuthController {
       return;
     }
 
-    // TODO: Store client params in the database and return reference to the database record as a state.
-    const stateWithClientParams = JSON.stringify({
-      client_id, code_challenge, code_challenge_method, redirect_uri, response_type, scope, state,
-    });
+    let client;
+    try {
+      client = await this.oauthService.getClient(client_id);
+    } catch (error) {
+      console.error(error);
 
-    // TODO: Extract constant.
-    const url = this.authService.buildAuthorizeUrl('/oauth/callback', stateWithClientParams);
+      res.status(500).send({ message: 'Internal Server Error' });
+      return;
+    }
+
+    if (!client || !client.redirectUris.includes(redirect_uri) || scope !== client.scope) {
+      res.status(400).send({ message: 'Bad Request' });
+      return;
+    }
+
+    // User is already authorized.
+    if (req.userId) {
+      let storedCode;
+      try {
+        storedCode = await this.oauthService.createCode({
+          userId: req.userId,
+          clientId: client._id.toString(),
+          codeChallenge: code_challenge,
+          redirectUri: redirect_uri,
+          scope: scope,
+        });
+      } catch (error) {
+        console.error(error);
+
+        res.status(500).send({ message: 'Internal Server Error' });
+        return;
+      }
+
+      const url = new URL(redirect_uri);
+      url.searchParams.set('code', storedCode._id.toString());
+      url.searchParams.set('state', state);
+      res.redirect(url.toString());
+      return;
+    }
+
+    let storedState;
+    try {
+      storedState = await this.oauthService.createState({
+        clientId: client._id.toString(),
+        codeChallenge: code_challenge,
+        redirectUri: redirect_uri,
+        scope,
+        state,
+      });
+    } catch (error) {
+      console.error(error);
+
+      res.status(500).send({ message: 'Internal Server Error' });
+      return;
+    }
+
+    // TODO: Unbind from routing constants.
+    const url = this.oauthService.buildAuthorizeUrl('/oauth/callback', storedState._id.toString());
 
     res.redirect(url);
   }
 
-  public getOAuthCallback(req: Request, res: Response): void {
+  public async getOAuthCallback(req: Request, res: Response): Promise<void> {
     const { code, scope, state } = req.query;
 
     if (typeof code !== 'string' || typeof state !== 'string' || (scope && typeof scope !== 'string')) {
@@ -89,39 +158,140 @@ export class OAuthController {
       return;
     }
 
-    // TODO: Extract client params from the database using state as a reference to the database record.
-    const clientParams = JSON.parse(state);
+    let storedState;
+    try {
+      storedState = await this.oauthService.getState(state);
+    } catch (error) {
+      console.error(error);
 
-    // TODO: Consider creating own authorization code instead of passing Strava authorization code.
-    const url = new URL(clientParams.redirect_uri);
-    url.searchParams.set('code', code);
+      res.status(500).send({ message: 'Internal Server Error' });
+      return;
+    }
 
-    if (clientParams.state) {
-      url.searchParams.set('state', clientParams.state);
+    if (!storedState) {
+      res.status(400).send({ message: 'Bad Request' });
+      return;
+    }
+
+    let userId;
+    try {
+      userId = await this.oauthService.validateCode(code, scope, state);
+    } catch {
+      res.status(401).send({ message: 'Unauthorized' });
+      return;
+    }
+
+    let storedCode;
+    try {
+      storedCode = await this.oauthService.createCode({
+        userId,
+        clientId: storedState.clientId,
+        codeChallenge: storedState.codeChallenge,
+        redirectUri: storedState.redirectUri,
+        scope: storedState.scope,
+      });
+    } catch (error) {
+      console.error(error);
+
+      res.status(500).send({ message: 'Internal Server Error' });
+      return;
+    }
+
+    const url = new URL(storedState.redirectUri);
+    url.searchParams.set('code', storedCode._id.toString());
+    url.searchParams.set('state', storedState.state);
+
+    // Delete the stored state at the very last step for better fault tolerance.
+    try {
+      await this.oauthService.deleteState(storedState._id.toString());
+    } catch (error) {
+      console.error(error);
+
+      res.status(500).send({ message: 'Internal Server Error' });
+      return;
     }
 
     res.redirect(url.toString());
   }
 
   public async postOAuthToken(req: Request, res: Response): Promise<void> {
-    const { grant_type, code, client_id, code_verifier, redirect_uri } = req.body;
+    const { grant_type, code, client_id, code_verifier, redirect_uri, refresh_token } = req.body;
 
-    // TODO: Improve validation.
-    if (grant_type !== 'authorization_code' || typeof code !== 'string' || typeof client_id !== 'string'
-      || typeof code_verifier !== 'string' || typeof redirect_uri !== 'string') {
+    if (!['authorization_code', 'refresh_token'].includes(grant_type)
+      || (grant_type === 'authorization_code' && (typeof code !== 'string' || typeof code_verifier !== 'string'
+        || typeof redirect_uri !== 'string'))
+      || (grant_type === 'refresh_token' && typeof refresh_token !== 'string')
+      || typeof client_id !== 'string') {
       res.status(400).send({ message: 'Bad Request' });
       return;
     }
 
-    // TODO: Consider using own authorization code instead of expecting Strava authorization code from the client.
-    // TODO: Consider issuing MCP specific tokens.
-    let tokens;
+    let client;
     try {
-      tokens = await this.authService.exchangeCode(code);
+      client = await this.oauthService.getClient(client_id);
     } catch (error) {
       console.error(error);
 
-      res.status(401).send({ message: 'Unauthorized' });
+      res.status(500).send({ message: 'Internal Server Error' });
+      return;
+    }
+
+    if (!client) {
+      res.status(400).send({ message: 'Bad Request' });
+      return;
+    }
+
+    let tokens, scope;
+
+    if (grant_type === 'authorization_code') {
+      let storedCode;
+      try {
+        storedCode = await this.oauthService.getCode(code);
+      } catch (error) {
+        console.error(error);
+
+        res.status(500).send({ message: 'Internal Server Error' });
+        return;
+      }
+
+      if (!storedCode || client_id !== storedCode.clientId || redirect_uri !== storedCode.redirectUri
+        || this.oauthService.computeChallenge(code_verifier) !== storedCode.codeChallenge) {
+        res.status(400).send({ message: 'Bad Request' });
+        return;
+      }
+
+      tokens = this.oauthService.createTokens(storedCode.userId, client_id, storedCode.scope);
+      scope = storedCode.scope;
+
+      // Delete the stored code at the very last step for better fault tolerance.
+      try {
+        await this.oauthService.deleteCode(storedCode._id.toString());
+      } catch (error) {
+        console.error(error);
+
+        res.status(500).send({ message: 'Internal Server Error' });
+        return;
+      }
+    } else if (grant_type === 'refresh_token') {
+      let payload;
+      try {
+        payload = this.oauthService.verifyRefreshToken(refresh_token);
+      } catch {
+        res.status(401).send({ message: 'Unauthorized' });
+        return;
+      }
+
+      if (client_id !== payload.clientId || !payload.scope) {
+        res.status(400).send({ message: 'Bad Request' });
+        return;
+      }
+
+      tokens = this.oauthService.createTokens(payload.userId, client_id, payload.scope);
+      scope = payload.scope;
+    }
+
+    if (!tokens) {
+      res.status(500).send({ message: 'Internal Server Error' });
       return;
     }
 
@@ -130,8 +300,7 @@ export class OAuthController {
       token_type: 'Bearer',
       expires_in: tokens.accessTokenExpiresIn,
       refresh_token: tokens.refreshToken,
-      // TODO: Consider keeping scope received from Claude at authorization endpoint.
-      scope: 'claudeai',
+      scope,
     });
   }
 }

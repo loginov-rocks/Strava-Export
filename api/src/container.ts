@@ -1,5 +1,6 @@
 import {
-  ACCESS_TOKEN_COOKIE_NAME, ACCESS_TOKEN_EXPIRES_IN, ACCESS_TOKEN_SECRET, API_BASE_URL, PAT_REPOSITORY_DISPLAY_LENGTH,
+  ACCESS_TOKEN_COOKIE_NAME, ACCESS_TOKEN_EXPIRES_IN, ACCESS_TOKEN_SECRET, API_BASE_URL, OAUTH_ACCESS_TOKEN_EXPIRES_IN,
+  OAUTH_ACCESS_TOKEN_SECRET, OAUTH_REFRESH_TOKEN_EXPIRES_IN, OAUTH_REFRESH_TOKEN_SECRET, PAT_REPOSITORY_DISPLAY_LENGTH,
   PAT_REPOSITORY_TOKEN_PREFIX, PAT_REPOSITORY_TOKEN_RANDOM_LENGTH, REFRESH_TOKEN_COOKIE_NAME, REFRESH_TOKEN_EXPIRES_IN,
   REFRESH_TOKEN_SECRET, STRAVA_API_BASE_URL, STRAVA_API_CLIENT_ID, STRAVA_API_CLIENT_SECRET, SYNC_JOB_QUEUE_NAME,
   USER_REPOSITORY_ENCRYPTION_IV, USER_REPOSITORY_ENCRYPTION_KEY,
@@ -22,11 +23,17 @@ import { PatMiddleware } from './middlewares/PatMiddleware';
 import { TokenMiddleware } from './middlewares/TokenMiddleware';
 
 import { activityModel } from './models/activityModel';
+import { oauthClientModel } from './models/oauthClientModel';
+import { oauthCodeModel } from './models/oauthCodeModel';
+import { oauthStateModel } from './models/oauthStateModel';
 import { patModel } from './models/patModel';
 import { syncJobModel } from './models/syncJobModel';
 import { userModel } from './models/userModel';
 
 import { ActivityRepository } from './repositories/ActivityRepository';
+import { OAuthClientRepository } from './repositories/OAuthClientRepository';
+import { OAuthCodeRepository } from './repositories/OAuthCodeRepository';
+import { OAuthStateRepository } from './repositories/OAuthStateRepository';
 import { PatRepository } from './repositories/PatRepository';
 import { SyncJobRepository } from './repositories/SyncJobRepository';
 import { UserRepository } from './repositories/UserRepository';
@@ -34,6 +41,7 @@ import { UserRepository } from './repositories/UserRepository';
 import { ActivityService } from './services/ActivityService';
 import { ActivitySyncService } from './services/ActivitySyncService';
 import { AuthService } from './services/AuthService';
+import { OAuthService } from './services/OAuthService';
 import { PatService } from './services/PatService';
 import { StravaTokenService } from './services/StravaTokenService';
 import { SyncJobService } from './services/SyncJobService';
@@ -53,6 +61,18 @@ const stravaApiClient = new StravaApiClient({
 // Repositories.
 const activityRepository = new ActivityRepository({
   activityModel,
+});
+
+const oauthClientRepository = new OAuthClientRepository({
+  oauthClientModel,
+});
+
+const oauthCodeRepository = new OAuthCodeRepository({
+  oauthCodeModel,
+});
+
+const oauthStateRepository = new OAuthStateRepository({
+  oauthStateModel,
 });
 
 const patRepository = new PatRepository({
@@ -98,10 +118,27 @@ const tokenService = new TokenService({
   refreshTokenSecret: REFRESH_TOKEN_SECRET,
 });
 
+const oauthTokenService = new TokenService({
+  accessTokenExpiresIn: OAUTH_ACCESS_TOKEN_EXPIRES_IN,
+  accessTokenSecret: OAUTH_ACCESS_TOKEN_SECRET,
+  refreshTokenExpiresIn: OAUTH_REFRESH_TOKEN_EXPIRES_IN,
+  refreshTokenSecret: OAUTH_REFRESH_TOKEN_SECRET,
+});
+
 const authService = new AuthService({
   apiBaseUrl: API_BASE_URL,
   stravaApiClient,
   tokenService,
+  userRepository,
+});
+
+const oauthService = new OAuthService({
+  apiBaseUrl: API_BASE_URL,
+  oauthClientRepository,
+  oauthCodeRepository,
+  oauthStateRepository,
+  stravaApiClient,
+  tokenService: oauthTokenService,
   userRepository,
 });
 
@@ -142,7 +179,7 @@ export const activityController = new ActivityController({
 
 export const oauthController = new OAuthController({
   apiBaseUrl: API_BASE_URL,
-  authService,
+  oauthService,
 });
 
 export const patController = new PatController({
