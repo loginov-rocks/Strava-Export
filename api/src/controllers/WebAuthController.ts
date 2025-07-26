@@ -54,7 +54,7 @@ export class WebAuthController {
 
   public getAuthCallback(req: Request, res: Response): void {
     // TODO: Extract constant.
-    res.redirect('http://localhost:3000');
+    res.redirect('https://stravaholics.up.railway.app');
   }
 
   public getAuthMe(req: TokenAuthenticatedRequest, res: Response): void {
