@@ -1,5 +1,7 @@
 import { Worker } from 'bullmq';
+import IORedis from 'ioredis';
 
+import { REDIS_URL } from '../constants';
 import { ActivitySyncService } from '../services/ActivitySyncService';
 import { SyncJobService } from '../services/SyncJobService';
 
@@ -34,7 +36,8 @@ export class SyncJobWorker {
       },
       {
         autorun: false,
-        connection: { /* Using an empty object to prevent "Error: Worker requires a connection". */ },
+        // TODO: Extract configuration.
+        connection: new IORedis(REDIS_URL, { maxRetriesPerRequest: null }),
       }
     );
 

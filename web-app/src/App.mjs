@@ -14,7 +14,8 @@ export class App {
     // TODO: Refactor.
     // const response = await this.apiClient.getAuthStrava(this.redirectUri);
 
-    window.location.href = 'http://localhost:3001/auth/login';
+    // window.location.href = 'http://localhost:3001/auth/login';
+    window.location.href = 'https://stravaholics-api.up.railway.app/auth/login';
   }
 
   async onLogoutClick() {

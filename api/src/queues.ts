@@ -1,5 +1,7 @@
 import { Queue } from 'bullmq';
+import IORedis from 'ioredis';
 
-import { SYNC_JOB_QUEUE_NAME } from './constants';
+import { REDIS_URL, SYNC_JOB_QUEUE_NAME } from './constants';
 
-export const syncJobQueue = new Queue(SYNC_JOB_QUEUE_NAME);
+// TODO: Extract configuration.
+export const syncJobQueue = new Queue(SYNC_JOB_QUEUE_NAME, { connection: new IORedis(REDIS_URL) });
