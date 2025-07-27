@@ -56,6 +56,8 @@ export class OAuthController {
   }
 
   public async postOAuthRegister(req: Request, res: Response): Promise<void> {
+    console.log('postOAuthRegister', req.body);
+
     const { client_name, grant_types, response_types, token_endpoint_auth_method, scope, redirect_uris } = req.body;
 
     // TODO: Improve validation.
@@ -91,6 +93,8 @@ export class OAuthController {
   }
 
   public async getOAuthAuthorize(req: TokenAuthenticatedRequest, res: Response): Promise<void> {
+    console.log('getOAuthAuthorize', req.query);
+
     const { client_id, code_challenge, code_challenge_method, redirect_uri, response_type, scope, state } = req.query;
 
     // TODO: Improve validation.
@@ -164,6 +168,8 @@ export class OAuthController {
   }
 
   public async getOAuthCallback(req: Request, res: Response): Promise<void> {
+    console.log('getOAuthCallback', req.query);
+
     const { code, scope, state } = req.query;
 
     if (typeof code !== 'string' || typeof state !== 'string' || (scope && typeof scope !== 'string')) {
@@ -228,6 +234,8 @@ export class OAuthController {
   }
 
   public async postOAuthToken(req: Request, res: Response): Promise<void> {
+    console.log('postOAuthToken', req.body);
+
     const { grant_type, code, client_id, code_verifier, redirect_uri, refresh_token } = req.body;
 
     if (!['authorization_code', 'refresh_token'].includes(grant_type)
