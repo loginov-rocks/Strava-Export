@@ -62,7 +62,8 @@ export class OAuthController {
 
     // TODO: Improve validation.
     if (typeof client_name !== 'string' || !Array.isArray(grant_types) || !Array.isArray(response_types)
-      || token_endpoint_auth_method !== 'none' || typeof scope !== 'string' || !Array.isArray(redirect_uris)) {
+      || token_endpoint_auth_method !== 'client_secret_post' || typeof scope !== 'string'
+      || !Array.isArray(redirect_uris)) {
       res.status(400).send({ message: 'Bad Request' });
       return;
     }
