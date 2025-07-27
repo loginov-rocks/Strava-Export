@@ -8,6 +8,7 @@ router.get('/', (req: Request, res: Response) => {
   res.send('OK');
 });
 
+router.get('/.well-known/oauth-protected-resource', oauthController.getProtectedResource);
 router.get('/.well-known/oauth-authorization-server', oauthController.getServerMetadata);
 
 // SSE.

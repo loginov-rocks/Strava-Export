@@ -5,22 +5,35 @@ import { OAuthService } from '../services/OAuthService';
 
 interface Options {
   apiUrl: string;
+  mcpUrl: string;
   oauthService: OAuthService;
 }
 
 export class OAuthController {
   private readonly apiUrl: string;
+  private readonly mcpUrl: string;
   private readonly oauthService: OAuthService;
 
-  constructor({ apiUrl, oauthService }: Options) {
+  constructor({ apiUrl, mcpUrl, oauthService }: Options) {
     this.apiUrl = apiUrl;
+    this.mcpUrl = mcpUrl;
     this.oauthService = oauthService;
 
+    this.getProtectedResource = this.getProtectedResource.bind(this);
     this.getServerMetadata = this.getServerMetadata.bind(this);
     this.postOAuthRegister = this.postOAuthRegister.bind(this);
     this.getOAuthAuthorize = this.getOAuthAuthorize.bind(this);
     this.getOAuthCallback = this.getOAuthCallback.bind(this);
     this.postOAuthToken = this.postOAuthToken.bind(this);
+  }
+
+  public getProtectedResource(req: Request, res: Response): void {
+    res.send({
+      resource: this.mcpUrl,
+      authorization_servers: [
+        this.apiUrl,
+      ],
+    });
   }
 
   public getServerMetadata(req: Request, res: Response): void {
