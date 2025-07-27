@@ -1,7 +1,6 @@
 import { Worker } from 'bullmq';
 import IORedis from 'ioredis';
 
-import { REDIS_URL } from '../constants';
 import { ActivitySyncService } from '../services/ActivitySyncService';
 import { SyncJobService } from '../services/SyncJobService';
 
@@ -16,13 +15,15 @@ export class SyncJobWorker {
   private readonly syncJobQueueName: string;
   private readonly syncJobService: SyncJobService;
 
-  private worker: Worker;
+  private worker: Worker | null = null;
 
   constructor({ activitySyncService, syncJobQueueName, syncJobService }: Options) {
     this.activitySyncService = activitySyncService;
     this.syncJobQueueName = syncJobQueueName;
     this.syncJobService = syncJobService;
+  }
 
+  public init(connection: IORedis) {
     this.worker = new Worker(
       this.syncJobQueueName,
       async (job) => {
@@ -36,8 +37,7 @@ export class SyncJobWorker {
       },
       {
         autorun: false,
-        // TODO: Extract configuration.
-        connection: new IORedis(REDIS_URL, { maxRetriesPerRequest: null }),
+        connection,
       }
     );
 
@@ -65,6 +65,10 @@ export class SyncJobWorker {
   }
 
   public run() {
+    if (!this.worker) {
+      throw new Error('Worker not initialized');
+    }
+
     return this.worker.run();
   }
 }

@@ -8,23 +8,23 @@ export interface McpAuthenticatedRequest extends Request {
 }
 
 interface Options {
-  mcpUrl: string;
+  mcpBaseUrl: string;
   tokenService: TokenService;
 }
 
 export class McpAuthMiddleware {
-  private readonly mcpUrl: string;
+  private readonly mcpBaseUrl: string;
   private readonly tokenService: TokenService;
 
-  constructor({ mcpUrl, tokenService }: Options) {
-    this.mcpUrl = mcpUrl;
+  constructor({ mcpBaseUrl, tokenService }: Options) {
+    this.mcpBaseUrl = mcpBaseUrl;
     this.tokenService = tokenService;
 
     this.requireAuth = this.requireAuth.bind(this);
   }
 
   public requireAuth(req: McpAuthenticatedRequest, res: Response, next: NextFunction): void {
-    const wwwAuthenticateHeader = `Bearer realm="mcp-server", resource_metadata="${this.mcpUrl}/.well-known/oauth-protected-resource"`;
+    const wwwAuthenticateHeader = `Bearer realm="mcp-server", resource_metadata="${this.mcpBaseUrl}/.well-known/oauth-protected-resource"`;
 
     if (!req.headers.authorization || !req.headers.authorization.startsWith('Bearer ')) {
       res.status(401).set('WWW-Authenticate', wwwAuthenticateHeader).send('Unauthorized');

@@ -1,21 +1,23 @@
-import { json, Request, Response, Router } from 'express';
+import { json, Router } from 'express';
 
-import { mcpAuthMiddleware, mcpSseController, mcpStreamableController, oauthController } from './container';
+import {
+  healthcheckController, mcpAuthMiddleware, mcpSseController, mcpStreamableController, oauthController,
+} from './container';
 
-export const router = Router();
+export const mcpRouter = Router();
 
-router.get('/', (req: Request, res: Response) => {
-  res.send('OK');
-});
+// Healthcheck.
+mcpRouter.get('/', healthcheckController.get);
 
-router.get('/.well-known/oauth-protected-resource', oauthController.getProtectedResource);
-router.get('/.well-known/oauth-authorization-server', oauthController.getServerMetadata);
+// OAuth.
+mcpRouter.get('/.well-known/oauth-protected-resource', oauthController.getProtectedResource);
+mcpRouter.get('/.well-known/oauth-authorization-server', oauthController.getServerMetadata);
 
 // SSE.
-router.get('/sse', mcpAuthMiddleware.requireAuth, mcpSseController.getSse);
-router.post('/messages', mcpAuthMiddleware.requireAuth, mcpSseController.postMessages);
+mcpRouter.get('/sse', mcpAuthMiddleware.requireAuth, mcpSseController.getSse);
+mcpRouter.post('/messages', mcpAuthMiddleware.requireAuth, mcpSseController.postMessages);
 
 // Streamable HTTP.
-router.post('/mcp', mcpAuthMiddleware.requireAuth, json(), mcpStreamableController.postMcp);
-router.get('/mcp', mcpAuthMiddleware.requireAuth, json(), mcpStreamableController.getMcp);
-router.delete('/mcp', mcpAuthMiddleware.requireAuth, json(), mcpStreamableController.deleteMcp);
+mcpRouter.post('/mcp', mcpAuthMiddleware.requireAuth, json(), mcpStreamableController.postMcp);
+mcpRouter.get('/mcp', mcpAuthMiddleware.requireAuth, json(), mcpStreamableController.getMcp);
+mcpRouter.delete('/mcp', mcpAuthMiddleware.requireAuth, json(), mcpStreamableController.deleteMcp);

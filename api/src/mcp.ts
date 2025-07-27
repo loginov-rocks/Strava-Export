@@ -1,16 +1,15 @@
 import express from 'express';
 
-import { MONGO_URL, PORT } from './constants';
-import { connect as connectDatabase } from './database';
-import { router } from './mcpRouter';
+import { PORT } from './constants';
+import { mcpRouter } from './mcpRouter';
+import { connectMongo } from './mongo';
 
 const app = express();
 
-app.use(router);
+app.use(mcpRouter);
 
-connectDatabase(MONGO_URL)
-  .then(() => {
-    app.listen(PORT, () => {
-      console.log(`App started on port ${PORT}`);
-    });
+connectMongo().then(() => {
+  app.listen(PORT, () => {
+    console.log(`MCP started on port ${PORT}`);
   });
+});

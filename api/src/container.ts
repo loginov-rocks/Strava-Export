@@ -1,9 +1,10 @@
 import {
-  ACCESS_TOKEN_COOKIE_NAME, ACCESS_TOKEN_EXPIRES_IN, ACCESS_TOKEN_SECRET, API_URL, MCP_URL, OAUTH_ACCESS_TOKEN_EXPIRES_IN,
-  OAUTH_ACCESS_TOKEN_SECRET, OAUTH_REFRESH_TOKEN_EXPIRES_IN, OAUTH_REFRESH_TOKEN_SECRET, PAT_REPOSITORY_DISPLAY_LENGTH,
-  PAT_REPOSITORY_TOKEN_PREFIX, PAT_REPOSITORY_TOKEN_RANDOM_LENGTH, REFRESH_TOKEN_COOKIE_NAME, REFRESH_TOKEN_EXPIRES_IN,
-  REFRESH_TOKEN_SECRET, STRAVA_API_BASE_URL, STRAVA_API_CLIENT_ID, STRAVA_API_CLIENT_SECRET, SYNC_JOB_QUEUE_NAME,
-  USER_REPOSITORY_ENCRYPTION_IV, USER_REPOSITORY_ENCRYPTION_KEY, WEB_APP_URL,
+  API_BASE_URL, MCP_BASE_URL, OAUTH_ACCESS_TOKEN_EXPIRES_IN, OAUTH_ACCESS_TOKEN_SECRET, OAUTH_REFRESH_TOKEN_EXPIRES_IN,
+  OAUTH_REFRESH_TOKEN_SECRET, PAT_REPOSITORY_DISPLAY_LENGTH, PAT_REPOSITORY_TOKEN_PREFIX,
+  PAT_REPOSITORY_TOKEN_RANDOM_LENGTH, STRAVA_API_BASE_URL, STRAVA_API_CLIENT_ID, STRAVA_API_CLIENT_SECRET,
+  SYNC_JOB_QUEUE_NAME, USER_REPOSITORY_ENCRYPTION_IV, USER_REPOSITORY_ENCRYPTION_KEY, WEB_APP_BASE_URL,
+  WEB_AUTH_ACCESS_TOKEN_COOKIE_NAME, WEB_AUTH_ACCESS_TOKEN_EXPIRES_IN, WEB_AUTH_ACCESS_TOKEN_SECRET,
+  WEB_AUTH_REFRESH_TOKEN_COOKIE_NAME, WEB_AUTH_REFRESH_TOKEN_EXPIRES_IN, WEB_AUTH_REFRESH_TOKEN_SECRET,
 } from './constants';
 
 // API Clients.
@@ -11,6 +12,7 @@ import { StravaApiClient } from './apiClients/StravaApiClient';
 
 // Controllers.
 import { ActivityController } from './controllers/ActivitiesController';
+import { HealthcheckController } from './controllers/HealthcheckController';
 import { McpSseController } from './controllers/McpSseController';
 import { McpStreamableController } from './controllers/McpStreamableController';
 import { OAuthController } from './controllers/OAuthController';
@@ -127,10 +129,10 @@ const syncJobService = new SyncJobService({
 });
 
 const tokenService = new TokenService({
-  accessTokenExpiresIn: ACCESS_TOKEN_EXPIRES_IN,
-  accessTokenSecret: ACCESS_TOKEN_SECRET,
-  refreshTokenExpiresIn: REFRESH_TOKEN_EXPIRES_IN,
-  refreshTokenSecret: REFRESH_TOKEN_SECRET,
+  accessTokenExpiresIn: WEB_AUTH_ACCESS_TOKEN_EXPIRES_IN,
+  accessTokenSecret: WEB_AUTH_ACCESS_TOKEN_SECRET,
+  refreshTokenExpiresIn: WEB_AUTH_REFRESH_TOKEN_EXPIRES_IN,
+  refreshTokenSecret: WEB_AUTH_REFRESH_TOKEN_SECRET,
 });
 
 const oauthTokenService = new TokenService({
@@ -141,14 +143,14 @@ const oauthTokenService = new TokenService({
 });
 
 const authService = new AuthService({
-  apiUrl: API_URL,
+  apiBaseUrl: API_BASE_URL,
   stravaApiClient,
   tokenService,
   userRepository,
 });
 
 const oauthService = new OAuthService({
-  apiUrl: API_URL,
+  apiBaseUrl: API_BASE_URL,
   oauthClientRepository,
   oauthCodeRepository,
   oauthStateRepository,
@@ -165,7 +167,7 @@ const activitySyncService = new ActivitySyncService({
 
 // Middlewares.
 export const mcpAuthMiddleware = new McpAuthMiddleware({
-  mcpUrl: MCP_URL,
+  mcpBaseUrl: MCP_BASE_URL,
   tokenService: oauthTokenService,
 });
 
@@ -174,8 +176,8 @@ const patMiddleware = new PatMiddleware({
 });
 
 export const tokenMiddleware = new TokenMiddleware({
-  accessTokenCookieName: ACCESS_TOKEN_COOKIE_NAME,
-  refreshTokenCookieName: REFRESH_TOKEN_COOKIE_NAME,
+  accessTokenCookieName: WEB_AUTH_ACCESS_TOKEN_COOKIE_NAME,
+  refreshTokenCookieName: WEB_AUTH_REFRESH_TOKEN_COOKIE_NAME,
   tokenService,
 });
 
@@ -203,6 +205,8 @@ export const activityController = new ActivityController({
   activityService,
 });
 
+export const healthcheckController = new HealthcheckController();
+
 export const mcpSseController = new McpSseController({
   mcpServer,
 })
@@ -212,8 +216,8 @@ export const mcpStreamableController = new McpStreamableController({
 });
 
 export const oauthController = new OAuthController({
-  apiUrl: API_URL,
-  mcpUrl: MCP_URL,
+  apiBaseUrl: API_BASE_URL,
+  mcpBaseUrl: MCP_BASE_URL,
   oauthService,
 });
 
@@ -229,7 +233,7 @@ export const syncJobController = new SyncJobController({
 
 export const webAuthController = new WebAuthController({
   authService,
-  webAppUrl: WEB_APP_URL,
+  webAppBaseUrl: WEB_APP_BASE_URL,
 });
 
 // Workers.

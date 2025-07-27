@@ -4,19 +4,19 @@ import { TokenAuthenticatedRequest } from '../middlewares/TokenMiddleware';
 import { OAuthService } from '../services/OAuthService';
 
 interface Options {
-  apiUrl: string;
-  mcpUrl: string;
+  apiBaseUrl: string;
+  mcpBaseUrl: string;
   oauthService: OAuthService;
 }
 
 export class OAuthController {
-  private readonly apiUrl: string;
-  private readonly mcpUrl: string;
+  private readonly apiBaseUrl: string;
+  private readonly mcpBaseUrl: string;
   private readonly oauthService: OAuthService;
 
-  constructor({ apiUrl, mcpUrl, oauthService }: Options) {
-    this.apiUrl = apiUrl;
-    this.mcpUrl = mcpUrl;
+  constructor({ apiBaseUrl, mcpBaseUrl, oauthService }: Options) {
+    this.apiBaseUrl = apiBaseUrl;
+    this.mcpBaseUrl = mcpBaseUrl;
     this.oauthService = oauthService;
 
     this.getProtectedResource = this.getProtectedResource.bind(this);
@@ -29,15 +29,15 @@ export class OAuthController {
 
   public getProtectedResource(req: Request, res: Response): void {
     res.send({
-      resource: this.mcpUrl,
+      resource: this.mcpBaseUrl,
       authorization_servers: [
-        this.apiUrl,
+        this.apiBaseUrl,
       ],
     });
   }
 
   public getServerMetadata(req: Request, res: Response): void {
-    const issuer = this.apiUrl;
+    const issuer = this.apiBaseUrl;
 
     // TODO: Unbind from routing constants.
     res.send({

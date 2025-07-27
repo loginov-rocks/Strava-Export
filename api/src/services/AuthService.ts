@@ -4,27 +4,27 @@ import { UserRepository } from '../repositories/UserRepository';
 import { TokenService } from './TokenService';
 
 interface Options {
-  apiUrl: string;
+  apiBaseUrl: string;
   stravaApiClient: StravaApiClient;
   tokenService: TokenService;
   userRepository: UserRepository;
 }
 
 export class AuthService {
-  private readonly apiUrl: string;
+  private readonly apiBaseUrl: string;
   private readonly stravaApiClient: StravaApiClient;
   private readonly tokenService: TokenService;
   private readonly userRepository: UserRepository;
 
-  constructor({ apiUrl, stravaApiClient, tokenService, userRepository }: Options) {
-    this.apiUrl = apiUrl;
+  constructor({ apiBaseUrl, stravaApiClient, tokenService, userRepository }: Options) {
+    this.apiBaseUrl = apiBaseUrl;
     this.stravaApiClient = stravaApiClient;
     this.tokenService = tokenService;
     this.userRepository = userRepository;
   }
 
   public buildAuthorizeUrl(redirectPath: string, state?: string) {
-    const redirectUri = `${this.apiUrl}${redirectPath}`;
+    const redirectUri = `${this.apiBaseUrl}${redirectPath}`;
 
     return this.stravaApiClient.buildAuthorizeUrl(redirectUri, state);
   }

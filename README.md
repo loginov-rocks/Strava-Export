@@ -1,4 +1,4 @@
-# Strava Export
+# Stravaholics
 
 Create own API Application here: https://www.strava.com/settings/api
 

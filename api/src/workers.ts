@@ -1,9 +1,11 @@
-import { MONGO_URL } from './constants';
 import { syncJobWorker } from './container';
-import { connect as connectDatabase } from './database';
+import { connectMongo } from './mongo';
+import { connectRedis } from './redis';
 
-connectDatabase(MONGO_URL)
-  .then(() => {
-    syncJobWorker.run();
-    console.log('Workers started');
-  });
+connectMongo().then(() => {
+  // Required by BullMQ: "Error: BullMQ: Your redis options maxRetriesPerRequest must be null."
+  const redisConnection = connectRedis({ maxRetriesPerRequest: null });
+  syncJobWorker.init(redisConnection);
+  syncJobWorker.run();
+  console.log('Workers started');
+});

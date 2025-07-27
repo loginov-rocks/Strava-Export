@@ -5,16 +5,16 @@ import { AuthService } from '../services/AuthService';
 
 interface Options {
   authService: AuthService;
-  webAppUrl: string;
+  webAppBaseUrl: string;
 }
 
 export class WebAuthController {
   private readonly authService: AuthService;
-  private readonly webAppUrl: string;
+  private readonly webAppBaseUrl: string;
 
-  constructor({ authService, webAppUrl }: Options) {
+  constructor({ authService, webAppBaseUrl }: Options) {
     this.authService = authService;
-    this.webAppUrl = webAppUrl;
+    this.webAppBaseUrl = webAppBaseUrl;
 
     this.getAuthLogin = this.getAuthLogin.bind(this);
     this.getAuthCallbackMiddleware = this.getAuthCallbackMiddleware.bind(this);
@@ -56,7 +56,7 @@ export class WebAuthController {
   }
 
   public getAuthCallback(req: Request, res: Response): void {
-    res.redirect(this.webAppUrl);
+    res.redirect(this.webAppBaseUrl);
   }
 
   public getAuthMe(req: TokenAuthenticatedRequest, res: Response): void {
