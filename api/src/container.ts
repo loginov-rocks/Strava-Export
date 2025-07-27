@@ -1,27 +1,38 @@
 import {
-  ACCESS_TOKEN_COOKIE_NAME, ACCESS_TOKEN_EXPIRES_IN, ACCESS_TOKEN_SECRET, API_BASE_URL, OAUTH_ACCESS_TOKEN_EXPIRES_IN,
+  ACCESS_TOKEN_COOKIE_NAME, ACCESS_TOKEN_EXPIRES_IN, ACCESS_TOKEN_SECRET, API_URL, OAUTH_ACCESS_TOKEN_EXPIRES_IN,
   OAUTH_ACCESS_TOKEN_SECRET, OAUTH_REFRESH_TOKEN_EXPIRES_IN, OAUTH_REFRESH_TOKEN_SECRET, PAT_REPOSITORY_DISPLAY_LENGTH,
   PAT_REPOSITORY_TOKEN_PREFIX, PAT_REPOSITORY_TOKEN_RANDOM_LENGTH, REFRESH_TOKEN_COOKIE_NAME, REFRESH_TOKEN_EXPIRES_IN,
   REFRESH_TOKEN_SECRET, STRAVA_API_BASE_URL, STRAVA_API_CLIENT_ID, STRAVA_API_CLIENT_SECRET, SYNC_JOB_QUEUE_NAME,
-  USER_REPOSITORY_ENCRYPTION_IV, USER_REPOSITORY_ENCRYPTION_KEY,
+  USER_REPOSITORY_ENCRYPTION_IV, USER_REPOSITORY_ENCRYPTION_KEY, WEB_APP_URL,
 } from './constants';
 
+// API Clients.
 import { StravaApiClient } from './apiClients/StravaApiClient';
 
+// Controllers.
 import { ActivityController } from './controllers/ActivitiesController';
+import { McpSseController } from './controllers/McpSseController';
+import { McpStreamableController } from './controllers/McpStreamableController';
 import { OAuthController } from './controllers/OAuthController';
 import { PatController } from './controllers/PatController';
 import { SyncJobController } from './controllers/SyncJobController';
 import { WebAuthController } from './controllers/WebAuthController';
 
+// DTO Factories.
 import { ActivityDtoFactory } from './dtoFactories/ActivityDtoFactory';
 import { PatDtoFactory } from './dtoFactories/PatDtoFactory';
 import { SyncJobDtoFactory } from './dtoFactories/SyncJobDtoFactory';
 
+// MCP.
+import { McpServer } from './mcp/McpServer';
+
+// Middlewares.
 import { CompositeAuthMiddleware } from './middlewares/CompositeAuthMiddleware';
+import { McpAuthMiddleware } from './middlewares/McpAuthMiddleware';
 import { PatMiddleware } from './middlewares/PatMiddleware';
 import { TokenMiddleware } from './middlewares/TokenMiddleware';
 
+// Models.
 import { activityModel } from './models/activityModel';
 import { oauthClientModel } from './models/oauthClientModel';
 import { oauthCodeModel } from './models/oauthCodeModel';
@@ -30,6 +41,7 @@ import { patModel } from './models/patModel';
 import { syncJobModel } from './models/syncJobModel';
 import { userModel } from './models/userModel';
 
+// Repositories.
 import { ActivityRepository } from './repositories/ActivityRepository';
 import { OAuthClientRepository } from './repositories/OAuthClientRepository';
 import { OAuthCodeRepository } from './repositories/OAuthCodeRepository';
@@ -38,6 +50,7 @@ import { PatRepository } from './repositories/PatRepository';
 import { SyncJobRepository } from './repositories/SyncJobRepository';
 import { UserRepository } from './repositories/UserRepository';
 
+// Services.
 import { ActivityService } from './services/ActivityService';
 import { ActivitySyncService } from './services/ActivitySyncService';
 import { AuthService } from './services/AuthService';
@@ -47,11 +60,13 @@ import { StravaTokenService } from './services/StravaTokenService';
 import { SyncJobService } from './services/SyncJobService';
 import { TokenService } from './services/TokenService';
 
+// Workers.
 import { SyncJobWorker } from './workers/SyncJobWorker';
 
+// Queues.
 import { syncJobQueue } from './queues';
 
-// API clients.
+// API Clients.
 const stravaApiClient = new StravaApiClient({
   baseUrl: STRAVA_API_BASE_URL,
   clientId: STRAVA_API_CLIENT_ID,
@@ -126,14 +141,14 @@ const oauthTokenService = new TokenService({
 });
 
 const authService = new AuthService({
-  apiBaseUrl: API_BASE_URL,
+  apiUrl: API_URL,
   stravaApiClient,
   tokenService,
   userRepository,
 });
 
 const oauthService = new OAuthService({
-  apiBaseUrl: API_BASE_URL,
+  apiUrl: API_URL,
   oauthClientRepository,
   oauthCodeRepository,
   oauthStateRepository,
@@ -149,6 +164,10 @@ const activitySyncService = new ActivitySyncService({
 });
 
 // Middlewares.
+export const mcpAuthMiddleware = new McpAuthMiddleware({
+  tokenService: oauthTokenService,
+});
+
 const patMiddleware = new PatMiddleware({
   patService,
 });
@@ -171,14 +190,28 @@ const patDtoFactory = new PatDtoFactory();
 
 const syncJobDtoFactory = new SyncJobDtoFactory();
 
+// MCP.
+const mcpServer = new McpServer({
+  activityDtoFactory,
+  activityService,
+});
+
 // Controllers.
 export const activityController = new ActivityController({
   activityDtoFactory,
   activityService,
 });
 
+export const mcpSseController = new McpSseController({
+  mcpServer,
+})
+
+export const mcpStreamableController = new McpStreamableController({
+  mcpServer,
+});
+
 export const oauthController = new OAuthController({
-  apiBaseUrl: API_BASE_URL,
+  apiUrl: API_URL,
   oauthService,
 });
 
@@ -194,6 +227,7 @@ export const syncJobController = new SyncJobController({
 
 export const webAuthController = new WebAuthController({
   authService,
+  webAppUrl: WEB_APP_URL,
 });
 
 // Workers.

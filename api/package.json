@@ -1,23 +1,27 @@
 {
   "scripts": {
     "dev": "tsx watch --env-file=.env src/app",
-    "dev:workers": "tsx --env-file=.env src/workers",
+    "dev:mcp": "tsx watch --env-file=.env src/mcp",
+    "dev:workers": "tsx watch --env-file=.env src/workers",
     "generate-encryption-iv": "node -e \"console.log('USER_REPOSITORY_ENCRYPTION_IV=' + require('crypto').randomBytes(12).toString('hex'))\"",
     "generate-encryption-key": "node -e \"console.log('USER_REPOSITORY_ENCRYPTION_KEY=' + require('crypto').randomBytes(32).toString('hex'))\"",
     "generate-token-secret": "node -e \"console.log(require('crypto').randomBytes(32).toString('base64'))\"",
     "lint": "eslint",
     "start": "tsx src/app",
+    "start:mcp": "tsx src/mcp",
     "start:workers": "tsx src/workers",
     "typecheck": "tsc"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.17.0",
     "body-parser": "^2.2.0",
     "bullmq": "^5.54.2",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.16.0"
+    "mongoose": "^8.16.0",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@eslint/js": "^9.29.0",

@@ -1,8 +1,8 @@
-import { MONGOOSE_CONNECT_URI } from './constants';
+import { MONGO_URL } from './constants';
 import { syncJobWorker } from './container';
 import { connect as connectDatabase } from './database';
 
-connectDatabase(MONGOOSE_CONNECT_URI)
+connectDatabase(MONGO_URL)
   .then(() => {
     syncJobWorker.run();
     console.log('Workers started');

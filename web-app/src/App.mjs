@@ -1,7 +1,6 @@
 export class App {
-  constructor({ apiClient, redirectUri }) {
+  constructor({ apiClient }) {
     this.apiClient = apiClient;
-    this.redirectUri = redirectUri;
 
     this.isAuthorized = false;
 
@@ -11,11 +10,7 @@ export class App {
   }
 
   async onAuthorizeClick() {
-    // TODO: Refactor.
-    // const response = await this.apiClient.getAuthStrava(this.redirectUri);
-
-    // window.location.href = 'http://localhost:3001/auth/login';
-    window.location.href = 'https://stravaholics-api.up.railway.app/auth/login';
+    window.location.href = this.apiClient.getLoginUrl();
   }
 
   async onLogoutClick() {

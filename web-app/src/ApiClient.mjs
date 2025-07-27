@@ -74,6 +74,10 @@ export class ApiClient {
     });
   }
 
+  getLoginUrl() {
+    return `${this.baseUrl}/auth/login`;
+  }
+
   postAuthToken(code, scope, state) {
     return this.request('/auth/token', {
       body: JSON.stringify({ code, scope, state }),

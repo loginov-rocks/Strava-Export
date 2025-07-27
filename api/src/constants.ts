@@ -1,7 +1,7 @@
-export const PORT = process.env.PORT;
-export const MONGOOSE_CONNECT_URI = process.env.MONGO_URL || '';
+export const PORT = parseInt(process.env.PORT || '', 10);
+export const MONGO_URL = process.env.MONGO_URL || '';
 export const REDIS_URL = process.env.REDIS_URL || '';
-export const API_BASE_URL = process.env.API_URL || '';
+export const API_URL = process.env.API_URL || '';
 export const WEB_APP_URL = process.env.WEB_APP_URL || '';
 
 export const USER_REPOSITORY_ENCRYPTION_IV = process.env.USER_REPOSITORY_ENCRYPTION_IV || '';

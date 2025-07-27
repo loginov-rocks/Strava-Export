@@ -9,7 +9,7 @@ import { UserRepository } from '../repositories/UserRepository';
 import { TokenService } from './TokenService';
 
 interface Options {
-  apiBaseUrl: string;
+  apiUrl: string;
   oauthClientRepository: OAuthClientRepository;
   oauthCodeRepository: OAuthCodeRepository;
   oauthStateRepository: OAuthStateRepository;
@@ -41,7 +41,7 @@ interface CreateStateParams {
 }
 
 export class OAuthService {
-  private readonly apiBaseUrl: string;
+  private readonly apiUrl: string;
   private readonly oauthClientRepository: OAuthClientRepository;
   private readonly oauthCodeRepository: OAuthCodeRepository;
   private readonly oauthStateRepository: OAuthStateRepository;
@@ -50,10 +50,10 @@ export class OAuthService {
   private readonly userRepository: UserRepository;
 
   constructor({
-    apiBaseUrl, oauthClientRepository, oauthCodeRepository, oauthStateRepository, stravaApiClient, tokenService,
+    apiUrl, oauthClientRepository, oauthCodeRepository, oauthStateRepository, stravaApiClient, tokenService,
     userRepository,
   }: Options) {
-    this.apiBaseUrl = apiBaseUrl;
+    this.apiUrl = apiUrl;
     this.oauthClientRepository = oauthClientRepository;
     this.oauthCodeRepository = oauthCodeRepository;
     this.oauthStateRepository = oauthStateRepository;
@@ -63,7 +63,7 @@ export class OAuthService {
   }
 
   public buildAuthorizeUrl(redirectPath: string, state?: string) {
-    const redirectUri = `${this.apiBaseUrl}${redirectPath}`;
+    const redirectUri = `${this.apiUrl}${redirectPath}`;
 
     return this.stravaApiClient.buildAuthorizeUrl(redirectUri, state);
   }

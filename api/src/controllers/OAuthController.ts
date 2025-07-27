@@ -4,16 +4,16 @@ import { TokenAuthenticatedRequest } from '../middlewares/TokenMiddleware';
 import { OAuthService } from '../services/OAuthService';
 
 interface Options {
-  apiBaseUrl: string;
+  apiUrl: string;
   oauthService: OAuthService;
 }
 
 export class OAuthController {
-  private readonly apiBaseUrl: string;
+  private readonly apiUrl: string;
   private readonly oauthService: OAuthService;
 
-  constructor({ apiBaseUrl, oauthService }: Options) {
-    this.apiBaseUrl = apiBaseUrl;
+  constructor({ apiUrl, oauthService }: Options) {
+    this.apiUrl = apiUrl;
     this.oauthService = oauthService;
 
     this.getServerMetadata = this.getServerMetadata.bind(this);
@@ -24,7 +24,7 @@ export class OAuthController {
   }
 
   public getServerMetadata(req: Request, res: Response): void {
-    const issuer = this.apiBaseUrl;
+    const issuer = this.apiUrl;
 
     // TODO: Unbind from routing constants.
     res.send({

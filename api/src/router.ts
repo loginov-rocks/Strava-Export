@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Request, Response, Router } from 'express';
 
 import {
   activityController, oauthController, compositeAuthMiddleware, patController, syncJobController, tokenMiddleware,
@@ -6,6 +6,10 @@ import {
 } from './container';
 
 export const router = Router();
+
+router.get('/', (req: Request, res: Response) => {
+  res.send('OK');
+});
 
 router.get('/auth/login', webAuthController.getAuthLogin);
 router.get('/auth/callback',

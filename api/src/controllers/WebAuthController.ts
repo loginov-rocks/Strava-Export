@@ -5,13 +5,16 @@ import { AuthService } from '../services/AuthService';
 
 interface Options {
   authService: AuthService;
+  webAppUrl: string;
 }
 
 export class WebAuthController {
   private readonly authService: AuthService;
+  private readonly webAppUrl: string;
 
-  constructor({ authService }: Options) {
+  constructor({ authService, webAppUrl }: Options) {
     this.authService = authService;
+    this.webAppUrl = webAppUrl;
 
     this.getAuthLogin = this.getAuthLogin.bind(this);
     this.getAuthCallbackMiddleware = this.getAuthCallbackMiddleware.bind(this);
@@ -53,8 +56,7 @@ export class WebAuthController {
   }
 
   public getAuthCallback(req: Request, res: Response): void {
-    // TODO: Extract constant.
-    res.redirect('https://stravaholics.up.railway.app');
+    res.redirect(this.webAppUrl);
   }
 
   public getAuthMe(req: TokenAuthenticatedRequest, res: Response): void {
