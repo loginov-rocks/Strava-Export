@@ -1,25 +1,25 @@
-import { OAuthCodeModel, OAuthCodeSchema } from '../models/oauthCodeModel';
+import { OAuthCodeData, OAuthCodeModel } from '../models/oAuthCodeModel';
 
 interface Options {
-  oauthCodeModel: OAuthCodeModel;
+  oAuthCodeModel: OAuthCodeModel;
 }
 
 export class OAuthCodeRepository {
-  private readonly oauthCodeModel: OAuthCodeModel;
+  private readonly oAuthCodeModel: OAuthCodeModel;
 
-  constructor({ oauthCodeModel }: Options) {
-    this.oauthCodeModel = oauthCodeModel;
+  constructor({ oAuthCodeModel }: Options) {
+    this.oAuthCodeModel = oAuthCodeModel;
   }
 
-  public create(oauthCode: OAuthCodeSchema) {
-    return this.oauthCodeModel.create(oauthCode);
+  public create(oAuthCodeData: OAuthCodeData) {
+    return this.oAuthCodeModel.create(oAuthCodeData);
   }
 
   public deleteOneById(id: string) {
-    return this.oauthCodeModel.deleteOne({ _id: id });
+    return this.oAuthCodeModel.deleteOne({ _id: id });
   }
 
   public findById(id: string) {
-    return this.oauthCodeModel.findById(id).lean();
+    return this.oAuthCodeModel.findById(id);
   }
 }

@@ -1,25 +1,39 @@
-import { model, Schema, Types } from 'mongoose';
+import { randomUUID } from 'crypto';
+import { Document, model, Schema } from 'mongoose';
 
-export interface OAuthClientSchema {
+export interface OAuthClientData {
   name: string;
   redirectUris: string[];
   scope: string;
 }
 
-export interface OAuthClientDocument extends OAuthClientSchema {
-  _id: Types.ObjectId;
+interface OAuthClientDocument extends Document, OAuthClientData {
+  _id: Schema.Types.UUID;
   createdAt: Date;
   updatedAt: Date;
 }
 
 const schema = new Schema<OAuthClientDocument>({
-  name: String,
-  redirectUris: [String],
-  scope: String,
+  _id: {
+    type: Schema.Types.UUID,
+    default: () => randomUUID(),
+  },
+  name: {
+    type: String,
+    required: true,
+  },
+  redirectUris: {
+    type: [String],
+    required: true,
+  },
+  scope: {
+    type: String,
+    required: true,
+  },
 }, {
   timestamps: true,
 });
 
-export const oauthClientModel = model<OAuthClientDocument>('OAuthClient', schema);
+export const oAuthClientModel = model<OAuthClientDocument>('OAuthClient', schema);
 
-export type OAuthClientModel = typeof oauthClientModel;
+export type OAuthClientModel = typeof oAuthClientModel;

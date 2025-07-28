@@ -1,25 +1,25 @@
-import { OAuthStateModel, OAuthStateSchema } from '../models/oauthStateModel';
+import { OAuthStateData, OAuthStateModel } from '../models/oAuthStateModel';
 
 interface Options {
-  oauthStateModel: OAuthStateModel;
+  oAuthStateModel: OAuthStateModel;
 }
 
 export class OAuthStateRepository {
-  private readonly oauthStateModel: OAuthStateModel;
+  private readonly oAuthStateModel: OAuthStateModel;
 
-  constructor({ oauthStateModel }: Options) {
-    this.oauthStateModel = oauthStateModel;
+  constructor({ oAuthStateModel }: Options) {
+    this.oAuthStateModel = oAuthStateModel;
   }
 
-  public create(oauthState: OAuthStateSchema) {
-    return this.oauthStateModel.create(oauthState);
+  public create(oAuthStateData: OAuthStateData) {
+    return this.oAuthStateModel.create(oAuthStateData);
   }
 
   public deleteOneById(id: string) {
-    return this.oauthStateModel.deleteOne({ _id: id });
+    return this.oAuthStateModel.deleteOne({ _id: id });
   }
 
   public findById(id: string) {
-    return this.oauthStateModel.findById(id).lean();
+    return this.oAuthStateModel.findById(id);
   }
 }

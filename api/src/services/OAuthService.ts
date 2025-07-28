@@ -133,7 +133,7 @@ export class OAuthService {
 
     const user = await this.userRepository.createOrUpdateByStravaAthleteId(stravaAthleteId, userData);
 
-    return user._id.toString();
+    return user.id;
   }
 
   public verifyRefreshToken(refreshToken: string) {

@@ -1,6 +1,6 @@
 import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
 
-import { UserModel, UserSchema } from '../models/userModel';
+import { UserData, UserModel } from '../models/userModel';
 
 interface Options {
   encryptionIv: string;
@@ -19,50 +19,35 @@ export class UserRepository {
     this.userModel = userModel;
   }
 
-  public createOrUpdateByStravaAthleteId(stravaAthleteId: string, user: UserSchema) {
-    const userData = JSON.parse(JSON.stringify(user));
+  public createOrUpdateByStravaAthleteId(stravaAthleteId: string, userData: UserData) {
+    const encryptedUserData = JSON.parse(JSON.stringify(userData));
 
-    if (userData.stravaToken.accessToken) {
-      userData.stravaToken.accessToken = this.encrypt(userData.stravaToken.accessToken);
-    }
+    encryptedUserData.stravaToken.accessToken = this.encrypt(userData.stravaToken.accessToken);
+    encryptedUserData.stravaToken.refreshToken = this.encrypt(userData.stravaToken.refreshToken);
 
-    if (userData.stravaToken.refreshToken) {
-      userData.stravaToken.refreshToken = this.encrypt(userData.stravaToken.refreshToken);
-    }
-
-    return this.userModel.findOneAndUpdate({ stravaAthleteId }, userData, { new: true, upsert: true }).lean();
+    return this.userModel.findOneAndUpdate({ stravaAthleteId }, encryptedUserData, { new: true, upsert: true });
   }
 
   public async findById(id: string) {
-    const user = await this.userModel.findById(id).lean();
+    const user = await this.userModel.findById(id);
 
-    if (user && user.stravaToken) {
-      if (user.stravaToken.accessToken) {
-        user.stravaToken.accessToken = this.decrypt(user.stravaToken.accessToken);
-      }
-
-      if (user.stravaToken.refreshToken) {
-        user.stravaToken.refreshToken = this.decrypt(user.stravaToken.refreshToken);
-      }
+    if (user) {
+      user.stravaToken.accessToken = this.decrypt(user.stravaToken.accessToken);
+      user.stravaToken.refreshToken = this.decrypt(user.stravaToken.refreshToken);
     }
 
     return user;
   }
 
-  public updateOneById(id: string, userData: Partial<UserSchema>) {
-    const userDataCopy = JSON.parse(JSON.stringify(userData));
+  public updateOneById(id: string, userData: Partial<UserData>) {
+    const encryptedUserData = JSON.parse(JSON.stringify(userData));
 
-    if (userDataCopy.stravaToken) {
-      if (userDataCopy.stravaToken.accessToken) {
-        userDataCopy.stravaToken.accessToken = this.encrypt(userDataCopy.stravaToken.accessToken);
-      }
-
-      if (userDataCopy.stravaToken.refreshToken) {
-        userDataCopy.stravaToken.refreshToken = this.encrypt(userDataCopy.stravaToken.refreshToken);
-      }
+    if (userData.stravaToken) {
+      encryptedUserData.stravaToken.accessToken = this.encrypt(userData.stravaToken.accessToken);
+      encryptedUserData.stravaToken.refreshToken = this.encrypt(userData.stravaToken.refreshToken);
     }
 
-    return this.userModel.updateOne({ _id: id }, userDataCopy);
+    return this.userModel.updateOne({ _id: id }, encryptedUserData);
   }
 
   private encrypt(text: string): string {

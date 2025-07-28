@@ -53,7 +53,7 @@ export class AuthService {
 
     const user = await this.userRepository.createOrUpdateByStravaAthleteId(stravaAthleteId, userData);
 
-    return this.createTokens(user._id.toString());
+    return this.createTokens(user.id);
   }
 
   public refreshTokens(userId: string) {

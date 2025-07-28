@@ -36,9 +36,9 @@ import { TokenMiddleware } from './middlewares/TokenMiddleware';
 
 // Models.
 import { activityModel } from './models/activityModel';
-import { oauthClientModel } from './models/oauthClientModel';
-import { oauthCodeModel } from './models/oauthCodeModel';
-import { oauthStateModel } from './models/oauthStateModel';
+import { oAuthClientModel } from './models/oAuthClientModel';
+import { oAuthCodeModel } from './models/oAuthCodeModel';
+import { oAuthStateModel } from './models/oAuthStateModel';
 import { patModel } from './models/patModel';
 import { syncJobModel } from './models/syncJobModel';
 import { userModel } from './models/userModel';
@@ -81,15 +81,15 @@ const activityRepository = new ActivityRepository({
 });
 
 const oauthClientRepository = new OAuthClientRepository({
-  oauthClientModel,
+  oAuthClientModel,
 });
 
 const oauthCodeRepository = new OAuthCodeRepository({
-  oauthCodeModel,
+  oAuthCodeModel,
 });
 
 const oauthStateRepository = new OAuthStateRepository({
-  oauthStateModel,
+  oAuthStateModel,
 });
 
 const patRepository = new PatRepository({

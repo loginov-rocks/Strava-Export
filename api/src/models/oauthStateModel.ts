@@ -1,6 +1,7 @@
-import { model, Schema, Types } from 'mongoose';
+import { randomUUID } from 'crypto';
+import { Document, model, Schema } from 'mongoose';
 
-export interface OAuthStateSchema {
+export interface OAuthStateData {
   clientId: string;
   codeChallenge: string;
   redirectUri: string;
@@ -8,22 +9,41 @@ export interface OAuthStateSchema {
   state: string;
 }
 
-export interface OAuthStateDocument extends OAuthStateSchema {
-  _id: Types.ObjectId;
+interface OAuthStateDocument extends Document, OAuthStateData {
+  _id: Schema.Types.UUID;
   createdAt: Date;
   updatedAt: Date;
 }
 
 const schema = new Schema<OAuthStateDocument>({
-  clientId: String,
-  codeChallenge: String,
-  redirectUri: String,
-  scope: String,
-  state: String,
+  _id: {
+    type: Schema.Types.UUID,
+    default: () => randomUUID(),
+  },
+  clientId: {
+    type: String,
+    required: true,
+  },
+  codeChallenge: {
+    type: String,
+    required: true,
+  },
+  redirectUri: {
+    type: String,
+    required: true,
+  },
+  scope: {
+    type: String,
+    required: true,
+  },
+  state: {
+    type: String,
+    required: true,
+  },
 }, {
   timestamps: true,
 });
 
-export const oauthStateModel = model<OAuthStateDocument>('OAuthState', schema);
+export const oAuthStateModel = model<OAuthStateDocument>('OAuthState', schema);
 
-export type OAuthStateModel = typeof oauthStateModel;
+export type OAuthStateModel = typeof oAuthStateModel;

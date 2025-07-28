@@ -1,25 +1,25 @@
-import { OAuthClientModel, OAuthClientSchema } from '../models/oauthClientModel';
+import { OAuthClientData, OAuthClientModel } from '../models/oAuthClientModel';
 
 interface Options {
-  oauthClientModel: OAuthClientModel;
+  oAuthClientModel: OAuthClientModel;
 }
 
 export class OAuthClientRepository {
-  private readonly oauthClientModel: OAuthClientModel;
+  private readonly oAuthClientModel: OAuthClientModel;
 
-  constructor({ oauthClientModel }: Options) {
-    this.oauthClientModel = oauthClientModel;
+  constructor({ oAuthClientModel }: Options) {
+    this.oAuthClientModel = oAuthClientModel;
   }
 
-  public create(oauthClient: OAuthClientSchema) {
-    return this.oauthClientModel.create(oauthClient);
+  public create(oAuthClientData: OAuthClientData) {
+    return this.oAuthClientModel.create(oAuthClientData);
   }
 
   public deleteOneById(id: string) {
-    return this.oauthClientModel.deleteOne({ _id: id });
+    return this.oAuthClientModel.deleteOne({ _id: id });
   }
 
   public findById(id: string) {
-    return this.oauthClientModel.findById(id).lean();
+    return this.oAuthClientModel.findById(id);
   }
 }
