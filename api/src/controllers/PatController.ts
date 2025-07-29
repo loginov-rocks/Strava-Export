@@ -1,7 +1,7 @@
 import { Response } from 'express';
 
 import { PatDtoFactory } from '../dtoFactories/PatDtoFactory';
-import { TokenAuthenticatedRequest } from '../middlewares/TokenMiddleware';
+import { WebAuthenticatedRequest } from '../middlewares/WebAuthMiddleware';
 import { PatService } from '../services/PatService';
 
 interface Options {
@@ -23,7 +23,7 @@ export class PatController {
     this.deletePat = this.deletePat.bind(this);
   }
 
-  public async postPat(req: TokenAuthenticatedRequest, res: Response): Promise<void> {
+  public async postPat(req: WebAuthenticatedRequest, res: Response): Promise<void> {
     const { userId } = req;
 
     if (!userId) {
@@ -56,7 +56,7 @@ export class PatController {
     res.status(201).send(this.patDtoFactory.createCreatedJson(pat, token));
   }
 
-  public async getPats(req: TokenAuthenticatedRequest, res: Response): Promise<void> {
+  public async getPats(req: WebAuthenticatedRequest, res: Response): Promise<void> {
     const { userId } = req;
 
     if (!userId) {
@@ -77,7 +77,7 @@ export class PatController {
     res.send(this.patDtoFactory.createJsonCollection(pats));
   }
 
-  public async getPat(req: TokenAuthenticatedRequest, res: Response): Promise<void> {
+  public async getPat(req: WebAuthenticatedRequest, res: Response): Promise<void> {
     const { userId } = req;
 
     if (!userId) {
@@ -110,7 +110,7 @@ export class PatController {
     res.send(this.patDtoFactory.createJson(pat));
   }
 
-  public async deletePat(req: TokenAuthenticatedRequest, res: Response): Promise<void> {
+  public async deletePat(req: WebAuthenticatedRequest, res: Response): Promise<void> {
     const { userId } = req;
 
     if (!userId) {

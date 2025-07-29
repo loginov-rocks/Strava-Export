@@ -3,23 +3,23 @@ import { SyncJobCompletedResult, SyncJobParams } from '../models/syncJobModel';
 import { ActivityRepository } from '../repositories/ActivityRepository';
 import { isValidDateStringFromLastDays } from '../utils/isValid';
 
-import { StravaTokenService } from './StravaTokenService';
+import { UserService } from './UserService';
 
 interface Options {
   activityRepository: ActivityRepository;
   stravaApiClient: StravaApiClient;
-  stravaTokenService: StravaTokenService;
+  userService: UserService;
 }
 
 export class ActivitySyncService {
   private readonly activityRepository: ActivityRepository;
   private readonly stravaApiClient: StravaApiClient;
-  private readonly stravaTokenService: StravaTokenService;
+  private readonly userService: UserService;
 
-  constructor({ activityRepository, stravaApiClient, stravaTokenService }: Options) {
+  constructor({ activityRepository, stravaApiClient, userService }: Options) {
     this.activityRepository = activityRepository;
     this.stravaApiClient = stravaApiClient;
-    this.stravaTokenService = stravaTokenService;
+    this.userService = userService;
   }
 
   public async processPaginatedActivities(userId: string, params?: SyncJobParams): Promise<SyncJobCompletedResult> {
@@ -38,7 +38,7 @@ export class ActivitySyncService {
     let detailsUpdatedCount = 0;
 
     while (hasMorePages) {
-      const accessToken = await this.stravaTokenService.getAccessToken(userId);
+      const accessToken = await this.userService.getStravaAccessToken(userId);
       const stravaSummaryActivities = await this.stravaApiClient.getActivities(accessToken, page, perPage);
       const pageResults = await this.processStravaSummaryActivities(userId, stravaSummaryActivities, params);
 
@@ -161,7 +161,7 @@ export class ActivitySyncService {
     let updatedCount = 0;
 
     for (const stravaActivityId of stravaActivitiesIds) {
-      const accessToken = await this.stravaTokenService.getAccessToken(userId);
+      const accessToken = await this.userService.getStravaAccessToken(userId);
       const stravaDetailedActivity = await this.stravaApiClient.getActivity(accessToken, stravaActivityId);
 
       const output = await this.activityRepository.updateByStravaActivityId(

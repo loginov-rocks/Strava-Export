@@ -1,32 +1,32 @@
 import { NextFunction, Response } from 'express';
 
 import { PatAuthenticatedRequest, PatMiddleware } from './PatMiddleware';
-import { TokenAuthenticatedRequest, TokenMiddleware } from './TokenMiddleware';
+import { WebAuthenticatedRequest, WebAuthMiddleware } from './WebAuthMiddleware';
 
-export type CompositeAuthenticatedRequest = PatAuthenticatedRequest | TokenAuthenticatedRequest;
+export type CompositeAuthenticatedRequest = PatAuthenticatedRequest | WebAuthenticatedRequest;
 
 interface Options {
   patMiddleware: PatMiddleware;
-  tokenMiddleware: TokenMiddleware;
+  webAuthMiddleware: WebAuthMiddleware;
 }
 
 export class CompositeAuthMiddleware {
   private readonly patMiddleware: PatMiddleware;
-  private readonly tokenMiddleware: TokenMiddleware;
+  private readonly webAuthMiddleware: WebAuthMiddleware;
 
-  constructor({ tokenMiddleware, patMiddleware }: Options) {
-    this.tokenMiddleware = tokenMiddleware;
+  constructor({ patMiddleware, webAuthMiddleware }: Options) {
     this.patMiddleware = patMiddleware;
+    this.webAuthMiddleware = webAuthMiddleware;
 
-    this.requireAccessTokenOrPat = this.requireAccessTokenOrPat.bind(this);
+    this.requireWebAuthOrPat = this.requireWebAuthOrPat.bind(this);
   }
 
-  public async requireAccessTokenOrPat(
+  public async requireWebAuthOrPat(
     req: CompositeAuthenticatedRequest,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
-    const tokenUserId = this.tokenMiddleware.authenticateRequest(req, 'access');
+    const tokenUserId = this.webAuthMiddleware.authenticateRequest(req, 'access');
 
     if (tokenUserId) {
       req.userId = tokenUserId;

@@ -32,7 +32,7 @@ import { McpServer } from './mcp/McpServer';
 import { CompositeAuthMiddleware } from './middlewares/CompositeAuthMiddleware';
 import { McpAuthMiddleware } from './middlewares/McpAuthMiddleware';
 import { PatMiddleware } from './middlewares/PatMiddleware';
-import { TokenMiddleware } from './middlewares/TokenMiddleware';
+import { WebAuthMiddleware } from './middlewares/WebAuthMiddleware';
 
 // Models.
 import { activityModel } from './models/activityModel';
@@ -55,12 +55,12 @@ import { UserRepository } from './repositories/UserRepository';
 // Services.
 import { ActivityService } from './services/ActivityService';
 import { ActivitySyncService } from './services/ActivitySyncService';
-import { AuthService } from './services/AuthService';
 import { OAuthService } from './services/OAuthService';
 import { PatService } from './services/PatService';
-import { StravaTokenService } from './services/StravaTokenService';
 import { SyncJobService } from './services/SyncJobService';
 import { TokenService } from './services/TokenService';
+import { UserService } from './services/UserService';
+import { WebAuthService } from './services/WebAuthService';
 
 // Workers.
 import { SyncJobWorker } from './workers/SyncJobWorker';
@@ -118,21 +118,20 @@ const patService = new PatService({
   patRepository,
 });
 
-const stravaTokenService = new StravaTokenService({
+const userService = new UserService({
   stravaApiClient,
   userRepository,
+});
+
+const activitySyncService = new ActivitySyncService({
+  activityRepository,
+  stravaApiClient,
+  userService,
 });
 
 const syncJobService = new SyncJobService({
   syncJobQueue,
   syncJobRepository,
-});
-
-const tokenService = new TokenService({
-  accessTokenExpiresIn: WEB_AUTH_ACCESS_TOKEN_EXPIRES_IN,
-  accessTokenSecret: WEB_AUTH_ACCESS_TOKEN_SECRET,
-  refreshTokenExpiresIn: WEB_AUTH_REFRESH_TOKEN_EXPIRES_IN,
-  refreshTokenSecret: WEB_AUTH_REFRESH_TOKEN_SECRET,
 });
 
 const oauthTokenService = new TokenService({
@@ -142,11 +141,11 @@ const oauthTokenService = new TokenService({
   refreshTokenSecret: OAUTH_REFRESH_TOKEN_SECRET,
 });
 
-const authService = new AuthService({
-  apiBaseUrl: API_BASE_URL,
-  stravaApiClient,
-  tokenService,
-  userRepository,
+const webAuthTokenService = new TokenService({
+  accessTokenExpiresIn: WEB_AUTH_ACCESS_TOKEN_EXPIRES_IN,
+  accessTokenSecret: WEB_AUTH_ACCESS_TOKEN_SECRET,
+  refreshTokenExpiresIn: WEB_AUTH_REFRESH_TOKEN_EXPIRES_IN,
+  refreshTokenSecret: WEB_AUTH_REFRESH_TOKEN_SECRET,
 });
 
 const oauthService = new OAuthService({
@@ -156,13 +155,14 @@ const oauthService = new OAuthService({
   oauthStateRepository,
   stravaApiClient,
   tokenService: oauthTokenService,
-  userRepository,
+  userService,
 });
 
-const activitySyncService = new ActivitySyncService({
-  activityRepository,
+const webAuthService = new WebAuthService({
+  apiBaseUrl: API_BASE_URL,
   stravaApiClient,
-  stravaTokenService,
+  tokenService: webAuthTokenService,
+  userService,
 });
 
 // Middlewares.
@@ -175,15 +175,15 @@ const patMiddleware = new PatMiddleware({
   patService,
 });
 
-export const tokenMiddleware = new TokenMiddleware({
+export const webAuthMiddleware = new WebAuthMiddleware({
   accessTokenCookieName: WEB_AUTH_ACCESS_TOKEN_COOKIE_NAME,
   refreshTokenCookieName: WEB_AUTH_REFRESH_TOKEN_COOKIE_NAME,
-  tokenService,
+  tokenService: webAuthTokenService,
 });
 
 export const compositeAuthMiddleware = new CompositeAuthMiddleware({
   patMiddleware,
-  tokenMiddleware,
+  webAuthMiddleware,
 });
 
 // DTO Factories.
@@ -232,8 +232,8 @@ export const syncJobController = new SyncJobController({
 });
 
 export const webAuthController = new WebAuthController({
-  authService,
   webAppBaseUrl: WEB_APP_BASE_URL,
+  webAuthService,
 });
 
 // Workers.

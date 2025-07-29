@@ -2,7 +2,7 @@ import { Response } from 'express';
 
 import { ActivityDtoFactory } from '../dtoFactories/ActivityDtoFactory';
 import { CompositeAuthenticatedRequest } from '../middlewares/CompositeAuthMiddleware';
-import { TokenAuthenticatedRequest } from '../middlewares/TokenMiddleware';
+import { WebAuthenticatedRequest } from '../middlewares/WebAuthMiddleware';
 import { ActivityService } from '../services/ActivityService';
 import {
   getDateAgoFromDays, getDateAgoFromMonths, getDateAgoFromWeeks, getDateAgoFromYears,
@@ -72,7 +72,7 @@ export class ActivityController {
       : this.activityDtoFactory.createJsonCollection(activities));
   }
 
-  public async deleteActivities(req: TokenAuthenticatedRequest, res: Response): Promise<void> {
+  public async deleteActivities(req: WebAuthenticatedRequest, res: Response): Promise<void> {
     const { userId } = req;
 
     if (!userId) {

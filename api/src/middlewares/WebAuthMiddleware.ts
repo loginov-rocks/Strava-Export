@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 
 import { TokenService } from '../services/TokenService';
 
-export interface TokenAuthenticatedRequest extends Request {
+export interface WebAuthenticatedRequest extends Request {
   userId?: string;
 }
 
@@ -12,7 +12,7 @@ interface Options {
   tokenService: TokenService;
 }
 
-export class TokenMiddleware {
+export class WebAuthMiddleware {
   private readonly accessTokenCookieName: string;
   private readonly refreshTokenCookieName: string;
   private readonly tokenService: TokenService;
@@ -56,7 +56,7 @@ export class TokenMiddleware {
     next();
   }
 
-  public optionalAccessToken(req: TokenAuthenticatedRequest, res: Response, next: NextFunction): void {
+  public optionalAccessToken(req: WebAuthenticatedRequest, res: Response, next: NextFunction): void {
     const userId = this.authenticateRequest(req, 'access');
 
     if (userId) {
@@ -66,7 +66,7 @@ export class TokenMiddleware {
     next();
   }
 
-  public requireAccessToken(req: TokenAuthenticatedRequest, res: Response, next: NextFunction): void {
+  public requireAccessToken(req: WebAuthenticatedRequest, res: Response, next: NextFunction): void {
     const userId = this.authenticateRequest(req, 'access');
 
     if (!userId) {
@@ -79,7 +79,7 @@ export class TokenMiddleware {
     next();
   }
 
-  public requireRefreshToken(req: TokenAuthenticatedRequest, res: Response, next: NextFunction): void {
+  public requireRefreshToken(req: WebAuthenticatedRequest, res: Response, next: NextFunction): void {
     const userId = this.authenticateRequest(req, 'refresh');
 
     if (!userId) {

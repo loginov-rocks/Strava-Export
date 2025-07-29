@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 
-import { TokenAuthenticatedRequest } from '../middlewares/TokenMiddleware';
+import { WebAuthenticatedRequest } from '../middlewares/WebAuthMiddleware';
 import { OAuthService } from '../services/OAuthService';
 
 interface Options {
@@ -93,7 +93,7 @@ export class OAuthController {
     });
   }
 
-  public async getOAuthAuthorize(req: TokenAuthenticatedRequest, res: Response): Promise<void> {
+  public async getOAuthAuthorize(req: WebAuthenticatedRequest, res: Response): Promise<void> {
     console.log('getOAuthAuthorize', req.query);
 
     const { client_id, code_challenge, code_challenge_method, redirect_uri, response_type, scope, state } = req.query;

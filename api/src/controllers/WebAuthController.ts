@@ -1,20 +1,20 @@
 import { NextFunction, Request, Response } from 'express';
 
-import { TokenAuthenticatedRequest } from '../middlewares/TokenMiddleware';
-import { AuthService } from '../services/AuthService';
+import { WebAuthenticatedRequest } from '../middlewares/WebAuthMiddleware';
+import { WebAuthService } from '../services/WebAuthService';
 
 interface Options {
-  authService: AuthService;
   webAppBaseUrl: string;
+  webAuthService: WebAuthService;
 }
 
 export class WebAuthController {
-  private readonly authService: AuthService;
   private readonly webAppBaseUrl: string;
+  private readonly webAuthService: WebAuthService;
 
-  constructor({ authService, webAppBaseUrl }: Options) {
-    this.authService = authService;
+  constructor({ webAppBaseUrl, webAuthService }: Options) {
     this.webAppBaseUrl = webAppBaseUrl;
+    this.webAuthService = webAuthService;
 
     this.getAuthLogin = this.getAuthLogin.bind(this);
     this.getAuthCallbackMiddleware = this.getAuthCallbackMiddleware.bind(this);
@@ -27,7 +27,7 @@ export class WebAuthController {
 
   public getAuthLogin(req: Request, res: Response): void {
     // TODO: Extract constant.
-    const url = this.authService.buildAuthorizeUrl('/auth/callback');
+    const url = this.webAuthService.buildAuthorizeUrl('/auth/callback');
 
     res.redirect(url);
   }
@@ -42,7 +42,7 @@ export class WebAuthController {
 
     let tokens;
     try {
-      tokens = await this.authService.exchangeCode(code, scope, state);
+      tokens = await this.webAuthService.exchangeCode(code, scope, state);
     } catch (error) {
       console.error(error);
 
@@ -59,7 +59,7 @@ export class WebAuthController {
     res.redirect(this.webAppBaseUrl);
   }
 
-  public getAuthMe(req: TokenAuthenticatedRequest, res: Response): void {
+  public getAuthMe(req: WebAuthenticatedRequest, res: Response): void {
     const { userId } = req;
 
     if (!userId) {
@@ -70,7 +70,7 @@ export class WebAuthController {
     res.send({ userId });
   }
 
-  public postAuthRefreshMiddleware(req: TokenAuthenticatedRequest, res: Response, next: NextFunction): void {
+  public postAuthRefreshMiddleware(req: WebAuthenticatedRequest, res: Response, next: NextFunction): void {
     const { userId } = req;
 
     if (!userId) {
@@ -80,7 +80,7 @@ export class WebAuthController {
 
     let tokens;
     try {
-      tokens = this.authService.refreshTokens(userId);
+      tokens = this.webAuthService.refreshTokens(userId);
     } catch (error) {
       console.error(error);
 

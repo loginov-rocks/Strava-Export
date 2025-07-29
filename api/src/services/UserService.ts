@@ -6,22 +6,38 @@ interface Options {
   userRepository: UserRepository;
 }
 
-export class StravaTokenService {
+export class UserService {
   private readonly stravaApiClient: StravaApiClient;
   private readonly userRepository: UserRepository;
 
-  private readonly accessTokenCache: Map<string, { accessToken: string, expiresAt: Date }>;
+  private readonly stravaAccessTokenCache: Map<string, { accessToken: string, expiresAt: Date }>;
 
   constructor({ stravaApiClient, userRepository }: Options) {
     this.stravaApiClient = stravaApiClient;
     this.userRepository = userRepository;
 
     // Using cache for access tokens only to keep refresh tokens encrypted in the database.
-    this.accessTokenCache = new Map();
+    this.stravaAccessTokenCache = new Map();
   }
 
-  public async getAccessToken(userId: string) {
-    const cachedAccessToken = this.getCachedAccessToken(userId);
+  public async createOrUpdateUserWithStravaAuthCode(code: string) {
+    const tokenResponse = await this.stravaApiClient.token(code);
+
+    const stravaAthleteId = tokenResponse.athlete.id.toString();
+    const userData = {
+      stravaAthleteId,
+      stravaToken: {
+        accessToken: tokenResponse.access_token,
+        refreshToken: tokenResponse.refresh_token,
+        expiresAt: new Date(tokenResponse.expires_at * 1000),
+      }
+    };
+
+    return this.userRepository.createOrUpdateByStravaAthleteId(stravaAthleteId, userData);
+  }
+
+  public async getStravaAccessToken(userId: string) {
+    const cachedAccessToken = this.getCachedStravaAccessToken(userId);
 
     if (cachedAccessToken) {
       return cachedAccessToken;
@@ -34,7 +50,7 @@ export class StravaTokenService {
     }
 
     if (new Date() < new Date(user.stravaToken.expiresAt)) {
-      this.cacheAccessToken(userId, user.stravaToken.accessToken, new Date(user.stravaToken.expiresAt));
+      this.cacheStravaAccessToken(userId, user.stravaToken.accessToken, new Date(user.stravaToken.expiresAt));
 
       return user.stravaToken.accessToken;
     }
@@ -51,20 +67,20 @@ export class StravaTokenService {
 
     await this.userRepository.updateById(userId, userData);
 
-    this.cacheAccessToken(userId, userData.stravaToken.accessToken, userData.stravaToken.expiresAt);
+    this.cacheStravaAccessToken(userId, userData.stravaToken.accessToken, userData.stravaToken.expiresAt);
 
     return userData.stravaToken.accessToken;
   }
 
-  private getCachedAccessToken(userId: string) {
-    const cached = this.accessTokenCache.get(userId);
+  private getCachedStravaAccessToken(userId: string) {
+    const cached = this.stravaAccessTokenCache.get(userId);
 
     if (!cached) {
       return null;
     }
 
     if (new Date() >= cached.expiresAt) {
-      this.accessTokenCache.delete(userId);
+      this.stravaAccessTokenCache.delete(userId);
 
       return null;
     }
@@ -72,7 +88,7 @@ export class StravaTokenService {
     return cached.accessToken;
   }
 
-  private cacheAccessToken(userId: string, accessToken: string, expiresAt: Date) {
-    this.accessTokenCache.set(userId, { accessToken, expiresAt });
+  private cacheStravaAccessToken(userId: string, accessToken: string, expiresAt: Date) {
+    this.stravaAccessTokenCache.set(userId, { accessToken, expiresAt });
   }
 }

@@ -1,26 +1,26 @@
 import { StravaApiClient } from '../apiClients/StravaApiClient';
-import { UserRepository } from '../repositories/UserRepository';
 
 import { TokenService } from './TokenService';
+import { UserService } from './UserService';
 
 interface Options {
   apiBaseUrl: string;
   stravaApiClient: StravaApiClient;
   tokenService: TokenService;
-  userRepository: UserRepository;
+  userService: UserService;
 }
 
-export class AuthService {
+export class WebAuthService {
   private readonly apiBaseUrl: string;
   private readonly stravaApiClient: StravaApiClient;
   private readonly tokenService: TokenService;
-  private readonly userRepository: UserRepository;
+  private readonly userService: UserService;
 
-  constructor({ apiBaseUrl, stravaApiClient, tokenService, userRepository }: Options) {
+  constructor({ apiBaseUrl, stravaApiClient, tokenService, userService }: Options) {
     this.apiBaseUrl = apiBaseUrl;
     this.stravaApiClient = stravaApiClient;
     this.tokenService = tokenService;
-    this.userRepository = userRepository;
+    this.userService = userService;
   }
 
   public buildAuthorizeUrl(redirectPath: string, state?: string) {
@@ -39,19 +39,7 @@ export class AuthService {
   // Disabled to keep signature consistent.
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async exchangeCode(code: string, scope?: string, state?: string) {
-    const tokenResponse = await this.stravaApiClient.token(code);
-
-    const stravaAthleteId = tokenResponse.athlete.id.toString();
-    const userData = {
-      stravaAthleteId,
-      stravaToken: {
-        accessToken: tokenResponse.access_token,
-        refreshToken: tokenResponse.refresh_token,
-        expiresAt: new Date(tokenResponse.expires_at * 1000),
-      }
-    };
-
-    const user = await this.userRepository.createOrUpdateByStravaAthleteId(stravaAthleteId, userData);
+    const user = await this.userService.createOrUpdateUserWithStravaAuthCode(code);
 
     return this.createTokens(user.id);
   }

@@ -4,9 +4,9 @@ import { StravaApiClient } from '../apiClients/StravaApiClient';
 import { OAuthClientRepository } from '../repositories/OAuthClientRepository';
 import { OAuthCodeRepository } from '../repositories/OAuthCodeRepository';
 import { OAuthStateRepository } from '../repositories/OAuthStateRepository';
-import { UserRepository } from '../repositories/UserRepository';
 
 import { TokenService } from './TokenService';
+import { UserService } from './UserService';
 
 interface Options {
   apiBaseUrl: string;
@@ -15,7 +15,7 @@ interface Options {
   oauthStateRepository: OAuthStateRepository;
   stravaApiClient: StravaApiClient;
   tokenService: TokenService;
-  userRepository: UserRepository;
+  userService: UserService;
 }
 
 interface CreateClientParams {
@@ -47,11 +47,11 @@ export class OAuthService {
   private readonly oauthStateRepository: OAuthStateRepository;
   private readonly stravaApiClient: StravaApiClient;
   private readonly tokenService: TokenService;
-  private readonly userRepository: UserRepository;
+  private readonly userService: UserService;
 
   constructor({
     apiBaseUrl, oauthClientRepository, oauthCodeRepository, oauthStateRepository, stravaApiClient, tokenService,
-    userRepository,
+    userService,
   }: Options) {
     this.apiBaseUrl = apiBaseUrl;
     this.oauthClientRepository = oauthClientRepository;
@@ -59,7 +59,7 @@ export class OAuthService {
     this.oauthStateRepository = oauthStateRepository;
     this.stravaApiClient = stravaApiClient;
     this.tokenService = tokenService;
-    this.userRepository = userRepository;
+    this.userService = userService;
   }
 
   public buildAuthorizeUrl(redirectPath: string, state?: string) {
@@ -119,19 +119,7 @@ export class OAuthService {
   // Disabled to keep signature consistent.
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async validateCode(code: string, scope?: string, state?: string) {
-    const tokenResponse = await this.stravaApiClient.token(code);
-
-    const stravaAthleteId = tokenResponse.athlete.id.toString();
-    const userData = {
-      stravaAthleteId,
-      stravaToken: {
-        accessToken: tokenResponse.access_token,
-        refreshToken: tokenResponse.refresh_token,
-        expiresAt: new Date(tokenResponse.expires_at * 1000),
-      }
-    };
-
-    const user = await this.userRepository.createOrUpdateByStravaAthleteId(stravaAthleteId, userData);
+    const user = await this.userService.createOrUpdateUserWithStravaAuthCode(code);
 
     return user.id;
   }
