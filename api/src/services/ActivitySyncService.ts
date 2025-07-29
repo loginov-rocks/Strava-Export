@@ -105,7 +105,7 @@ export class ActivitySyncService {
     if (nonExistingStravaSummaryActivities.length > 0) {
       // Convert the page of activities obtained from Strava to the model expected by the database and insert them all
       // at once.
-      const output = await this.activityRepository.insertMany(
+      const output = await this.activityRepository.createMany(
         nonExistingStravaSummaryActivities.map((stravaSummaryActivity) => ({
           userId,
           hasDetails: false,
@@ -164,7 +164,7 @@ export class ActivitySyncService {
       const accessToken = await this.stravaTokenService.getAccessToken(userId);
       const stravaDetailedActivity = await this.stravaApiClient.getActivity(accessToken, stravaActivityId);
 
-      const output = await this.activityRepository.updateOneByStravaActivityId(
+      const output = await this.activityRepository.updateByStravaActivityId(
         stravaActivityId,
         {
           hasDetails: true,

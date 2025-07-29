@@ -83,7 +83,7 @@ export class OAuthController {
     }
 
     res.status(201).send({
-      client_id: client._id.toString(),
+      client_id: client.id,
       client_name: client.name,
       grant_types,
       response_types,
@@ -127,7 +127,7 @@ export class OAuthController {
       try {
         storedCode = await this.oauthService.createCode({
           userId: req.userId,
-          clientId: client._id.toString(),
+          clientId: client.id,
           codeChallenge: code_challenge,
           redirectUri: redirect_uri,
           scope: scope,
@@ -140,7 +140,7 @@ export class OAuthController {
       }
 
       const url = new URL(redirect_uri);
-      url.searchParams.set('code', storedCode._id.toString());
+      url.searchParams.set('code', storedCode.id);
       url.searchParams.set('state', state);
       res.redirect(url.toString());
       return;
@@ -149,7 +149,7 @@ export class OAuthController {
     let storedState;
     try {
       storedState = await this.oauthService.createState({
-        clientId: client._id.toString(),
+        clientId: client.id,
         codeChallenge: code_challenge,
         redirectUri: redirect_uri,
         scope,
@@ -163,7 +163,7 @@ export class OAuthController {
     }
 
     // TODO: Unbind from routing constants.
-    const url = this.oauthService.buildAuthorizeUrl('/oauth/callback', storedState._id.toString());
+    const url = this.oauthService.buildAuthorizeUrl('/oauth/callback', storedState.id);
 
     res.redirect(url);
   }
@@ -218,12 +218,12 @@ export class OAuthController {
     }
 
     const url = new URL(storedState.redirectUri);
-    url.searchParams.set('code', storedCode._id.toString());
+    url.searchParams.set('code', storedCode.id);
     url.searchParams.set('state', storedState.state);
 
     // Delete the stored state at the very last step for better fault tolerance.
     try {
-      await this.oauthService.deleteState(storedState._id.toString());
+      await this.oauthService.deleteState(storedState.id);
     } catch (error) {
       console.error(error);
 
@@ -287,7 +287,7 @@ export class OAuthController {
 
       // Delete the stored code at the very last step for better fault tolerance.
       try {
-        await this.oauthService.deleteCode(storedCode._id.toString());
+        await this.oauthService.deleteCode(storedCode.id);
       } catch (error) {
         console.error(error);
 

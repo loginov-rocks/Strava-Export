@@ -65,7 +65,7 @@ export class ActivityDtoFactory {
 
   public createJson(activity: ActivityDocument): ActivityDto {
     return {
-      id: activity._id.toString(),
+      id: activity.id,
       userId: activity.userId,
       ...this.normalizeStravaData(activity.stravaData),
     };

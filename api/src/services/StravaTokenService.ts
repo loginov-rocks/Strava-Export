@@ -49,7 +49,7 @@ export class StravaTokenService {
       }
     };
 
-    await this.userRepository.updateOneById(userId, userData);
+    await this.userRepository.updateById(userId, userData);
 
     this.cacheAccessToken(userId, userData.stravaToken.accessToken, userData.stravaToken.expiresAt);
 

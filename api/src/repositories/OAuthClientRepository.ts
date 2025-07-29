@@ -1,25 +1,13 @@
-import { OAuthClientData, OAuthClientModel } from '../models/oAuthClientModel';
+import { OAuthClientData, OAuthClientDocument, OAuthClientModel } from '../models/oAuthClientModel';
+
+import { BaseRepository } from './BaseRepository';
 
 interface Options {
   oAuthClientModel: OAuthClientModel;
 }
 
-export class OAuthClientRepository {
-  private readonly oAuthClientModel: OAuthClientModel;
-
+export class OAuthClientRepository extends BaseRepository<OAuthClientData, OAuthClientDocument> {
   constructor({ oAuthClientModel }: Options) {
-    this.oAuthClientModel = oAuthClientModel;
-  }
-
-  public create(oAuthClientData: OAuthClientData) {
-    return this.oAuthClientModel.create(oAuthClientData);
-  }
-
-  public deleteOneById(id: string) {
-    return this.oAuthClientModel.deleteOne({ _id: id });
-  }
-
-  public findById(id: string) {
-    return this.oAuthClientModel.findById(id);
+    super({ model: oAuthClientModel });
   }
 }

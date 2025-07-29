@@ -1,11 +1,7 @@
-import { PatRepository } from '../repositories/PatRepository';
+import { CreatePatData, PatRepository } from '../repositories/PatRepository';
 
 interface Options {
   patRepository: PatRepository;
-}
-
-interface CreatePatParams {
-  name: string;
 }
 
 export class PatService {
@@ -15,8 +11,8 @@ export class PatService {
     this.patRepository = patRepository;
   }
 
-  public createPat(userId: string, params: CreatePatParams) {
-    return this.patRepository.create({ userId, ...params });
+  public createPat(createPatData: CreatePatData) {
+    return this.patRepository.createPat(createPatData);
   }
 
   public getPat(patId: string) {
@@ -28,11 +24,11 @@ export class PatService {
   }
 
   public deletePat(patId: string) {
-    return this.patRepository.deleteOneById(patId);
+    return this.patRepository.deleteById(patId);
   }
 
   public async verifyPat(token: string) {
-    const pat = await this.patRepository.findOneByTokenAndUpdateLastUsedAt(token);
+    const pat = await this.patRepository.findByTokenAndUpdateLastUsedAt(token);
 
     if (!pat) {
       throw new Error('PAT not found');

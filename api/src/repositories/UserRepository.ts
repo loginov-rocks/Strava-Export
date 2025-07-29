@@ -1,6 +1,8 @@
 import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
 
-import { UserData, UserModel } from '../models/userModel';
+import { UserData, UserDocument, UserModel } from '../models/userModel';
+
+import { BaseRepository } from './BaseRepository';
 
 interface Options {
   encryptionIv: string;
@@ -8,15 +10,15 @@ interface Options {
   userModel: UserModel;
 }
 
-export class UserRepository {
+export class UserRepository extends BaseRepository<UserData, UserDocument> {
   private readonly encryptionIv: Buffer;
   private readonly encryptionKey: Buffer;
-  private readonly userModel: UserModel;
 
   constructor({ encryptionIv, encryptionKey, userModel }: Options) {
+    super({ model: userModel });
+
     this.encryptionIv = Buffer.from(encryptionIv, 'hex');
     this.encryptionKey = Buffer.from(encryptionKey, 'hex');
-    this.userModel = userModel;
   }
 
   public createOrUpdateByStravaAthleteId(stravaAthleteId: string, userData: UserData) {
@@ -25,11 +27,11 @@ export class UserRepository {
     encryptedUserData.stravaToken.accessToken = this.encrypt(userData.stravaToken.accessToken);
     encryptedUserData.stravaToken.refreshToken = this.encrypt(userData.stravaToken.refreshToken);
 
-    return this.userModel.findOneAndUpdate({ stravaAthleteId }, encryptedUserData, { new: true, upsert: true });
+    return this.model.findOneAndUpdate({ stravaAthleteId }, encryptedUserData, { new: true, upsert: true });
   }
 
   public async findById(id: string) {
-    const user = await this.userModel.findById(id);
+    const user = await super.findById(id);
 
     if (user) {
       user.stravaToken.accessToken = this.decrypt(user.stravaToken.accessToken);
@@ -39,7 +41,7 @@ export class UserRepository {
     return user;
   }
 
-  public updateOneById(id: string, userData: Partial<UserData>) {
+  public updateById(id: string, userData: Partial<UserData>) {
     const encryptedUserData = JSON.parse(JSON.stringify(userData));
 
     if (userData.stravaToken) {
@@ -47,7 +49,7 @@ export class UserRepository {
       encryptedUserData.stravaToken.refreshToken = this.encrypt(userData.stravaToken.refreshToken);
     }
 
-    return this.userModel.updateOne({ _id: id }, encryptedUserData);
+    return super.updateById(id, encryptedUserData);
   }
 
   private encrypt(text: string): string {

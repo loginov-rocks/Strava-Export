@@ -1,5 +1,6 @@
-import { randomUUID } from 'crypto';
-import { Document, model, Schema } from 'mongoose';
+import { model } from 'mongoose';
+
+import { BaseDocument, createBaseSchema } from './BaseModel';
 
 export interface OAuthClientData {
   name: string;
@@ -7,17 +8,9 @@ export interface OAuthClientData {
   scope: string;
 }
 
-interface OAuthClientDocument extends Document, OAuthClientData {
-  _id: Schema.Types.UUID;
-  createdAt: Date;
-  updatedAt: Date;
-}
+export interface OAuthClientDocument extends BaseDocument, OAuthClientData { }
 
-const schema = new Schema<OAuthClientDocument>({
-  _id: {
-    type: Schema.Types.UUID,
-    default: () => randomUUID(),
-  },
+const schema = createBaseSchema<OAuthClientDocument>({
   name: {
     type: String,
     required: true,
@@ -30,8 +23,6 @@ const schema = new Schema<OAuthClientDocument>({
     type: String,
     required: true,
   },
-}, {
-  timestamps: true,
 });
 
 export const oAuthClientModel = model<OAuthClientDocument>('OAuthClient', schema);

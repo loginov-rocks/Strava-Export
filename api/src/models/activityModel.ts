@@ -1,28 +1,39 @@
-import { model, Schema, Types } from 'mongoose';
+import { model, Schema } from 'mongoose';
 
 import { StravaDetailedActivity, StravaSummaryActivity } from '../apiClients/StravaApiClient';
 
-export interface ActivitySchema {
-  userId: string;
-  hasDetails: boolean;
+import { BaseDocument, createBaseSchema } from './BaseModel';
+
+export interface ActivityData {
   stravaActivityId: string;
+  userId: string;
   stravaData: StravaDetailedActivity | StravaSummaryActivity;
+  hasDetails: boolean;
 }
 
-export interface ActivityDocument extends ActivitySchema {
-  _id: Types.ObjectId;
-  createdAt: Date;
-  updatedAt: Date;
-}
+export interface ActivityDocument extends BaseDocument, ActivityData { }
 
-const schema = new Schema<ActivityDocument>({
-  userId: String,
-  hasDetails: Boolean,
-  stravaActivityId: String,
-  stravaData: Schema.Types.Mixed,
-}, {
-  timestamps: true,
+const schema = createBaseSchema<ActivityDocument>({
+  stravaActivityId: {
+    type: String,
+    required: true,
+  },
+  userId: {
+    type: String,
+    required: true,
+  },
+  stravaData: {
+    type: Schema.Types.Mixed,
+    required: true,
+  },
+  hasDetails: {
+    type: Boolean,
+    required: true,
+  },
 });
+
+schema.index({ stravaActivityId: 1 }, { unique: true });
+schema.index({ userId: 1 });
 
 export const activityModel = model<ActivityDocument>('Activity', schema);
 

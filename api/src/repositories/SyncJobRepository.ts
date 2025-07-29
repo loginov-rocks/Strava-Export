@@ -1,29 +1,17 @@
-import { SyncJobModel, SyncJobSchema } from '../models/syncJobModel';
+import { SyncJobData, SyncJobDocument, SyncJobModel } from '../models/syncJobModel';
+
+import { BaseRepository } from './BaseRepository';
 
 interface Options {
   syncJobModel: SyncJobModel;
 }
 
-export class SyncJobRepository {
-  private readonly syncJobModel: SyncJobModel;
-
+export class SyncJobRepository extends BaseRepository<SyncJobData, SyncJobDocument> {
   constructor({ syncJobModel }: Options) {
-    this.syncJobModel = syncJobModel;
-  }
-
-  public create(syncJob: SyncJobSchema) {
-    return this.syncJobModel.create(syncJob);
-  }
-
-  public findById(id: string) {
-    return this.syncJobModel.findById(id).lean();
+    super({ model: syncJobModel });
   }
 
   public findByUserId(userId: string) {
-    return this.syncJobModel.find({ userId }).sort({ 'createdAt': -1 }).lean();
-  }
-
-  public updateOneById(id: string, syncJobData: Partial<SyncJobSchema>) {
-    return this.syncJobModel.updateOne({ _id: id }, syncJobData);
+    return this.model.find({ userId }).sort({ 'createdAt': -1 });
   }
 }

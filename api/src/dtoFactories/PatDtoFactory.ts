@@ -20,7 +20,7 @@ interface PatsCollectionDto {
 export class PatDtoFactory {
   public createJson(pat: PatDocument): PatDto {
     return {
-      id: pat._id.toString(),
+      id: pat.id,
       userId: pat.userId,
       name: pat.name,
       display: pat.display,

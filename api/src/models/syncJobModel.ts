@@ -1,4 +1,6 @@
-import { model, Schema, Types } from 'mongoose';
+import { model } from 'mongoose';
+
+import { BaseDocument, createBaseSchema } from './BaseModel';
 
 export interface SyncJobParams {
   refreshLastDays?: number;
@@ -17,7 +19,7 @@ export interface SyncJobCompletedResult {
   detailsUpdatedCount: number;
 }
 
-export interface SyncJobSchema {
+export interface SyncJobData {
   userId: string;
   status: 'created' | 'started' | 'completed' | 'failed';
   params?: SyncJobParams;
@@ -31,32 +33,82 @@ export interface SyncJobSchema {
   };
 }
 
-export interface SyncJobDocument extends SyncJobSchema {
-  _id: Types.ObjectId;
-  createdAt: Date;
-  updatedAt: Date;
-}
+export interface SyncJobDocument extends BaseDocument, SyncJobData { }
 
-const schema = new Schema<SyncJobDocument>({
-  userId: String,
+const schema = createBaseSchema<SyncJobDocument>({
+  userId: {
+    type: String,
+    required: true,
+  },
   status: {
     type: String,
     enum: ['created', 'started', 'completed', 'failed'],
+    required: true,
   },
   params: {
     refreshLastDays: Number,
   },
   startedAt: Date,
   completedAt: Date,
-  completedResult: Schema.Types.Mixed,
+  completedResult: {
+    _id: false,
+    type: {
+      pagesCount: {
+        type: Number,
+        required: true,
+      },
+      perPageCount: {
+        type: Number,
+        required: true,
+      },
+      processedCount: {
+        type: Number,
+        required: true,
+      },
+      existingCount: {
+        type: Number,
+        required: true,
+      },
+      nonExistingCount: {
+        type: Number,
+        required: true,
+      },
+      insertedCount: {
+        type: Number,
+        required: true,
+      },
+      noDetailsCount: {
+        type: Number,
+        required: true,
+      },
+      refreshDetailsCount: {
+        type: Number,
+        required: true,
+      },
+      detailsProcessedCount: {
+        type: Number,
+        required: true,
+      },
+      detailsUpdatedCount: {
+        type: Number,
+        required: true,
+      },
+    },
+  },
   failedAt: Date,
   failedError: {
-    message: String,
-    stack: String,
+    _id: false,
+    type: {
+      message: {
+        type: String,
+        required: true,
+      },
+      stack: String,
+    },
   },
-}, {
-  timestamps: true,
 });
+
+schema.index({ userId: 1 });
 
 export const syncJobModel = model<SyncJobDocument>('SyncJob', schema);
 

@@ -45,7 +45,7 @@ export class PatController {
 
     let pat, token;
     try {
-      ({ pat, token } = await this.patService.createPat(userId, { name: trimmedName }));
+      ({ pat, token } = await this.patService.createPat({ userId, name: trimmedName }));
     } catch (error) {
       console.error(error);
 

@@ -97,11 +97,11 @@ export class OAuthService {
   }
 
   public deleteCode(codeId: string) {
-    return this.oauthCodeRepository.deleteOneById(codeId);
+    return this.oauthCodeRepository.deleteById(codeId);
   }
 
   public deleteState(stateId: string) {
-    return this.oauthStateRepository.deleteOneById(stateId);
+    return this.oauthStateRepository.deleteById(stateId);
   }
 
   public getClient(clientId: string) {

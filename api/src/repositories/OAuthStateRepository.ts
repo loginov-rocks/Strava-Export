@@ -1,25 +1,13 @@
-import { OAuthStateData, OAuthStateModel } from '../models/oAuthStateModel';
+import { OAuthStateData, OAuthStateDocument, OAuthStateModel } from '../models/oAuthStateModel';
+
+import { BaseRepository } from './BaseRepository';
 
 interface Options {
   oAuthStateModel: OAuthStateModel;
 }
 
-export class OAuthStateRepository {
-  private readonly oAuthStateModel: OAuthStateModel;
-
+export class OAuthStateRepository extends BaseRepository<OAuthStateData, OAuthStateDocument> {
   constructor({ oAuthStateModel }: Options) {
-    this.oAuthStateModel = oAuthStateModel;
-  }
-
-  public create(oAuthStateData: OAuthStateData) {
-    return this.oAuthStateModel.create(oAuthStateData);
-  }
-
-  public deleteOneById(id: string) {
-    return this.oAuthStateModel.deleteOne({ _id: id });
-  }
-
-  public findById(id: string) {
-    return this.oAuthStateModel.findById(id);
+    super({ model: oAuthStateModel });
   }
 }

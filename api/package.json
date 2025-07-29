@@ -2,7 +2,7 @@
   "scripts": {
     "dev": "PORT=3001 tsx watch --env-file=.env src/app",
     "dev:mcp": "PORT=3002 tsx watch --env-file=.env src/mcp",
-    "dev:workers": "tsx --env-file=.env src/workers",
+    "dev:workers": "tsx watch --env-file=.env src/workers",
     "generate-encryption-iv": "node -e \"console.log('USER_REPOSITORY_ENCRYPTION_IV=' + require('crypto').randomBytes(12).toString('hex'))\"",
     "generate-encryption-key": "node -e \"console.log('USER_REPOSITORY_ENCRYPTION_KEY=' + require('crypto').randomBytes(32).toString('hex'))\"",
     "generate-token-secret": "node -e \"console.log(require('crypto').randomBytes(32).toString('base64'))\"",

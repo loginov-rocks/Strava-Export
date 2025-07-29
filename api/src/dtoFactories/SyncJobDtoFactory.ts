@@ -17,7 +17,7 @@ interface SyncJobsCollectionDto {
 export class SyncJobDtoFactory {
   public createJson(syncJob: SyncJobDocument): SyncJobDto {
     return {
-      id: syncJob._id.toString(),
+      id: syncJob.id,
       userId: syncJob.userId,
       status: syncJob.status,
       startedAt: syncJob.startedAt ? syncJob.startedAt.toISOString() : null,

@@ -1,5 +1,6 @@
-import { randomUUID } from 'crypto';
-import { Document, model, Schema } from 'mongoose';
+import { model } from 'mongoose';
+
+import { BaseDocument, createBaseSchema } from './BaseModel';
 
 export interface UserData {
   stravaAthleteId: string;
@@ -10,17 +11,9 @@ export interface UserData {
   };
 }
 
-interface UserDocument extends Document, UserData {
-  _id: Schema.Types.UUID;
-  createdAt: Date;
-  updatedAt: Date;
-}
+export interface UserDocument extends BaseDocument, UserData { }
 
-const schema = new Schema<UserDocument>({
-  _id: {
-    type: Schema.Types.UUID,
-    default: () => randomUUID(),
-  },
+const schema = createBaseSchema<UserDocument>({
   stravaAthleteId: {
     type: String,
     required: true,
@@ -43,9 +36,9 @@ const schema = new Schema<UserDocument>({
     },
     required: true,
   },
-}, {
-  timestamps: true,
 });
+
+schema.index({ stravaAthleteId: 1 }, { unique: true });
 
 export const userModel = model<UserDocument>('User', schema);
 

@@ -39,7 +39,8 @@ appRouter.post('/oauth/token', oauthController.postOAuthToken);
 
 // Activities.
 appRouter.get('/activities', compositeAuthMiddleware.requireAccessTokenOrPat, activityController.getActivities);
-appRouter.delete('/activities', compositeAuthMiddleware.requireAccessTokenOrPat, activityController.deleteActivities);
+// Allow deleting all activities only through the Web Auth, not using PAT.
+appRouter.delete('/activities', tokenMiddleware.requireAccessToken, activityController.deleteActivities);
 appRouter.get('/activities/last', compositeAuthMiddleware.requireAccessTokenOrPat, activityController.getLastActivity);
 appRouter.get('/activities/:activityId', compositeAuthMiddleware.requireAccessTokenOrPat, activityController.getActivity);
 

@@ -38,14 +38,14 @@ export class SyncJobService {
   }
 
   public markSyncJobStarted(syncJobId: string) {
-    return this.syncJobRepository.updateOneById(syncJobId, {
+    return this.syncJobRepository.updateById(syncJobId, {
       status: 'started',
       startedAt: new Date(),
     });
   }
 
   public markSyncJobCompleted(syncJobId: string, result: SyncJobCompletedResult) {
-    return this.syncJobRepository.updateOneById(syncJobId, {
+    return this.syncJobRepository.updateById(syncJobId, {
       status: 'completed',
       completedAt: new Date(),
       completedResult: result,
@@ -53,7 +53,7 @@ export class SyncJobService {
   }
 
   public markSyncJobFailed(syncJobId: string, error: Error) {
-    return this.syncJobRepository.updateOneById(syncJobId, {
+    return this.syncJobRepository.updateById(syncJobId, {
       status: 'failed',
       failedAt: new Date(),
       failedError: {

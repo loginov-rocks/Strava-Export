@@ -1,17 +1,19 @@
 import { RootFilterQuery } from 'mongoose';
 
-import { ActivityDocument, ActivityModel, ActivitySchema } from '../models/activityModel';
+import { ActivityData, ActivityDocument, ActivityModel } from '../models/activityModel';
+
+import { BaseRepository } from './BaseRepository';
 
 interface Options {
   activityModel: ActivityModel;
 }
 
-// Extract the sport type constraint from the ActivitySchema to ensure filtering is limited to what can be stored in
+// Extract the sport type constraint from the ActivityData to ensure filtering is limited to what can be stored in
 // the database. This maintains architectural boundaries by getting type information through the model layer rather
 // than directly importing from StravaApiClient. Defined outside the class so it can be reused both in the exported
 // ActivityRepositoryFilter interface type definition and in the class methods for runtime validation.
 // @see /api/src/apiClients/StravaApiClient.ts
-const FILTER_SPORT_TYPE_VALUES: Array<ActivitySchema['stravaData']['sport_type']> = [
+const FILTER_SPORT_TYPE_VALUES: Array<ActivityData['stravaData']['sport_type']> = [
   'AlpineSki', 'BackcountrySki', 'Badminton', 'Canoeing', 'Crossfit', 'EBikeRide', 'Elliptical', 'EMountainBikeRide',
   'Golf', 'GravelRide', 'Handcycle', 'HighIntensityIntervalTraining', 'Hike', 'IceSkate', 'InlineSkate', 'Kayaking',
   'Kitesurf', 'MountainBikeRide', 'NordicSki', 'Pickleball', 'Pilates', 'Racquetball', 'Ride', 'RockClimbing',
@@ -30,23 +32,17 @@ interface Filter {
   order?: typeof FILTER_ORDER_VALUES[number];
 }
 
-export class ActivityRepository {
-  private readonly activityModel: ActivityModel;
-
+export class ActivityRepository extends BaseRepository<ActivityData, ActivityDocument> {
   constructor({ activityModel }: Options) {
-    this.activityModel = activityModel;
+    super({ model: activityModel });
   }
 
   public deleteByUserId(userId: string) {
-    return this.activityModel.deleteMany({ userId });
-  }
-
-  public findById(id: string) {
-    return this.activityModel.findById(id).lean();
+    return this.model.deleteMany({ userId });
   }
 
   public findByStravaActivityIds(stravaActivityIds: string[]) {
-    return this.activityModel.find({ stravaActivityId: { $in: stravaActivityIds } }).lean();
+    return this.model.find({ stravaActivityId: { $in: stravaActivityIds } });
   }
 
   public findByUserId(userId: string, filter?: Filter) {
@@ -67,7 +63,7 @@ export class ActivityRepository {
       }
     }
 
-    let query = this.activityModel.find(findParams);
+    let query = this.model.find(findParams);
 
     if (filter && filter.sort && filter.order) {
       const sortField = filter.sort === 'startDateTime' ? 'stravaData.start_date' : filter.sort;
@@ -76,7 +72,7 @@ export class ActivityRepository {
       query = query.sort({ [sortField]: sortOrder });
     }
 
-    return query.lean();
+    return query;
   }
 
   public findLastByUserId(userId: string, filter?: Filter) {
@@ -91,7 +87,7 @@ export class ActivityRepository {
       }
     }
 
-    return this.activityModel.findOne(findParams).sort({ 'stravaData.start_date': -1 }).lean();
+    return this.model.findOne(findParams).sort({ 'stravaData.start_date': -1 });
   }
 
   // Defined as an instance method instead of making it static to keep consistency across class usage.
@@ -103,11 +99,7 @@ export class ActivityRepository {
     };
   }
 
-  public insertMany(activities: ActivitySchema[]) {
-    return this.activityModel.insertMany(activities);
-  }
-
-  public updateOneByStravaActivityId(stravaActivityId: string, activityData: Partial<ActivitySchema>) {
-    return this.activityModel.updateOne({ stravaActivityId }, activityData);
+  public updateByStravaActivityId(stravaActivityId: string, activityData: Partial<ActivityData>) {
+    return this.model.updateOne({ stravaActivityId }, activityData);
   }
 }

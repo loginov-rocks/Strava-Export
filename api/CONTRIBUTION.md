@@ -1,5 +1,7 @@
 # Contribution
 
+Writing down considerations around code and architecture to easier contribution (from LLMs mostly).
+
 Imports:
 
 * First comes the package imports.
@@ -30,3 +32,15 @@ Mongo & Redis:
 Container:
 
 * Serves to inject dependencies, exports controllers and middlewares used by routes and workers.
+
+Models:
+
+* Implement indexes by the query fields, but not sorting (at least for now) for separation of concerns since sorting is at the application level/requirements, not the database schema itself.
+ 
+Repositories:
+
+* Should be an abstraction layer from the underlying storage mechanism, so require refactoring to provide flat objects instead of Active Record pattern provided by Mongoose.
+
+Exports:
+
+* Exported interfaces go first, then non-exported.

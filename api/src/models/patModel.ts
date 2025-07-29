@@ -1,28 +1,39 @@
-import { model, Schema, Types } from 'mongoose';
+import { model } from 'mongoose';
 
-export interface PatSchema {
+import { BaseDocument, createBaseSchema } from './BaseModel';
+
+export interface PatData {
+  hash: string;
   userId: string;
   name: string;
-  hash: string;
   display: string;
   lastUsedAt?: Date;
 }
 
-export interface PatDocument extends PatSchema {
-  _id: Types.ObjectId;
-  createdAt: Date;
-  updatedAt: Date;
-}
+export interface PatDocument extends BaseDocument, PatData { }
 
-const schema = new Schema<PatDocument>({
-  userId: String,
-  name: String,
-  hash: String,
-  display: String,
+const schema = createBaseSchema<PatDocument>({
+  hash: {
+    type: String,
+    required: true,
+  },
+  userId: {
+    type: String,
+    required: true,
+  },
+  name: {
+    type: String,
+    required: true,
+  },
+  display: {
+    type: String,
+    required: true,
+  },
   lastUsedAt: Date,
-}, {
-  timestamps: true,
 });
+
+schema.index({ hash: 1 }, { unique: true });
+schema.index({ userId: 1 });
 
 export const patModel = model<PatDocument>('Pat', schema);
 
