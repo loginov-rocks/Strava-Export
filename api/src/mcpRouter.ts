@@ -4,6 +4,7 @@ import {
   healthcheckController, mcpAuthMiddleware, mcpSseController, mcpStreamableController, oauthController,
 } from './container';
 
+// TODO: Draft.
 export const mcpRouter = Router();
 
 // Healthcheck.

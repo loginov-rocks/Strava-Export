@@ -8,6 +8,7 @@ interface Options {
   mcpServer: McpServer;
 }
 
+// TODO: Draft.
 export class McpSseController {
   private readonly mcpServer: McpServer;
 

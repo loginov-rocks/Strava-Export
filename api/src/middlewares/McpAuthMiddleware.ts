@@ -12,6 +12,7 @@ interface Options {
   tokenService: TokenService;
 }
 
+// TODO: Draft.
 export class McpAuthMiddleware {
   private readonly mcpBaseUrl: string;
   private readonly tokenService: TokenService;

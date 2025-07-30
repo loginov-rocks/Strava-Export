@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 
 import { WebAuthenticatedRequest } from '../middlewares/WebAuthMiddleware';
 import { OAuthService } from '../services/OAuthService';
+import { generateCodeChallenge } from '../utils/generate';
 
 interface Options {
   apiBaseUrl: string;
@@ -9,10 +10,16 @@ interface Options {
   oauthService: OAuthService;
 }
 
+// TODO: Draft.
 export class OAuthController {
   private readonly apiBaseUrl: string;
   private readonly mcpBaseUrl: string;
   private readonly oauthService: OAuthService;
+
+  private registerRoute: string | null = null;
+  private authorizeRoute: string | null = null;
+  private callbackRoute: string | null = null;
+  private tokenRoute: string | null = null;
 
   constructor({ apiBaseUrl, mcpBaseUrl, oauthService }: Options) {
     this.apiBaseUrl = apiBaseUrl;
@@ -37,14 +44,16 @@ export class OAuthController {
   }
 
   public getServerMetadata(req: Request, res: Response): void {
-    const issuer = this.apiBaseUrl;
+    if (!this.authorizeRoute || !this.registerRoute || !this.tokenRoute) {
+      res.status(500).send({ message: 'Internal Server Error' });
+      return;
+    }
 
-    // TODO: Unbind from routing constants.
     res.send({
-      issuer,
-      authorization_endpoint: `${issuer}/oauth/authorize`,
-      token_endpoint: `${issuer}/oauth/token`,
-      registration_endpoint: `${issuer}/oauth/register`,
+      issuer: this.apiBaseUrl,
+      authorization_endpoint: `${this.apiBaseUrl}${this.authorizeRoute}`,
+      token_endpoint: `${this.apiBaseUrl}${this.tokenRoute}`,
+      registration_endpoint: `${this.apiBaseUrl}${this.registerRoute}`,
       grant_types_supported: [
         'authorization_code',
         'client_credentials',
@@ -95,6 +104,11 @@ export class OAuthController {
 
   public async getOAuthAuthorize(req: WebAuthenticatedRequest, res: Response): Promise<void> {
     console.log('getOAuthAuthorize', req.query);
+
+    if (!this.callbackRoute) {
+      res.status(500).send({ message: 'Internal Server Error' });
+      return;
+    }
 
     const { client_id, code_challenge, code_challenge_method, redirect_uri, response_type, scope, state } = req.query;
 
@@ -162,8 +176,7 @@ export class OAuthController {
       return;
     }
 
-    // TODO: Extract route configuration.
-    const redirectUri = `${this.apiBaseUrl}/oauth/callback`;
+    const redirectUri = `${this.apiBaseUrl}${this.callbackRoute}`;
     const url = this.oauthService.buildStravaAuthorizeUrl(redirectUri, storedState.id);
 
     res.redirect(url);
@@ -278,7 +291,7 @@ export class OAuthController {
       }
 
       if (!storedCode || client_id !== storedCode.clientId || redirect_uri !== storedCode.redirectUri
-        || this.oauthService.computeChallenge(code_verifier) !== storedCode.codeChallenge) {
+        || generateCodeChallenge(code_verifier) !== storedCode.codeChallenge) {
         res.status(400).send({ message: 'Bad Request' });
         return;
       }
@@ -325,5 +338,21 @@ export class OAuthController {
       refresh_token: tokens.refreshToken,
       scope,
     });
+  }
+
+  public setRegisterRoute(registerRoute: string) {
+    this.registerRoute = registerRoute;
+  }
+
+  public setAuthorizeRoute(authorizeRoute: string) {
+    this.authorizeRoute = authorizeRoute;
+  }
+
+  public setCallbackRoute(callbackRoute: string) {
+    this.callbackRoute = callbackRoute;
+  }
+
+  public setTokenRoute(tokenRoute: string) {
+    this.tokenRoute = tokenRoute;
   }
 }

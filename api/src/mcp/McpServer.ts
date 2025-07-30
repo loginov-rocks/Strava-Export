@@ -23,6 +23,7 @@ interface ToolResponse {
   }>;
 }
 
+// TODO: Draft.
 export class McpServer {
   private readonly activityDtoFactory: ActivityDtoFactory;
   private readonly activityService: ActivityService;

@@ -14,6 +14,8 @@ export class WebAuthController {
   private readonly webAppBaseUrl: string;
   private readonly webAuthService: WebAuthService;
 
+  private callbackRoute: string | null = null;
+
   constructor({ apiBaseUrl, webAppBaseUrl, webAuthService }: Options) {
     this.apiBaseUrl = apiBaseUrl;
     this.webAppBaseUrl = webAppBaseUrl;
@@ -29,8 +31,12 @@ export class WebAuthController {
   }
 
   public getAuthLogin(req: Request, res: Response): void {
-    // TODO: Extract route configuration.
-    const redirectUri = `${this.apiBaseUrl}/auth/callback`;
+    if (!this.callbackRoute) {
+      res.status(500).send({ message: 'Internal Server Error' });
+      return;
+    }
+
+    const redirectUri = `${this.apiBaseUrl}${this.callbackRoute}`;
     const url = this.webAuthService.buildStravaAuthorizeUrl(redirectUri);
 
     res.redirect(url);
@@ -105,5 +111,9 @@ export class WebAuthController {
 
   public postAuthLogout(req: Request, res: Response): void {
     res.status(204).send();
+  }
+
+  public setCallbackRoute(callbackRoute: string) {
+    this.callbackRoute = callbackRoute;
   }
 }

@@ -12,6 +12,7 @@ appRouter.get('/', healthcheckController.get);
 
 // Web Auth.
 appRouter.get('/auth/login', webAuthController.getAuthLogin);
+webAuthController.setCallbackRoute('/auth/callback');
 appRouter.get('/auth/callback',
   webAuthController.getAuthCallbackMiddleware,
   webAuthMiddleware.attachTokens,
@@ -32,9 +33,13 @@ appRouter.post('/auth/logout',
 
 // OAuth.
 appRouter.get('/.well-known/oauth-authorization-server', oauthController.getServerMetadata);
+oauthController.setRegisterRoute('/oauth/register');
 appRouter.post('/oauth/register', oauthController.postOAuthRegister);
+oauthController.setAuthorizeRoute('/oauth/authorize');
 appRouter.get('/oauth/authorize', webAuthMiddleware.optionalAccessToken, oauthController.getOAuthAuthorize);
+oauthController.setCallbackRoute('/oauth/callback');
 appRouter.get('/oauth/callback', oauthController.getOAuthCallback);
+oauthController.setTokenRoute('/oauth/token');
 appRouter.post('/oauth/token', oauthController.postOAuthToken);
 
 // Activities.

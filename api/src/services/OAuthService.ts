@@ -1,5 +1,3 @@
-import { createHash } from 'crypto';
-
 import { StravaApiClient } from '../apiClients/StravaApiClient';
 import { OAuthClientRepository } from '../repositories/OAuthClientRepository';
 import { OAuthCodeRepository } from '../repositories/OAuthCodeRepository';
@@ -39,6 +37,7 @@ interface CreateStateParams {
   state: string;
 }
 
+// TODO: Draft.
 export class OAuthService {
   private readonly oauthClientRepository: OAuthClientRepository;
   private readonly oauthCodeRepository: OAuthCodeRepository;
@@ -60,15 +59,6 @@ export class OAuthService {
 
   public buildStravaAuthorizeUrl(redirectUri: string, state?: string) {
     return this.stravaApiClient.buildAuthorizeUrl(redirectUri, state);
-  }
-
-  public computeChallenge(verifier: string) {
-    return createHash('sha256')
-      .update(verifier)
-      .digest('base64')
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=/g, '');
   }
 
   public createClient(params: CreateClientParams) {

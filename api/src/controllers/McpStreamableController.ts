@@ -10,6 +10,7 @@ interface Options {
   mcpServer: McpServer;
 }
 
+// TODO: Draft.
 export class McpStreamableController {
   private readonly mcpServer: McpServer;
 

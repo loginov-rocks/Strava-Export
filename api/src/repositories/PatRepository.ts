@@ -1,5 +1,5 @@
 import { PatData, PatDocument, PatModel } from '../models/patModel';
-import { createSha256Hash, generateRandomAlphaNumericString } from '../utils/createHash';
+import { generateRandomString, generateSha256 } from '../utils/generate';
 
 import { BaseRepository } from './BaseRepository';
 
@@ -45,7 +45,7 @@ export class PatRepository extends BaseRepository<PatData, PatDocument> {
       return null;
     }
 
-    const hash = createSha256Hash(token);
+    const hash = generateSha256(token);
 
     return this.model.findOneAndUpdate({ hash }, { lastUsedAt: new Date() }, { new: true });
   }
@@ -55,9 +55,9 @@ export class PatRepository extends BaseRepository<PatData, PatDocument> {
   }
 
   private generateToken() {
-    const randomPart = generateRandomAlphaNumericString(this.tokenRandomLength);
+    const randomPart = generateRandomString(this.tokenRandomLength);
     const token = `${this.tokenPrefix}${randomPart}`;
-    const hash = createSha256Hash(token);
+    const hash = generateSha256(token);
     const display = token.substring(0, this.displayLength);
 
     return { token, hash, display };
