@@ -9,7 +9,6 @@ import { TokenService } from './TokenService';
 import { UserService } from './UserService';
 
 interface Options {
-  apiBaseUrl: string;
   oauthClientRepository: OAuthClientRepository;
   oauthCodeRepository: OAuthCodeRepository;
   oauthStateRepository: OAuthStateRepository;
@@ -41,7 +40,6 @@ interface CreateStateParams {
 }
 
 export class OAuthService {
-  private readonly apiBaseUrl: string;
   private readonly oauthClientRepository: OAuthClientRepository;
   private readonly oauthCodeRepository: OAuthCodeRepository;
   private readonly oauthStateRepository: OAuthStateRepository;
@@ -50,10 +48,8 @@ export class OAuthService {
   private readonly userService: UserService;
 
   constructor({
-    apiBaseUrl, oauthClientRepository, oauthCodeRepository, oauthStateRepository, stravaApiClient, tokenService,
-    userService,
+    oauthClientRepository, oauthCodeRepository, oauthStateRepository, stravaApiClient, tokenService, userService,
   }: Options) {
-    this.apiBaseUrl = apiBaseUrl;
     this.oauthClientRepository = oauthClientRepository;
     this.oauthCodeRepository = oauthCodeRepository;
     this.oauthStateRepository = oauthStateRepository;
@@ -62,9 +58,7 @@ export class OAuthService {
     this.userService = userService;
   }
 
-  public buildAuthorizeUrl(redirectPath: string, state?: string) {
-    const redirectUri = `${this.apiBaseUrl}${redirectPath}`;
-
+  public buildStravaAuthorizeUrl(redirectUri: string, state?: string) {
     return this.stravaApiClient.buildAuthorizeUrl(redirectUri, state);
   }
 
@@ -118,7 +112,7 @@ export class OAuthService {
 
   // Disabled to keep signature consistent.
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public async validateCode(code: string, scope?: string, state?: string) {
+  public async authorizeStravaUser(code: string, scope?: string, state?: string) {
     const user = await this.userService.createOrUpdateUserWithStravaAuthCode(code);
 
     return user.id;

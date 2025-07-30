@@ -4,15 +4,18 @@ import { WebAuthenticatedRequest } from '../middlewares/WebAuthMiddleware';
 import { WebAuthService } from '../services/WebAuthService';
 
 interface Options {
+  apiBaseUrl: string;
   webAppBaseUrl: string;
   webAuthService: WebAuthService;
 }
 
 export class WebAuthController {
+  private readonly apiBaseUrl: string;
   private readonly webAppBaseUrl: string;
   private readonly webAuthService: WebAuthService;
 
-  constructor({ webAppBaseUrl, webAuthService }: Options) {
+  constructor({ apiBaseUrl, webAppBaseUrl, webAuthService }: Options) {
+    this.apiBaseUrl = apiBaseUrl;
     this.webAppBaseUrl = webAppBaseUrl;
     this.webAuthService = webAuthService;
 
@@ -26,8 +29,9 @@ export class WebAuthController {
   }
 
   public getAuthLogin(req: Request, res: Response): void {
-    // TODO: Extract constant.
-    const url = this.webAuthService.buildAuthorizeUrl('/auth/callback');
+    // TODO: Extract route configuration.
+    const redirectUri = `${this.apiBaseUrl}/auth/callback`;
+    const url = this.webAuthService.buildStravaAuthorizeUrl(redirectUri);
 
     res.redirect(url);
   }
@@ -42,7 +46,7 @@ export class WebAuthController {
 
     let tokens;
     try {
-      tokens = await this.webAuthService.exchangeCode(code, scope, state);
+      tokens = await this.webAuthService.authorizeStravaUserAndCreateTokens(code, scope, state);
     } catch (error) {
       console.error(error);
 
@@ -70,7 +74,9 @@ export class WebAuthController {
     res.send({ userId });
   }
 
-  public postAuthRefreshMiddleware(req: WebAuthenticatedRequest, res: Response, next: NextFunction): void {
+  public async postAuthRefreshMiddleware(
+    req: WebAuthenticatedRequest, res: Response, next: NextFunction,
+  ): Promise<void> {
     const { userId } = req;
 
     if (!userId) {
@@ -80,7 +86,7 @@ export class WebAuthController {
 
     let tokens;
     try {
-      tokens = this.webAuthService.refreshTokens(userId);
+      tokens = await this.webAuthService.refreshTokens(userId);
     } catch (error) {
       console.error(error);
 

@@ -9,6 +9,7 @@ import { connectMongo } from './mongo';
 
 const app = express();
 
+// TODO: Check proper body parsing urlencoded vs json.
 app.use(bodyParser.urlencoded());
 app.use(cookieParser());
 app.use(cors({

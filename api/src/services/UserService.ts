@@ -36,6 +36,10 @@ export class UserService {
     return this.userRepository.createOrUpdateByStravaAthleteId(stravaAthleteId, userData);
   }
 
+  public getUser(userId: string) {
+    return this.userRepository.findById(userId);
+  }
+
   public async getStravaAccessToken(userId: string) {
     const cachedAccessToken = this.getCachedStravaAccessToken(userId);
 

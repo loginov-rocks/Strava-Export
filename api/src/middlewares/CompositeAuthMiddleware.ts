@@ -22,9 +22,7 @@ export class CompositeAuthMiddleware {
   }
 
   public async requireWebAuthOrPat(
-    req: CompositeAuthenticatedRequest,
-    res: Response,
-    next: NextFunction,
+    req: CompositeAuthenticatedRequest, res: Response, next: NextFunction,
   ): Promise<void> {
     const tokenUserId = this.webAuthMiddleware.authenticateRequest(req, 'access');
 

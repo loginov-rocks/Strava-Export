@@ -162,8 +162,9 @@ export class OAuthController {
       return;
     }
 
-    // TODO: Unbind from routing constants.
-    const url = this.oauthService.buildAuthorizeUrl('/oauth/callback', storedState.id);
+    // TODO: Extract route configuration.
+    const redirectUri = `${this.apiBaseUrl}/oauth/callback`;
+    const url = this.oauthService.buildStravaAuthorizeUrl(redirectUri, storedState.id);
 
     res.redirect(url);
   }
@@ -195,7 +196,7 @@ export class OAuthController {
 
     let userId;
     try {
-      userId = await this.oauthService.validateCode(code, scope, state);
+      userId = await this.oauthService.authorizeStravaUser(code, scope, state);
     } catch {
       res.status(401).send({ message: 'Unauthorized' });
       return;

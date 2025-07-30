@@ -149,7 +149,6 @@ const webAuthTokenService = new TokenService({
 });
 
 const oauthService = new OAuthService({
-  apiBaseUrl: API_BASE_URL,
   oauthClientRepository,
   oauthCodeRepository,
   oauthStateRepository,
@@ -159,7 +158,6 @@ const oauthService = new OAuthService({
 });
 
 const webAuthService = new WebAuthService({
-  apiBaseUrl: API_BASE_URL,
   stravaApiClient,
   tokenService: webAuthTokenService,
   userService,
@@ -232,6 +230,7 @@ export const syncJobController = new SyncJobController({
 });
 
 export const webAuthController = new WebAuthController({
+  apiBaseUrl: API_BASE_URL,
   webAppBaseUrl: WEB_APP_BASE_URL,
   webAuthService,
 });

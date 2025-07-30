@@ -21,78 +21,59 @@ servers:
 
 security:
   - bearerAuth: []
-  - cookieAuth: []
+  - webAuthAccess: []
 
 paths:
-  # TODO: Update
   /auth/login:
     get:
-      summary: Get Strava authorization URL
-      description: Generate Strava OAuth authorization URL for user authentication
+      summary: Redirect to Strava authorization
+      description: Redirects user to Strava OAuth authorization page
       tags:
-        - Auth
+        - Web Auth
+      responses:
+        302:
+          description: Redirect to Strava authorization URL
+          headers:
+            Location:
+              description: Strava authorization URL
+              schema:
+                type: string
+                format: uri
+
+  /auth/callback:
+    get:
+      summary: Exchange authorization code for tokens
+      description: Exchange OAuth authorization code for access and refresh tokens, then redirect to web app
+      tags:
+        - Web Auth
       parameters:
-        - name: redirectUri
+        - name: code
           in: query
           required: true
           schema:
             type: string
-            format: uri
-          description: URI to redirect to after authorization
+          description: OAuth authorization code from Strava
+        - name: scope
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Optional OAuth scopes
         - name: state
           in: query
           required: false
           schema:
             type: string
-          description: Optional state parameter for OAuth flow
+          description: Optional state parameter
       responses:
-        200:
-          description: Authorization URL generated successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  url:
-                    type: string
-                    format: uri
-                    description: Strava authorization URL
-                required:
-                  - url
-        400:
-          $ref: "#/components/responses/BadRequest"
-
-  # TODO: Update
-  /auth/callback:
-    get:
-      summary: Exchange authorization code for tokens
-      description: Exchange OAuth authorization code for access and refresh tokens
-      tags:
-        - Auth
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                code:
-                  type: string
-                  description: OAuth authorization code from Strava
-                scope:
-                  type: array
-                  items:
-                    type: string
-                  description: Optional OAuth scopes
-                state:
-                  type: string
-                  description: Optional state parameter
-              required:
-                - code
-      responses:
-        204:
-          description: Tokens exchanged successfully
+        302:
+          description: Tokens exchanged successfully, redirecting to web app
           headers:
+            Location:
+              description: Web app URL
+              schema:
+                type: string
+                format: uri
             Set-Cookie:
               description: Access and refresh tokens set as HTTP-only cookies
               schema:
@@ -102,18 +83,27 @@ paths:
         401:
           $ref: "#/components/responses/Unauthorized"
 
-  # TODO: Update
   /auth/me:
     get:
-      summary: Check authentication status
-      description: Verify if the user is currently authenticated
+      summary: Get authenticated user info
+      description: Get information about the currently authenticated user
       tags:
-        - Auth
+        - Web Auth
       security:
-        - cookieAuth: []
+        - webAuthAccess: []
       responses:
-        204:
+        200:
           description: User is authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userId:
+                    type: string
+                    description: Authenticated user ID
+                required:
+                  - userId
         401:
           $ref: "#/components/responses/Unauthorized"
 
@@ -122,9 +112,9 @@ paths:
       summary: Refresh access token
       description: Refresh expired access token using refresh token
       tags:
-        - Auth
+        - Web Auth
       security:
-        - cookieAuth: []
+        - webAuthRefresh: []
       responses:
         204:
           description: Token refreshed successfully
@@ -141,9 +131,9 @@ paths:
       summary: Logout user
       description: Clear authentication tokens and logout user
       tags:
-        - Auth
+        - Web Auth
       security:
-        - cookieAuth: []
+        - webAuthAccess: []
       responses:
         204:
           description: Logged out successfully
@@ -162,7 +152,7 @@ paths:
       tags:
         - Activities
       security:
-        - cookieAuth: []
+        - webAuthAccess: []
         - bearerAuth: []
       parameters:
         - name: sportType
@@ -249,7 +239,7 @@ paths:
       tags:
         - Activities
       security:
-        - cookieAuth: []
+        - webAuthAccess: []
       responses:
         204:
           description: All activities deleted successfully
@@ -265,7 +255,7 @@ paths:
       tags:
         - Activities
       security:
-        - cookieAuth: []
+        - webAuthAccess: []
         - bearerAuth: []
       parameters:
         - name: sportType
@@ -308,7 +298,7 @@ paths:
       tags:
         - Activities
       security:
-        - cookieAuth: []
+        - webAuthAccess: []
         - bearerAuth: []
       parameters:
         - name: activityId
@@ -352,7 +342,7 @@ paths:
       tags:
         - Personal Access Tokens
       security:
-        - cookieAuth: []
+        - webAuthAccess: []
       requestBody:
         required: true
         content:
@@ -385,7 +375,7 @@ paths:
       tags:
         - Personal Access Tokens
       security:
-        - cookieAuth: []
+        - webAuthAccess: []
       responses:
         200:
           description: PATs retrieved successfully
@@ -405,7 +395,7 @@ paths:
       tags:
         - Personal Access Tokens
       security:
-        - cookieAuth: []
+        - webAuthAccess: []
       parameters:
         - name: patId
           in: path
@@ -435,7 +425,7 @@ paths:
       tags:
         - Personal Access Tokens
       security:
-        - cookieAuth: []
+        - webAuthAccess: []
       parameters:
         - name: patId
           in: path
@@ -462,7 +452,7 @@ paths:
       tags:
         - Sync Jobs
       security:
-        - cookieAuth: []
+        - webAuthAccess: []
       requestBody:
         required: false
         content:
@@ -494,7 +484,7 @@ paths:
       tags:
         - Sync Jobs
       security:
-        - cookieAuth: []
+        - webAuthAccess: []
       responses:
         200:
           description: Sync jobs retrieved successfully
@@ -514,7 +504,7 @@ paths:
       tags:
         - Sync Jobs
       security:
-        - cookieAuth: []
+        - webAuthAccess: []
       parameters:
         - name: syncJobId
           in: path
@@ -544,11 +534,16 @@ components:
       type: http
       scheme: bearer
       description: Authentication via Personal Access Token (for APIs)
-    cookieAuth:
+    webAuthAccess:
       type: apiKey
       in: cookie
-      name: stravaExportAccessToken
-      description: Authentication via HTTP-only cookies (for Web App)
+      name: stravaholicsAccessToken
+      description: Authentication via HTTP-only access token cookie (for Web App)
+    webAuthRefresh:
+      type: apiKey
+      in: cookie
+      name: stravaholicsRefreshToken
+      description: Authentication via HTTP-only refresh token cookie (for token refresh)
 
   schemas:
     SportType:
