@@ -2,7 +2,7 @@ import { Router } from 'express';
 
 import {
   activityController, compositeAuthMiddleware, healthcheckController, oauthController, patController,
-  syncJobController, userController, webAuthController, webAuthMiddleware,
+  syncJobController, userActivitiesController, userController, webAuthController, webAuthMiddleware,
 } from './container';
 
 export const appRouter = Router();
@@ -64,3 +64,7 @@ appRouter.get('/sync/:syncJobId', webAuthMiddleware.requireAccessToken, syncJobC
 appRouter.get('/users/me', webAuthMiddleware.requireAccessToken, userController.getUsersMe);
 appRouter.patch('/users/me', webAuthMiddleware.requireAccessToken, userController.patchUsersMe);
 appRouter.get('/users/:stravaAthleteId', webAuthMiddleware.optionalAccessToken, userController.getUser);
+
+// Users Activities.
+appRouter.get('/users/:stravaAthleteId/activities', webAuthMiddleware.optionalAccessToken,
+  userActivitiesController.getUserActivities);

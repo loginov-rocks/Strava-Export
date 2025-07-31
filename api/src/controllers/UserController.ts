@@ -94,7 +94,7 @@ export class UserController {
   }
 
   public async getUser(req: WebAuthenticatedRequest, res: Response): Promise<void> {
-    const { userId } = req;
+    const { userId: authenticatedUserId } = req;
     const { stravaAthleteId } = req.params;
 
     if (!stravaAthleteId) {
@@ -112,7 +112,7 @@ export class UserController {
       return;
     }
 
-    if (!user || (!user.isPublic && !userId) || (!user.isPublic && user.id !== userId)) {
+    if (!user || (!user.isPublic && !authenticatedUserId) || (!user.isPublic && user.id !== authenticatedUserId)) {
       res.status(404).send({ message: 'Not Found' });
       return;
     }
