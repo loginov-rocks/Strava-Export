@@ -1,5 +1,6 @@
 import { StravaApiClient } from '../apiClients/StravaApiClient';
-import { UserRepository } from '../repositories/UserRepository';
+import { UpdateUserData, UserRepository } from '../repositories/UserRepository';
+import { isValidNonEmptyString } from '../utils/isValid';
 
 interface Options {
   stravaApiClient: StravaApiClient;
@@ -30,7 +31,17 @@ export class UserService {
         accessToken: tokenResponse.access_token,
         refreshToken: tokenResponse.refresh_token,
         expiresAt: new Date(tokenResponse.expires_at * 1000),
-      }
+      },
+      isPublic: false,
+      stravaProfile: {
+        firstName: isValidNonEmptyString(tokenResponse.athlete.firstname) ? tokenResponse.athlete.firstname : undefined,
+        lastName: isValidNonEmptyString(tokenResponse.athlete.lastname) ? tokenResponse.athlete.lastname : undefined,
+        bio: isValidNonEmptyString(tokenResponse.athlete.bio) ? tokenResponse.athlete.bio : undefined,
+        city: isValidNonEmptyString(tokenResponse.athlete.city) ? tokenResponse.athlete.city : undefined,
+        state: isValidNonEmptyString(tokenResponse.athlete.state) ? tokenResponse.athlete.state : undefined,
+        country: isValidNonEmptyString(tokenResponse.athlete.country) ? tokenResponse.athlete.country : undefined,
+        avatarUrl: isValidNonEmptyString(tokenResponse.athlete.profile) ? tokenResponse.athlete.profile : undefined,
+      },
     };
 
     return this.userRepository.createOrUpdateByStravaAthleteId(stravaAthleteId, userData);
@@ -38,6 +49,10 @@ export class UserService {
 
   public getUser(userId: string) {
     return this.userRepository.findById(userId);
+  }
+
+  public getUserByStravaAthleteId(stravaAthleteId: string) {
+    return this.userRepository.findByStravaAthleteId(stravaAthleteId);
   }
 
   public async getStravaAccessToken(userId: string) {
@@ -74,6 +89,10 @@ export class UserService {
     this.cacheStravaAccessToken(userId, userData.stravaToken.accessToken, userData.stravaToken.expiresAt);
 
     return userData.stravaToken.accessToken;
+  }
+
+  public updateUser(userId: string, userData: UpdateUserData) {
+    return this.userRepository.updateByIdAndReturn(userId, userData);
   }
 
   private getCachedStravaAccessToken(userId: string) {

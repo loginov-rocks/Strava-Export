@@ -24,6 +24,21 @@ security:
   - webAuthAccess: []
 
 paths:
+  /:
+    get:
+      summary: Healthcheck
+      description: API health check endpoint
+      tags:
+        - Healthcheck
+      responses:
+        200:
+          description: API is healthy
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: OK
+
   /auth/login:
     get:
       summary: Redirect to Strava authorization
@@ -528,6 +543,93 @@ paths:
         500:
           $ref: "#/components/responses/InternalServerError"
 
+  /users/me:
+    get:
+      summary: Get current user profile
+      description: Get profile information for the currently authenticated user
+      tags:
+        - Users
+      security:
+        - webAuthAccess: []
+      responses:
+        200:
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
+    patch:
+      summary: Update current user profile
+      description: Update profile settings for the currently authenticated user
+      tags:
+        - Users
+      security:
+        - webAuthAccess: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                isPublic:
+                  type: boolean
+                  description: Whether the user profile should be public
+              required:
+                - isPublic
+      responses:
+        200:
+          description: User profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
+  /users/{stravaAthleteId}:
+    get:
+      summary: Get user by Strava athlete ID
+      description: Get user profile by Strava athlete ID. Returns public profiles for unauthenticated requests, or any profile for authenticated users who own it.
+      tags:
+        - Users
+      security:
+        - webAuthAccess: []
+        - {}
+      parameters:
+        - name: stravaAthleteId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Strava athlete ID
+      responses:
+        200:
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
 components:
   securitySchemes:
     bearerAuth:
@@ -868,6 +970,54 @@ components:
           description: Error message
       required:
         - message
+
+    User:
+      type: object
+      properties:
+        stravaAthleteId:
+          type: string
+          description: Strava athlete ID
+        isPublic:
+          type: boolean
+          description: Whether the user profile is public
+        firstName:
+          type: string
+          nullable: true
+          description: User's first name
+        lastName:
+          type: string
+          nullable: true
+          description: User's last name
+        bio:
+          type: string
+          nullable: true
+          description: User's biography
+        city:
+          type: string
+          nullable: true
+          description: User's city
+        state:
+          type: string
+          nullable: true
+          description: User's state/province
+        country:
+          type: string
+          nullable: true
+          description: User's country
+        avatarUrl:
+          type: string
+          nullable: true
+          description: URL to user's avatar image
+      required:
+        - stravaAthleteId
+        - isPublic
+        - firstName
+        - lastName
+        - bio
+        - city
+        - state
+        - country
+        - avatarUrl
 
   responses:
     BadRequest:

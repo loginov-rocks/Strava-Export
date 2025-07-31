@@ -1,10 +1,5 @@
 import { ApiClient, Options as ApiClientOptions } from './ApiClient';
 
-interface Options extends ApiClientOptions {
-  clientId: string;
-  clientSecret: string;
-}
-
 // @see https://developers.strava.com/docs/reference/#api-models-SportType
 export type StravaSportType = 'AlpineSki' | 'BackcountrySki' | 'Badminton' | 'Canoeing' | 'Crossfit' | 'EBikeRide'
   | 'Elliptical' | 'EMountainBikeRide' | 'Golf' | 'GravelRide' | 'Handcycle' | 'HighIntensityIntervalTraining' | 'Hike'
@@ -39,6 +34,35 @@ export interface StravaSummaryActivity {
 export interface StravaDetailedActivity extends StravaSummaryActivity {
   description?: string | null;
   calories?: number | null;
+}
+
+interface StravaAthlete {
+  id: number;
+  firstname: string;
+  lastname: string;
+  bio: string;
+  city: string;
+  state: string;
+  country: string;
+  profile: string;
+}
+
+interface StravaTokenResponse {
+  expires_at: number;
+  refresh_token: string;
+  access_token: string;
+  athlete: StravaAthlete;
+}
+
+interface StravaRefreshTokenResponse {
+  expires_at: number;
+  refresh_token: string;
+  access_token: string;
+}
+
+interface Options extends ApiClientOptions {
+  clientId: string;
+  clientSecret: string;
 }
 
 export class StravaApiClient extends ApiClient {
@@ -88,6 +112,20 @@ export class StravaApiClient extends ApiClient {
     return this.request(`/api/v3/activities/${activityId}`, { accessToken });
   }
 
+  public token(code: string): Promise<StravaTokenResponse> {
+    return this.requestToken({
+      grant_type: 'authorization_code',
+      code,
+    });
+  }
+
+  public refreshToken(refreshToken: string): Promise<StravaRefreshTokenResponse> {
+    return this.requestToken({
+      grant_type: 'refresh_token',
+      refresh_token: refreshToken,
+    });
+  }
+
   private requestToken(params: Record<string, string>) {
     return this.request('/api/v3/oauth/token', {
       body: new URLSearchParams({
@@ -99,20 +137,6 @@ export class StravaApiClient extends ApiClient {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       method: 'post',
-    });
-  }
-
-  public token(code: string) {
-    return this.requestToken({
-      grant_type: 'authorization_code',
-      code,
-    });
-  }
-
-  public refreshToken(refreshToken: string) {
-    return this.requestToken({
-      grant_type: 'refresh_token',
-      refresh_token: refreshToken,
     });
   }
 }

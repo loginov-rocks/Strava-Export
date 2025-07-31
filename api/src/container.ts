@@ -18,12 +18,14 @@ import { McpStreamableController } from './controllers/McpStreamableController';
 import { OAuthController } from './controllers/OAuthController';
 import { PatController } from './controllers/PatController';
 import { SyncJobController } from './controllers/SyncJobController';
+import { UserController } from './controllers/UserController';
 import { WebAuthController } from './controllers/WebAuthController';
 
 // DTO Factories.
 import { ActivityDtoFactory } from './dtoFactories/ActivityDtoFactory';
 import { PatDtoFactory } from './dtoFactories/PatDtoFactory';
 import { SyncJobDtoFactory } from './dtoFactories/SyncJobDtoFactory';
+import { UserDtoFactory } from './dtoFactories/UserDtoFactory';
 
 // MCP.
 import { McpServer } from './mcp/McpServer';
@@ -191,6 +193,8 @@ const patDtoFactory = new PatDtoFactory();
 
 const syncJobDtoFactory = new SyncJobDtoFactory();
 
+const userDtoFactory = new UserDtoFactory();
+
 // MCP.
 const mcpServer = new McpServer({
   activityDtoFactory,
@@ -227,6 +231,11 @@ export const patController = new PatController({
 export const syncJobController = new SyncJobController({
   syncJobDtoFactory,
   syncJobService,
+});
+
+export const userController = new UserController({
+  userDtoFactory,
+  userService,
 });
 
 export const webAuthController = new WebAuthController({

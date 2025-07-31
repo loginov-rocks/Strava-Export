@@ -4,6 +4,10 @@ import { UserData, UserDocument, UserModel } from '../models/userModel';
 
 import { BaseRepository } from './BaseRepository';
 
+export interface UpdateUserData {
+  isPublic?: boolean;
+};
+
 interface Options {
   encryptionIv: string;
   encryptionKey: string;
@@ -41,6 +45,10 @@ export class UserRepository extends BaseRepository<UserData, UserDocument> {
     return user;
   }
 
+  public findByStravaAthleteId(stravaAthleteId: string) {
+    return this.model.findOne({ stravaAthleteId });
+  }
+
   public updateById(id: string, userData: Partial<UserData>) {
     const encryptedUserData = JSON.parse(JSON.stringify(userData));
 
@@ -50,6 +58,12 @@ export class UserRepository extends BaseRepository<UserData, UserDocument> {
     }
 
     return super.updateById(id, encryptedUserData);
+  }
+
+  // The method to update and return is separated due to lower performance, and since it's used in less frequent
+  // operations.
+  public updateByIdAndReturn(id: string, userData: UpdateUserData) {
+    return this.model.findByIdAndUpdate(id, userData, { new: true });
   }
 
   private encrypt(text: string): string {

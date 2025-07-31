@@ -9,6 +9,16 @@ export interface UserData {
     refreshToken: string;
     expiresAt: Date;
   };
+  isPublic: boolean;
+  stravaProfile?: {
+    firstName?: string;
+    lastName?: string;
+    bio?: string;
+    city?: string;
+    state?: string;
+    country?: string;
+    avatarUrl?: string;
+  };
 }
 
 export interface UserDocument extends BaseDocument, UserData { }
@@ -35,6 +45,22 @@ const schema = createBaseSchema<UserDocument>({
       },
     },
     required: true,
+  },
+  isPublic: {
+    type: Boolean,
+    required: true,
+  },
+  stravaProfile: {
+    _id: false,
+    type: {
+      firstName: String,
+      lastName: String,
+      bio: String,
+      city: String,
+      state: String,
+      country: String,
+      avatarUrl: String,
+    },
   },
 });
 
