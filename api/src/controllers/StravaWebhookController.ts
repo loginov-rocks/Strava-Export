@@ -18,7 +18,7 @@ export class StravaWebhookController {
   public get(req: Request, res: Response): void {
     console.log('StravaWebhookController.get', JSON.stringify(req.query));
 
-    if (req.query.verify_token !== this.verifyToken) {
+    if (req.query['hub.verify_token'] !== this.verifyToken) {
       res.status(400).send('Bad Request');
     }
 
