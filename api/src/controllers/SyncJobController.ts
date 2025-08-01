@@ -33,8 +33,9 @@ export class SyncJobController {
 
     let refreshLastDays;
     if (req.body && req.body.refreshLastDays) {
-      if (isValidPositiveIntegerString(req.body.refreshLastDays) && parseInt(req.body.refreshLastDays, 10) > 0) {
-        refreshLastDays = parseInt(req.body.refreshLastDays, 10);
+      // TODO: Improve validation.
+      if (isValidPositiveIntegerString(req.body.refreshLastDays.toString()) && req.body.refreshLastDays > 0) {
+        refreshLastDays = req.body.refreshLastDays;
       } else {
         res.status(400).send({ message: 'Bad Request' });
         return;

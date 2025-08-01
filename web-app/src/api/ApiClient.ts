@@ -113,7 +113,42 @@ export class ApiClient {
     return this.request('/auth/logout', { method: 'post' });
   }
 
-  postSyncJob() {
-    return this.request('/sync', { method: 'post' });
+  postSyncJob(data?: { refreshLastDays?: number }) {
+    return this.request('/sync', { 
+      method: 'post',
+      body: data ? JSON.stringify(data) : undefined,
+    });
+  }
+
+  getSyncJob(syncJobId: string) {
+    return this.request(`/sync/${syncJobId}`);
+  }
+
+  getSyncJobs() {
+    return this.request('/sync');
+  }
+
+  getUsersMe() {
+    return this.request('/users/me');
+  }
+
+  patchUsersMe(data: { isPublic: boolean }) {
+    return this.request('/users/me', {
+      body: JSON.stringify(data),
+      method: 'PATCH',
+    });
+  }
+
+  getActivities(params?: { lastWeeks?: number }) {
+    const urlSearchParams = new URLSearchParams();
+    if (params?.lastWeeks) {
+      urlSearchParams.append('lastWeeks', params.lastWeeks.toString());
+    }
+    urlSearchParams.append('sort', 'startDateTime');
+    urlSearchParams.append('order', 'desc');
+    
+    return this.request('/activities', {
+      urlSearchParams,
+    });
   }
 }
