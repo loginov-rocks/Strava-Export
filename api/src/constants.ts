@@ -25,6 +25,8 @@ export const STRAVA_API_BASE_URL = process.env.STRAVA_API_BASE_URL || '';
 export const STRAVA_API_CLIENT_ID = process.env.STRAVA_API_CLIENT_ID || '';
 export const STRAVA_API_CLIENT_SECRET = process.env.STRAVA_API_CLIENT_SECRET || '';
 
+export const STRAVA_WEBHOOK_VERIFY_TOKEN = process.env.STRAVA_WEBHOOK_VERIFY_TOKEN || '';
+
 export const PAT_REPOSITORY_DISPLAY_LENGTH = 8;
 export const PAT_REPOSITORY_TOKEN_PREFIX = 'pat_';
 export const PAT_REPOSITORY_TOKEN_RANDOM_LENGTH = 32;

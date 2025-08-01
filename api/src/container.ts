@@ -2,8 +2,8 @@ import {
   API_BASE_URL, MCP_BASE_URL, OAUTH_ACCESS_TOKEN_EXPIRES_IN, OAUTH_ACCESS_TOKEN_SECRET, OAUTH_REFRESH_TOKEN_EXPIRES_IN,
   OAUTH_REFRESH_TOKEN_SECRET, PAT_REPOSITORY_DISPLAY_LENGTH, PAT_REPOSITORY_TOKEN_PREFIX,
   PAT_REPOSITORY_TOKEN_RANDOM_LENGTH, STRAVA_API_BASE_URL, STRAVA_API_CLIENT_ID, STRAVA_API_CLIENT_SECRET,
-  SYNC_JOB_QUEUE_NAME, USER_REPOSITORY_ENCRYPTION_IV, USER_REPOSITORY_ENCRYPTION_KEY, WEB_APP_BASE_URL,
-  WEB_AUTH_ACCESS_TOKEN_COOKIE_NAME, WEB_AUTH_ACCESS_TOKEN_EXPIRES_IN, WEB_AUTH_ACCESS_TOKEN_SECRET,
+  STRAVA_WEBHOOK_VERIFY_TOKEN, SYNC_JOB_QUEUE_NAME, USER_REPOSITORY_ENCRYPTION_IV, USER_REPOSITORY_ENCRYPTION_KEY,
+  WEB_APP_BASE_URL, WEB_AUTH_ACCESS_TOKEN_COOKIE_NAME, WEB_AUTH_ACCESS_TOKEN_EXPIRES_IN, WEB_AUTH_ACCESS_TOKEN_SECRET,
   WEB_AUTH_REFRESH_TOKEN_COOKIE_NAME, WEB_AUTH_REFRESH_TOKEN_EXPIRES_IN, WEB_AUTH_REFRESH_TOKEN_SECRET,
 } from './constants';
 
@@ -17,6 +17,7 @@ import { McpSseController } from './controllers/McpSseController';
 import { McpStreamableController } from './controllers/McpStreamableController';
 import { OAuthController } from './controllers/OAuthController';
 import { PatController } from './controllers/PatController';
+import { StravaWebhookController } from './controllers/StravaWebhookController';
 import { SyncJobController } from './controllers/SyncJobController';
 import { UserActivitiesController } from './controllers/UserActivitiesController';
 import { UserController } from './controllers/UserController';
@@ -230,6 +231,10 @@ export const oauthController = new OAuthController({
 export const patController = new PatController({
   patDtoFactory,
   patService,
+});
+
+export const stravaWebhookController = new StravaWebhookController({
+  verifyToken: STRAVA_WEBHOOK_VERIFY_TOKEN,
 });
 
 export const syncJobController = new SyncJobController({

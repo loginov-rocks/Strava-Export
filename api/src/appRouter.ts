@@ -2,7 +2,8 @@ import { Router } from 'express';
 
 import {
   activityController, compositeAuthMiddleware, healthcheckController, oauthController, patController,
-  syncJobController, userActivitiesController, userController, webAuthController, webAuthMiddleware,
+  stravaWebhookController, syncJobController, userActivitiesController, userController, webAuthController,
+  webAuthMiddleware,
 } from './container';
 
 export const appRouter = Router();
@@ -68,3 +69,7 @@ appRouter.get('/users/:stravaAthleteId', webAuthMiddleware.optionalAccessToken, 
 // Users Activities.
 appRouter.get('/users/:stravaAthleteId/activities', webAuthMiddleware.optionalAccessToken,
   userActivitiesController.getUserActivities);
+
+// Strava Webhook.
+appRouter.get('/strava-webhook', stravaWebhookController.get);
+appRouter.post('/strava-webhook', stravaWebhookController.post);
