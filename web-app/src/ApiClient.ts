@@ -1,9 +1,23 @@
+interface Options {
+  baseUrl: string;
+}
+
+interface RequestOptions {
+  body?: string;
+  method?: string;
+  urlSearchParams?: URLSearchParams;
+  withoutAuth?: boolean;
+  withoutRefresh?: boolean;
+}
+
 export class ApiClient {
-  constructor({ baseUrl }) {
+  private readonly baseUrl: string;
+
+  constructor({ baseUrl }: Options) {
     this.baseUrl = baseUrl;
   }
 
-  async request(endpoint, options = {}) {
+  async request(endpoint: string, options: RequestOptions = {}): Promise<any> {
     const { urlSearchParams, withoutAuth, withoutRefresh, ...customParams } = options;
 
     const url = `${this.baseUrl}${endpoint}${urlSearchParams ? `?${urlSearchParams.toString()}` : ''}`;
@@ -16,6 +30,7 @@ export class ApiClient {
     };
 
     if (!withoutAuth) {
+      // @ts-ignore
       params.credentials = 'include';
     }
 
@@ -24,6 +39,7 @@ export class ApiClient {
       response = await fetch(url, params);
     } catch (error) {
       console.error(`Failed to fetch "${endpoint}":`, error);
+      // @ts-ignore
       throw new Error(`Failed to fetch "${endpoint}": ${error.message}`);
     }
 
@@ -41,7 +57,9 @@ export class ApiClient {
       }
 
       const error = new Error(`Unsuccessful response from "${endpoint}"`);
+      // @ts-ignore
       error.status = response.status;
+      // @ts-ignore
       error.statusText = response.statusText;
 
       throw error;
@@ -51,6 +69,7 @@ export class ApiClient {
       return isJson ? await response.json() : await response.text();
     } catch (error) {
       console.error(`Failed to parse successful response from "${endpoint}":`, error);
+      // @ts-ignore
       throw new Error(`Failed to parse successful response from "${endpoint}": ${error.message}`);
     }
   }
@@ -59,7 +78,7 @@ export class ApiClient {
     return this.request('/auth/me');
   }
 
-  getAuthStrava(redirectUri, state) {
+  getAuthStrava(redirectUri: string, state?: string) {
     const urlSearchParams = new URLSearchParams({
       redirectUri,
     });
@@ -78,7 +97,7 @@ export class ApiClient {
     return `${this.baseUrl}/auth/login`;
   }
 
-  postAuthToken(code, scope, state) {
+  postAuthToken(code: string, scope: string, state: string) {
     return this.request('/auth/token', {
       body: JSON.stringify({ code, scope, state }),
       method: 'post',
