@@ -41,6 +41,10 @@ export class ActivityRepository extends BaseRepository<ActivityData, ActivityDoc
     return this.model.deleteMany({ userId });
   }
 
+  public findByStravaActivityId(stravaActivityId: string) {
+    return this.model.findOne({ stravaActivityId });
+  }
+
   public findByStravaActivityIds(stravaActivityIds: string[]) {
     return this.model.find({ stravaActivityId: { $in: stravaActivityIds } });
   }

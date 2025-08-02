@@ -62,6 +62,7 @@ import { ActivityService } from './services/ActivityService';
 import { ActivitySyncService } from './services/ActivitySyncService';
 import { OAuthService } from './services/OAuthService';
 import { PatService } from './services/PatService';
+import { StravaWebhookService } from './services/StravaWebhookService';
 import { SyncJobService } from './services/SyncJobService';
 import { TokenService } from './services/TokenService';
 import { UserService } from './services/UserService';
@@ -129,6 +130,12 @@ const userService = new UserService({
 });
 
 const activitySyncService = new ActivitySyncService({
+  activityRepository,
+  stravaApiClient,
+  userService,
+});
+
+const stravaWebhookService = new StravaWebhookService({
   activityRepository,
   stravaApiClient,
   userService,
@@ -234,6 +241,7 @@ export const patController = new PatController({
 });
 
 export const stravaWebhookController = new StravaWebhookController({
+  stravaWebhookService,
   verifyToken: STRAVA_WEBHOOK_VERIFY_TOKEN,
 });
 
