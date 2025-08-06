@@ -1,9 +1,12 @@
 import { SyncJobDocument } from '../models/syncJobModel';
 
+type SyncJobStatus = 'created' | 'started' | 'completed' | 'failed';
+
 interface SyncJobDto {
   id: string;
   userId: string;
-  status: 'created' | 'started' | 'completed' | 'failed';
+  status: SyncJobStatus;
+  createdAt: string;
   startedAt: string | null;
   completedAt: string | null;
   failedAt: string | null;
@@ -20,6 +23,7 @@ export class SyncJobDtoFactory {
       id: syncJob.id,
       userId: syncJob.userId,
       status: syncJob.status,
+      createdAt: syncJob.createdAt.toISOString(),
       startedAt: syncJob.startedAt ? syncJob.startedAt.toISOString() : null,
       completedAt: syncJob.completedAt ? syncJob.completedAt.toISOString() : null,
       failedAt: syncJob.failedAt ? syncJob.failedAt.toISOString() : null,

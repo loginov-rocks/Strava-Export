@@ -1,3 +1,47 @@
+export interface Activity {
+  id: string;
+  name: string;
+  sportType: string;
+  startDateTime: string;
+  distanceKilometers?: number;
+  movingTimeMinutes?: number;
+  averageSpeedKilometersPerHour?: number;
+}
+
+export interface ActivitiesCollection {
+  activitiesCount: number;
+  activities: Activity[];
+}
+
+export type SyncJobStatus = 'created' | 'started' | 'completed' | 'failed';
+
+export interface SyncJob {
+  id: string;
+  userId: string;
+  status: SyncJobStatus;
+  createdAt: string;
+  startedAt: string | null;
+  completedAt: string | null;
+  failedAt: string | null;
+}
+
+export interface SyncJobsCollection {
+  syncJobsCount: number;
+  syncJobs: SyncJob[];
+}
+
+export interface User {
+  stravaAthleteId: string;
+  isPublic: boolean;
+  firstName: string | null;
+  lastName: string | null;
+  bio: string | null;
+  city: string | null;
+  state: string | null;
+  country: string | null;
+  avatarUrl: string | null;
+}
+
 interface Options {
   baseUrl: string;
 }
@@ -17,17 +61,76 @@ export class ApiClient {
     this.baseUrl = baseUrl;
   }
 
-  async request(endpoint: string, options: RequestOptions = {}): Promise<any> {
-    const { urlSearchParams, withoutAuth, withoutRefresh, ...customParams } = options;
+  public getAuthLoginUrl(): string {
+    return `${this.baseUrl}/auth/login`;
+  }
+
+  public getAuthMe() {
+    return this.request('/auth/me');
+  }
+
+  public postAuthLogout() {
+    return this.request('/auth/logout', { method: 'post' });
+  }
+
+  public postSyncJob(params?: { refreshLastDays?: number }): Promise<SyncJob> {
+    return this.request('/sync', {
+      method: 'post',
+      body: params && params.refreshLastDays ? JSON.stringify(params) : undefined,
+    });
+  }
+
+  public getSyncJobs(): Promise<SyncJobsCollection> {
+    return this.request('/sync');
+  }
+
+  public getUsersMe(): Promise<User> {
+    return this.request('/users/me');
+  }
+
+  public patchUsersMe(data: { isPublic: boolean }): Promise<User> {
+    return this.request('/users/me', {
+      body: JSON.stringify(data),
+      method: 'patch',
+    });
+  }
+
+  public getActivities(params?: { lastMonths?: number }): Promise<ActivitiesCollection> {
+    const urlSearchParams = new URLSearchParams();
+    if (params?.lastMonths) {
+      urlSearchParams.append('lastMonths', params.lastMonths.toString());
+    }
+    urlSearchParams.append('sort', 'startDateTime');
+    urlSearchParams.append('order', 'desc');
+
+    return this.request('/activities', {
+      urlSearchParams,
+    });
+  }
+
+  public getUser(stravaAthleteId: string): Promise<User> {
+    return this.request(`/users/${stravaAthleteId}`);
+  }
+
+  private postAuthRefresh() {
+    return this.request('/auth/refresh', { method: 'post', withoutRefresh: true });
+  }
+
+  private async request(endpoint: string, options: RequestOptions = {}): Promise<any> {
+    const { method, urlSearchParams, withoutAuth, withoutRefresh, ...customParams } = options;
 
     const url = `${this.baseUrl}${endpoint}${urlSearchParams ? `?${urlSearchParams.toString()}` : ''}`;
 
-    const params = {
+    const params: Record<string, unknown> = {
       ...customParams,
       headers: {
         'Content-Type': 'application/json',
       },
     };
+
+    if (method) {
+      params.method = method.toUpperCase();
+    }
 
     if (!withoutAuth) {
       // @ts-ignore
@@ -72,83 +175,5 @@ export class ApiClient {
       // @ts-ignore
       throw new Error(`Failed to parse successful response from "${endpoint}": ${error.message}`);
     }
-  }
-
-  getAuthMe() {
-    return this.request('/auth/me');
-  }
-
-  getAuthStrava(redirectUri: string, state?: string) {
-    const urlSearchParams = new URLSearchParams({
-      redirectUri,
-    });
-
-    if (state) {
-      urlSearchParams.append('state', state);
-    }
-
-    return this.request('/auth/strava', {
-      urlSearchParams,
-      withoutAuth: true,
-    });
-  }
-
-  getLoginUrl() {
-    return `${this.baseUrl}/auth/login`;
-  }
-
-  postAuthToken(code: string, scope: string, state: string) {
-    return this.request('/auth/token', {
-      body: JSON.stringify({ code, scope, state }),
-      method: 'post',
-      withoutRefresh: true,
-    });
-  }
-
-  postAuthRefresh() {
-    return this.request('/auth/refresh', { method: 'post', withoutRefresh: true });
-  }
-
-  postAuthLogout() {
-    return this.request('/auth/logout', { method: 'post' });
-  }
-
-  postSyncJob(data?: { refreshLastDays?: number }) {
-    return this.request('/sync', { 
-      method: 'post',
-      body: data ? JSON.stringify(data) : undefined,
-    });
-  }
-
-  getSyncJob(syncJobId: string) {
-    return this.request(`/sync/${syncJobId}`);
-  }
-
-  getSyncJobs() {
-    return this.request('/sync');
-  }
-
-  getUsersMe() {
-    return this.request('/users/me');
-  }
-
-  patchUsersMe(data: { isPublic: boolean }) {
-    return this.request('/users/me', {
-      body: JSON.stringify(data),
-      method: 'PATCH',
-    });
-  }
-
-  getActivities(params?: { lastWeeks?: number }) {
-    const urlSearchParams = new URLSearchParams();
-    if (params?.lastWeeks) {
-      urlSearchParams.append('lastWeeks', params.lastWeeks.toString());
-    }
-    urlSearchParams.append('sort', 'startDateTime');
-    urlSearchParams.append('order', 'desc');
-    
-    return this.request('/activities', {
-      urlSearchParams,
-    });
   }
 }

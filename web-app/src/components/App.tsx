@@ -1,47 +1,38 @@
-import { CircularProgress, CssBaseline, Container, Typography } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { CssBaseline } from '@mui/material';
+import { deepOrange } from '@mui/material/colors';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { BrowserRouter, Route, Routes } from 'react-router';
 
-import api from '../api';
+import { HomePage } from '../pages/HomePage/HomePage';
+import { NotFoundPage } from '../pages/NotFoundPage/NotFoundPage';
+import { UserPage } from '../pages/UserPage/UserPage';
+import { NotificationsProvider } from '../providers/NotificationsProvider';
 
-import { AuthorizedView } from './AuthorizedView';
-import { GuestView } from './GuestView';
+import { NotificationsStack } from './NotificationsStack';
+
+const theme = createTheme({
+  palette: {
+    mode: 'dark',
+    primary: {
+      main: deepOrange[500],
+    },
+  },
+});
 
 export const App = () => {
-  const [isAuthorized, setIsAuthorized] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchAuthMe();
-  }, []);
-
-  const fetchAuthMe = async () => {
-    setLoading(true);
-
-    try {
-      await api.getAuthMe();
-      setIsAuthorized(true);
-    } catch (error) {
-      console.error('Failed to fetch auth me:', error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  const handleLogout = () => {
-    setIsAuthorized(false);
-  }
-
   return (
-    <>
+    <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Container>
-        <Typography component="h1" variant="h4">Stravaholics</Typography>
-        {loading ? (
-          <CircularProgress />
-        ) : (
-          isAuthorized ? <AuthorizedView onLogout={handleLogout} /> : <GuestView />
-        )}
-      </Container>
-    </>
+      <NotificationsProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/:handle" element={<UserPage />} />
+            <Route path="/" element={<HomePage />} />
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </BrowserRouter>
+        <NotificationsStack />
+      </NotificationsProvider>
+    </ThemeProvider>
   );
 };

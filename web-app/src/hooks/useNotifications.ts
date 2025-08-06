@@ -1,32 +1,5 @@
-import { useState } from 'react';
+import { use } from 'react';
 
-interface NotificationState {
-  open: boolean;
-  message: string;
-  severity: 'success' | 'error' | 'warning' | 'info';
-}
+import { NotificationsContext } from '../contexts/NotificationsContext';
 
-export const useNotifications = () => {
-  const [notification, setNotification] = useState<NotificationState>({
-    open: false,
-    message: '',
-    severity: 'info',
-  });
-
-  const showNotification = (
-    message: string,
-    severity: 'success' | 'error' | 'warning' | 'info' = 'info'
-  ) => {
-    setNotification({ open: true, message, severity });
-  };
-
-  const hideNotification = () => {
-    setNotification(prev => ({ ...prev, open: false }));
-  };
-
-  return {
-    notification,
-    showNotification,
-    hideNotification,
-  };
-};
+export const useNotifications = () => use(NotificationsContext);
